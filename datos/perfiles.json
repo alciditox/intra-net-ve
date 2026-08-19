@@ -1,0 +1,125 @@
+{
+  "_nota": "Los 8 perfiles del sistema. base = perfil del que hereda cuando no declara lo suyo.",
+  "perfiles": [
+    {
+      "key": "admin",
+      "label": "Administradora",
+      "base": null
+    },
+    {
+      "key": "director",
+      "label": "Director",
+      "base": "gerente"
+    },
+    {
+      "key": "gerente",
+      "label": "Gerente Ejecutivo",
+      "base": null
+    },
+    {
+      "key": "gerenteop",
+      "label": "Gerente Operativo",
+      "base": "gerente"
+    },
+    {
+      "key": "coordinador",
+      "label": "Coordinador/Supervisor",
+      "base": "interno"
+    },
+    {
+      "key": "rrhh",
+      "label": "Capital Humano",
+      "base": null
+    },
+    {
+      "key": "interno",
+      "label": "Equipo interno",
+      "base": null
+    },
+    {
+      "key": "inces",
+      "label": "Pasante INCES",
+      "base": null
+    }
+  ],
+  "permisos": [
+    {
+      "clave": "procuraVer",
+      "grupo": "Activos y procura",
+      "label": "Ver Procura",
+      "desc": "Entrar al módulo y consultar solicitudes y órdenes."
+    },
+    {
+      "clave": "procuraCrear",
+      "grupo": "Activos y procura",
+      "label": "Crear solicitudes de procura",
+      "desc": "Registrar nuevas solicitudes de compra (no puede aprobarlas)."
+    },
+    {
+      "clave": "procuraAprobar",
+      "grupo": "Activos y procura",
+      "label": "Aprobar / rechazar solicitudes",
+      "desc": "Validar las solicitudes de procura."
+    },
+    {
+      "clave": "procuraOrden",
+      "grupo": "Activos y procura",
+      "label": "Generar órdenes y proveedores",
+      "desc": "Crear órdenes de compra y registrar proveedores."
+    },
+    {
+      "clave": "procuraRecibir",
+      "grupo": "Activos y procura",
+      "label": "Registrar recepción de órdenes",
+      "desc": "Recibir mercancía e ingresarla al inventario."
+    },
+    {
+      "clave": "almacenVer",
+      "grupo": "Almacén y activos",
+      "label": "Ver almacenes y activos",
+      "desc": "Consultar inventario, kardex y activos fijos (solo lectura)."
+    },
+    {
+      "clave": "almacenMover",
+      "grupo": "Almacén y activos",
+      "label": "Registrar movimientos de almacén",
+      "desc": "Entradas, salidas y ajustes de consumibles."
+    },
+    {
+      "clave": "almacenCrear",
+      "grupo": "Almacén y activos",
+      "label": "Crear artículos y reglas",
+      "desc": "Alta y carga masiva de artículos; reglas y reposición."
+    },
+    {
+      "clave": "activosGestionar",
+      "grupo": "Almacén y activos",
+      "label": "Gestionar activos fijos",
+      "desc": "Alta, asignación, devolución, sustitución y baja."
+    },
+    {
+      "clave": "verContratos",
+      "grupo": "Otros módulos",
+      "label": "Ver Contratos",
+      "desc": "Acceso al módulo de control laboral."
+    },
+    {
+      "clave": "verEmpleados",
+      "grupo": "Otros módulos",
+      "label": "Ver Empleados",
+      "desc": "Acceso al listado y perfiles de empleados."
+    },
+    {
+      "clave": "verEncuestas",
+      "grupo": "Otros módulos",
+      "label": "Ver Encuestas",
+      "desc": "Acceso al módulo de encuestas."
+    },
+    {
+      "clave": "notifEquipo",
+      "grupo": "Otros módulos",
+      "label": "Notificaciones del equipo",
+      "desc": "Ver pendientes y solicitudes del equipo que dirige o apoya."
+    }
+  ]
+}

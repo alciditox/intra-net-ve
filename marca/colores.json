@@ -1,0 +1,83 @@
+{
+  "_nota": "Paleta de VEPAGOS para web y aplicativos. Los mismos valores que marca/tokens.css, en formato consumible por herramientas de diseño y por el build.",
+  "version": "1.0",
+  "marca": {
+    "navy":      { "hex": "#001F60", "rgb": [0, 31, 96],    "token": "--navy",      "uso": "Texto principal, títulos, sidebar, superficies oscuras. Color por defecto de todo texto que no sea secundario." },
+    "navy_2":    { "hex": "#012A7C", "rgb": [1, 42, 124],   "token": "--navy-2",    "uso": "Variante clara del navy para degradados." },
+    "navy_deep": { "hex": "#001543", "rgb": [0, 21, 67],    "token": "--navy-deep", "uso": "Final del degradado de sidebar." },
+    "green":     { "hex": "#00CE7C", "rgb": [0, 206, 124],  "token": "--green",     "uso": "CTA primario, estados de éxito, acentos. NUNCA como texto sobre fondo claro." },
+    "green_d":   { "hex": "#00B871", "rgb": [0, 184, 113],  "token": "--green-d",   "uso": "Hover del CTA primario." },
+    "green_dd":  { "hex": "#00874F", "rgb": [0, 135, 79],   "token": "--green-dd",  "uso": "Texto verde sobre fondo claro. Es el único verde legible como texto." }
+  },
+  "neutros": {
+    "ink":          { "hex": "#1B2A4A", "token": "--ink",          "uso": "Texto de aplicativo." },
+    "muted":        { "hex": "#54637E", "token": "--muted",        "uso": "Párrafos y texto secundario." },
+    "muted_2":      { "hex": "#7C8AA0", "token": "--muted-2",      "uso": "Etiquetas, notas al pie, texto de apoyo." },
+    "line":         { "hex": "#E6ECF4", "token": "--line",         "uso": "Borde de tarjetas y separadores principales." },
+    "line_soft":    { "hex": "#EEF3F9", "token": "--line-soft",    "uso": "Separador de filas de tabla. Más claro que el borde de la tarjeta." },
+    "border_input": { "hex": "#DCE4EF", "token": "--border-input", "uso": "Borde de campos de formulario." },
+    "bg":           { "hex": "#F4F7FB", "token": "--bg",           "uso": "Fondo de aplicativo." },
+    "bg_head":      { "hex": "#F8FAFD", "token": "--bg-head",      "uso": "Encabezado y pie de tabla." },
+    "surface":      { "hex": "#FFFFFF", "token": "--surface",      "uso": "Tarjetas y modales." }
+  },
+  "semanticos": {
+    "ok":      { "texto": "#00874F", "fondo": "rgba(0,206,124,.14)", "borde": "rgba(0,206,124,.30)", "uso": "Éxito, activo, aprobado, meta cumplida." },
+    "warn":    { "texto": "#E08600", "fondo": "#FFF6E3",             "borde": "#F5DFB2",             "uso": "Pendiente, en revisión, requiere atención." },
+    "danger":  { "texto": "#B23B3B", "fondo": "#FDF0F0",             "borde": "#F2CACA",             "uso": "Error, rechazado, vencido, incidencia." },
+    "neutral": { "texto": "#5B6B84", "fondo": "#EEF3F9",             "borde": "#DCE4EF",             "uso": "Inactivo, borrador, sin iniciar." }
+  },
+  "degradados": {
+    "dark":  { "css": "linear-gradient(180deg,#001F60 0%,#001543 100%)", "token": "--grad-dark",  "uso": "Sidebar y superficies oscuras. El único permitido en aplicativos." },
+    "brand": { "css": "linear-gradient(135deg,#001F60 0%,#00CE7C 100%)", "token": "--grad-brand", "uso": "Portadas y piezas de captación. No detrás de texto largo." },
+    "navy":  { "css": "linear-gradient(150deg,#001F60,#0a3d8f)",         "token": "--grad-navy",  "uso": "Cápsulas de icono." }
+  },
+  "tipografia": {
+    "familia": "Barlow",
+    "fallback": "system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif",
+    "pesos": [400, 500, 600, 700, 800],
+    "fuente": "https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&display=swap",
+    "escala": {
+      "display":     { "size": "clamp(32px,3.6vw,48px)", "weight": 800, "tracking": "-1.2px", "leading": 1.05 },
+      "seccion":     { "size": "30px", "weight": 800, "tracking": "-0.7px" },
+      "titulo":      { "size": "22px", "weight": 700, "tracking": "-0.3px" },
+      "kpi":         { "size": "30px", "weight": 800, "tracking": "-0.5px" },
+      "subtitulo":   { "size": "17px", "weight": 600 },
+      "cuerpo":      { "size": "15px", "weight": 400, "leading": 1.6 },
+      "celda":       { "size": "14px", "weight": 400 },
+      "apoyo":       { "size": "13px", "weight": 400, "color": "--muted-2" },
+      "etiqueta":    { "size": "11px", "weight": 800, "tracking": "1.4px", "transform": "uppercase" }
+    },
+    "minimos": "12px en pantalla. 11px solo para etiquetas en mayúsculas con tracking. En móvil el cuerpo no baja de 15px."
+  },
+  "forma": {
+    "radios": { "sm": "8px", "md": "10px", "lg": "12px", "xl": "16px", "pill": "999px" },
+    "sombras": {
+      "s1":  { "css": "0 2px 10px rgba(0,31,96,.08)",    "uso": "Header fijo, tarjeta en hover." },
+      "s2":  { "css": "0 12px 24px -14px rgba(0,31,96,.4)", "uso": "Dropdown, tooltip, popover." },
+      "s3":  { "css": "0 18px 40px rgba(0,31,96,.35)",   "uso": "Modales." },
+      "cta": { "css": "0 10px 22px -6px rgba(0,206,124,.7)", "uso": "Solo bajo el CTA principal." }
+    },
+    "espaciado": { "base": 4, "escala": [4, 8, 12, 16, 20, 24, 32, 48, 64] },
+    "tap_minimo": "44px"
+  },
+  "contraste": {
+    "_nota": "Ratios contra blanco o contra navy, según la combinación. AA exige 4.5 para texto normal.",
+    "navy_sobre_blanco":         { "ratio": 15.9, "apto": "todo tamaño" },
+    "blanco_sobre_navy":         { "ratio": 15.9, "apto": "todo tamaño" },
+    "muted_sobre_blanco":        { "ratio": 6.4,  "apto": "todo tamaño" },
+    "green_dd_sobre_blanco":     { "ratio": 4.7,  "apto": "todo tamaño" },
+    "blanco_sobre_green":        { "ratio": 2.1,  "apto": "solo botones ≥16px peso 700" },
+    "green_sobre_blanco":        { "ratio": 1.9,  "apto": "NUNCA para texto" }
+  },
+  "iconos": {
+    "estilo": "trazo, sin relleno",
+    "viewbox": "0 0 24 24",
+    "stroke_width": 2,
+    "linecap": "round",
+    "linejoin": "round",
+    "color": "currentColor",
+    "sprite": "iconos/iconos.svg",
+    "individuales": "iconos/svg/",
+    "total": 26
+  }
+}

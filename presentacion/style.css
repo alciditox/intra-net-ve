@@ -1,0 +1,9 @@
+/* Presentación · Portal Somos VEPAGOS
+   El resto del estilo va en línea en cada lámina, a propósito: así cada
+   lámina es autocontenida y se puede copiar sin arrastrar dependencias. */
+*{box-sizing:border-box}
+body{margin:0;background:#0d1526;font-family:'Barlow',system-ui,sans-serif}
+h1,h2,h3,h4,p,ul,ol,li{margin:0}
+a{color:#001F60;text-decoration:none}
+a:hover{color:#00874f}
+deck-stage:not(:defined){visibility:hidden}

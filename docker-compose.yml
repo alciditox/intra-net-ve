@@ -1,0 +1,88 @@
+# =============================================================
+#  Docker Compose — Portal Somos VEPAGOS
+# =============================================================
+#  Levanta 3 servicios:
+#    1. db         — MySQL 8 (datos persistentes en volumen)
+#    2. phpmyadmin — Administración visual de la BD
+#    3. app        — Backend Express + Frontend estático
+# =============================================================
+#  Uso:
+#    docker compose up -d --build
+#    Abrir http://localhost:3000     → Portal
+#    Abrir http://localhost:8080     → phpMyAdmin
+# =============================================================
+
+services:
+  # ─── MySQL ───────────────────────────────────────────────
+  db:
+    image: mysql:8.0
+    container_name: vepagos-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: vepagos2026
+      MYSQL_DATABASE: intranet_vepagos
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pvepagos2026"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - vepagos-net
+
+  # ─── phpMyAdmin ──────────────────────────────────────────
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: vepagos-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: vepagos2026
+    ports:
+      - "8080:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - vepagos-net
+
+  # ─── Aplicación (Backend + Frontend) ─────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vepagos-app
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: vepagos2026
+      DB_NAME: intranet_vepagos
+      JWT_SECRET: ${JWT_SECRET:-vepagos_intranet_secret_production}
+      PORTAL_PATH: /app/portal
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - vepagos-net
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  vepagos-net:
+    driver: bridge

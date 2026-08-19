@@ -1,0 +1,162 @@
+{
+  "_nota": "Iconos del menú del portal. Trazo 2px, viewBox 24×24, sin relleno, color heredado con currentColor.",
+  "total": 26,
+  "iconos": [
+    {
+      "id": "inicio",
+      "pantalla": "Inicio",
+      "archivo": "svg/inicio.svg",
+      "path": "<path d=\"M3 10.5L12 3l9 7.5\"></path><path d=\"M5 9.5V21h14V9.5\"></path>"
+    },
+    {
+      "id": "metas",
+      "pantalla": "Metas",
+      "archivo": "svg/metas.svg",
+      "path": "<circle cx=\"12\" cy=\"12\" r=\"9\"></circle><circle cx=\"12\" cy=\"12\" r=\"5\"></circle><circle cx=\"12\" cy=\"12\" r=\"1\"></circle>"
+    },
+    {
+      "id": "somos",
+      "pantalla": "Somos VEPAGOS",
+      "archivo": "svg/somos.svg",
+      "path": "<circle cx=\"12\" cy=\"12\" r=\"9\"></circle><path d=\"M12 8h.01\"></path><path d=\"M11 12h1v4h1\"></path>"
+    },
+    {
+      "id": "cultura",
+      "pantalla": "Cultura organizacional",
+      "archivo": "svg/cultura.svg",
+      "path": "<path d=\"M12 21s-7-4.35-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 11c0 5.65-7 10-7 10z\"></path>"
+    },
+    {
+      "id": "docs",
+      "pantalla": "Biblioteca",
+      "archivo": "svg/docs.svg",
+      "path": "<path d=\"M4 19.5A2.5 2.5 0 0 1 6.5 17H20\"></path><path d=\"M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z\"></path>"
+    },
+    {
+      "id": "solicitudes",
+      "pantalla": "Solicitudes",
+      "archivo": "svg/solicitudes.svg",
+      "path": "<path d=\"M22 12h-6l-2 3h-4l-2-3H2\"></path><path d=\"M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z\"></path>"
+    },
+    {
+      "id": "pendientes",
+      "pantalla": "Notificaciones",
+      "archivo": "svg/pendientes.svg",
+      "path": "<path d=\"M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z\"></path><path d=\"M12 9v4M12 17h.01\"></path>"
+    },
+    {
+      "id": "solequipo",
+      "pantalla": "Notificaciones del equipo",
+      "archivo": "svg/solequipo.svg",
+      "path": "<path d=\"M9 11l3 3 8-8\"></path><path d=\"M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9\"></path>"
+    },
+    {
+      "id": "org",
+      "pantalla": "Organigrama",
+      "archivo": "svg/org.svg",
+      "path": "<rect x=\"9\" y=\"2\" width=\"6\" height=\"5\" rx=\"1\"></rect><rect x=\"2\" y=\"17\" width=\"6\" height=\"5\" rx=\"1\"></rect><rect x=\"16\" y=\"17\" width=\"6\" height=\"5\" rx=\"1\"></rect><path d=\"M12 7v5M5 17v-3h14v3\"></path>"
+    },
+    {
+      "id": "directorio",
+      "pantalla": "Directorio",
+      "archivo": "svg/directorio.svg",
+      "path": "<path d=\"M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2\"></path><circle cx=\"9\" cy=\"7\" r=\"4\"></circle><path d=\"M22 21v-2a4 4 0 0 0-3-3.87\"></path><path d=\"M16 3.13a4 4 0 0 1 0 7.75\"></path>"
+    },
+    {
+      "id": "ventasmenu",
+      "pantalla": "Ventas",
+      "archivo": "svg/ventasmenu.svg",
+      "path": "<path d=\"M3 3v18h18\"></path><path d=\"m19 9-5 5-4-4-3 3\"></path>"
+    },
+    {
+      "id": "onboarding",
+      "pantalla": "Inducciones",
+      "archivo": "svg/onboarding.svg",
+      "path": "<path d=\"M22 11.08V12a10 10 0 1 1-5.93-9.14\"></path><path d=\"M22 4L12 14.01l-3-3\"></path>"
+    },
+    {
+      "id": "induccionequipo",
+      "pantalla": "Onboarding del equipo",
+      "archivo": "svg/induccionequipo.svg",
+      "path": "<path d=\"M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2\"></path><circle cx=\"9\" cy=\"7\" r=\"4\"></circle><path d=\"M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75\"></path>"
+    },
+    {
+      "id": "empleados",
+      "pantalla": "Empleados",
+      "archivo": "svg/empleados.svg",
+      "path": "<path d=\"M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z\"></path><path d=\"M14 2v6h6\"></path><path d=\"M9 13h6M9 17h6\"></path>"
+    },
+    {
+      "id": "claves",
+      "pantalla": "Restauración de claves",
+      "archivo": "svg/claves.svg",
+      "path": "<rect x=\"3\" y=\"11\" width=\"18\" height=\"11\" rx=\"2\"></rect><path d=\"M7 11V7a5 5 0 0 1 10 0v4\"></path>"
+    },
+    {
+      "id": "activos",
+      "pantalla": "Activos y procura",
+      "archivo": "svg/activos.svg",
+      "path": "<path d=\"M20 7h-3V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v3H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z\"></path><path d=\"M9 7V4h6v3\"></path>"
+    },
+    {
+      "id": "asistencia",
+      "pantalla": "Asistencia",
+      "archivo": "svg/asistencia.svg",
+      "path": "<rect x=\"3\" y=\"4\" width=\"18\" height=\"18\" rx=\"2\"></rect><path d=\"M8 2v4M16 2v4M3 10h18\"></path><path d=\"m9 16 2 2 4-4\"></path>"
+    },
+    {
+      "id": "encuestas",
+      "pantalla": "Encuestas",
+      "archivo": "svg/encuestas.svg",
+      "path": "<path d=\"M9 11l3 3L22 4\"></path><path d=\"M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11\"></path>"
+    },
+    {
+      "id": "contratos",
+      "pantalla": "Contratos",
+      "archivo": "svg/contratos.svg",
+      "path": "<path d=\"M9 12h6M9 16h6M9 8h6\"></path><path d=\"M5 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z\"></path>"
+    },
+    {
+      "id": "perfiles",
+      "pantalla": "Perfiles",
+      "archivo": "svg/perfiles.svg",
+      "path": "<circle cx=\"9\" cy=\"7\" r=\"4\"></circle><path d=\"M3 21v-1a6 6 0 0 1 12 0v1\"></path><path d=\"M16 11l2 2 4-4\"></path>"
+    },
+    {
+      "id": "requerimientos",
+      "pantalla": "Requerimientos",
+      "archivo": "svg/requerimientos.svg",
+      "path": "<path d=\"M9 11l3 3L22 4\"></path><path d=\"M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11\"></path>"
+    },
+    {
+      "id": "accesos",
+      "pantalla": "Accesos y permisos",
+      "archivo": "svg/accesos.svg",
+      "path": "<rect x=\"3\" y=\"11\" width=\"18\" height=\"11\" rx=\"2\"></rect><path d=\"M7 11V7a5 5 0 0 1 10 0v4\"></path><circle cx=\"12\" cy=\"16\" r=\"1\"></circle>"
+    },
+    {
+      "id": "recursos",
+      "pantalla": "Aplicativos y drives",
+      "archivo": "svg/recursos.svg",
+      "path": "<rect x=\"3\" y=\"3\" width=\"7\" height=\"7\" rx=\"1\"></rect><rect x=\"14\" y=\"3\" width=\"7\" height=\"7\" rx=\"1\"></rect><rect x=\"14\" y=\"14\" width=\"7\" height=\"7\" rx=\"1\"></rect><rect x=\"3\" y=\"14\" width=\"7\" height=\"7\" rx=\"1\"></rect>"
+    },
+    {
+      "id": "perfil",
+      "pantalla": "Mi perfil",
+      "archivo": "svg/perfil.svg",
+      "path": "<circle cx=\"12\" cy=\"8\" r=\"4\"></circle><path d=\"M4 21v-1a8 8 0 0 1 16 0v1\"></path>"
+    },
+    {
+      "id": "eureka",
+      "pantalla": "Eureka",
+      "archivo": "svg/eureka.svg",
+      "path": "<rect x=\"3\" y=\"3\" width=\"7\" height=\"7\" rx=\"1\"></rect><rect x=\"14\" y=\"3\" width=\"7\" height=\"7\" rx=\"1\"></rect><rect x=\"14\" y=\"14\" width=\"7\" height=\"7\" rx=\"1\"></rect><rect x=\"3\" y=\"14\" width=\"7\" height=\"7\" rx=\"1\"></rect>"
+    },
+    {
+      "id": "sac",
+      "pantalla": "SAC",
+      "archivo": "svg/sac.svg",
+      "path": "<path d=\"M3 18v-6a9 9 0 0 1 18 0v6\"></path><path d=\"M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z\"></path>"
+    }
+  ]
+}

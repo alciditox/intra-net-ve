@@ -1,0 +1,2216 @@
+{
+  "_nota": "Mesa de ayuda. Cada tipo hereda el flujo de su departamento salvo que declare flujo propio.",
+  "totales": {
+    "departamentos": 5,
+    "categorias": 23,
+    "tipos": 198
+  },
+  "pasos_aprobacion": [
+    {
+      "clave": "supervisor",
+      "titulo": "Supervisor directo",
+      "dinamico": true
+    },
+    {
+      "clave": "ti",
+      "titulo": "Coordinación de Tecnología",
+      "dinamico": false
+    },
+    {
+      "clave": "sistemas",
+      "titulo": "Gerencia de Sistemas",
+      "dinamico": false
+    },
+    {
+      "clave": "rrhh",
+      "titulo": "Capital Humano",
+      "dinamico": false
+    },
+    {
+      "clave": "nomina",
+      "titulo": "Nómina",
+      "dinamico": false
+    },
+    {
+      "clave": "procura",
+      "titulo": "Procura / Inventario",
+      "dinamico": false
+    },
+    {
+      "clave": "servicios",
+      "titulo": "Administración (Servicios Generales)",
+      "dinamico": false
+    },
+    {
+      "clave": "admin",
+      "titulo": "Dirección General",
+      "dinamico": false
+    }
+  ],
+  "departamentos": [
+    {
+      "id": "tecnologia",
+      "nombre": "Tecnología",
+      "descripcion": "Usuarios de sistemas, hardware, red, telefonía 3CX, VPN, desarrollo y accesos.",
+      "color": "#2A6FDB",
+      "flujo": [
+        "supervisor",
+        "ti"
+      ],
+      "categorias": [
+        {
+          "nombre": "Usuarios de sistemas",
+          "tipos": [
+            {
+              "id": "tecnologia-creacion-de-usuario-de-dominio-red",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-modificacion-de-usuario-de-dominio",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-baja-eliminacion-de-usuario",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-creacion-de-cuenta-de-correo-corporativo",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-modificacion-de-cuenta-de-correo",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-eliminacion-de-cuenta-de-correo",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-restablecimiento-de-contrasena",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-desbloqueo-de-cuenta",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-alta-de-usuario-en-sistema-administrativo",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-modificacion-de-perfil-en-sistema-administ",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-alta-de-usuario-en-crm-comercial",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-baja-de-usuario-en-crm-comercial",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            }
+          ]
+        },
+        {
+          "nombre": "Incidencias de hardware",
+          "tipos": [
+            {
+              "id": "tecnologia-falla-de-computador-de-escritorio",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-falla-de-laptop",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-falla-de-monitor",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-falla-de-teclado-mouse",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-falla-de-impresora",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-configuracion-de-impresora-nueva",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-instalacion-de-equipo-nuevo",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-reemplazo-de-disco-ssd",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-ampliacion-de-memoria-ram",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-falla-de-ups-regulador",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-mantenimiento-preventivo-de-equipo",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-traslado-reubicacion-de-equipo",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            }
+          ]
+        },
+        {
+          "nombre": "Incidencias de red",
+          "tipos": [
+            {
+              "id": "tecnologia-sin-conexion-a-internet",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-internet-lento",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-falla-de-punto-de-red-cableada",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-falla-de-red-wifi",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-configuracion-de-punto-de-red-nuevo",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-falla-de-switch-router",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-configuracion-de-impresora-en-red",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-acceso-a-carpeta-compartida",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-falla-de-servidor-de-archivos",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-caida-de-servicio-interno",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            }
+          ]
+        },
+        {
+          "nombre": "Telefonía 3CX",
+          "tipos": [
+            {
+              "id": "tecnologia-creacion-de-extension-3cx",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-modificacion-de-extension-3cx",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-eliminacion-de-extension-3cx",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-falla-de-llamada-entrante-saliente",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-configuracion-de-softphone",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-configuracion-de-telefono-ip",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-buzon-de-voz-desvio-de-llamadas",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-reporte-de-calidad-de-llamada",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            }
+          ]
+        },
+        {
+          "nombre": "VPN y accesos remotos",
+          "tipos": [
+            {
+              "id": "tecnologia-creacion-de-acceso-vpn",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-modificacion-de-acceso-vpn",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-eliminacion-de-acceso-vpn",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-falla-de-conexion-vpn",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-configuracion-de-escritorio-remoto",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-acceso-remoto-temporal-a-servidor",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            }
+          ]
+        },
+        {
+          "nombre": "Desarrollo de software",
+          "tipos": [
+            {
+              "id": "tecnologia-solicitud-de-nuevo-desarrollo-funcionalida",
+              "flujo": [
+                "supervisor",
+                "ti",
+                "sistemas"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-reporte-de-error-en-aplicacion-interna",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-cambio-mejora-en-aplicacion-interna",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-generacion-de-reporte-a-la-medida",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-integracion-con-sistema-externo-api",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-publicacion-despliegue-a-produccion",
+              "flujo": [
+                "supervisor",
+                "ti",
+                "sistemas"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            }
+          ]
+        },
+        {
+          "nombre": "Gestión de accesos",
+          "tipos": [
+            {
+              "id": "tecnologia-asignacion-de-permisos-a-sistema",
+              "flujo": [
+                "supervisor",
+                "ti",
+                "sistemas"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-revocacion-de-permisos",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-acceso-a-modulo-especifico",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-acceso-a-base-de-datos",
+              "flujo": [
+                "supervisor",
+                "ti",
+                "sistemas"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "tecnologia-auditoria-de-accesos-de-usuario",
+              "flujo": [
+                "supervisor",
+                "ti"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "talento",
+      "nombre": "Talento Humano",
+      "descripcion": "Carnets, permisos, vacaciones, constancias y uniformes por prenda y perfil.",
+      "color": "#1F8A5B",
+      "flujo": [
+        "supervisor",
+        "rrhh"
+      ],
+      "categorias": [
+        {
+          "nombre": "Documentos y carnet",
+          "tipos": [
+            {
+              "id": "talento-carnet-institucional-nuevo",
+              "flujo": [
+                "supervisor",
+                "rrhh"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "talento-reposicion-de-carnet",
+              "flujo": [
+                "supervisor",
+                "rrhh"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "constancia",
+              "flujo": [
+                "supervisor",
+                "rrhh"
+              ],
+              "pide_rango": false,
+              "genera_documento": true,
+              "perfil_prenda": null
+            }
+          ]
+        },
+        {
+          "nombre": "Permisos y vacaciones",
+          "tipos": [
+            {
+              "id": "permiso",
+              "flujo": [
+                "supervisor",
+                "rrhh"
+              ],
+              "pide_rango": true,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "vacaciones",
+              "flujo": [
+                "supervisor",
+                "rrhh"
+              ],
+              "pide_rango": true,
+              "genera_documento": false,
+              "perfil_prenda": null
+            }
+          ]
+        },
+        {
+          "nombre": "Uniformes",
+          "tipos": [
+            {
+              "id": "talento-uniforme-camisa-empleado",
+              "flujo": [
+                "supervisor",
+                "rrhh"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": "empleado"
+            },
+            {
+              "id": "talento-uniforme-camisa-aliado",
+              "flujo": [
+                "supervisor",
+                "rrhh"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": "aliado"
+            },
+            {
+              "id": "talento-uniforme-chaqueta-empleado",
+              "flujo": [
+                "supervisor",
+                "rrhh"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": "empleado"
+            },
+            {
+              "id": "talento-uniforme-chaqueta-aliado",
+              "flujo": [
+                "supervisor",
+                "rrhh"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": "aliado"
+            },
+            {
+              "id": "talento-uniforme-franela-aliado",
+              "flujo": [
+                "supervisor",
+                "rrhh"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": "aliado"
+            },
+            {
+              "id": "talento-uniforme-gorra-aliado",
+              "flujo": [
+                "supervisor",
+                "rrhh"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": "aliado"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "procura",
+      "nombre": "Procura",
+      "descripcion": "Insumos de oficina, limpieza, consumibles, logística, material P.O.P. y eventos.",
+      "color": "#8A5CD1",
+      "flujo": [
+        "supervisor",
+        "procura"
+      ],
+      "categorias": [
+        {
+          "nombre": "Papelería y oficina",
+          "tipos": [
+            {
+              "id": "procura-resma-de-papel-carta",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-resma-de-papel-oficio",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-sobres-blancos",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-sobres-manila",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-carpetas-manila",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-carpetas-de-gancho",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-carpetas-colgantes",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-ganchos-para-carpeta",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-clips",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-grapas",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-engrapadora",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-perforadora",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-tijeras",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-pega-en-barra",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-cinta-adhesiva",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-cinta-de-embalaje",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-dispensador-de-cinta",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-marcadores",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-resaltadores",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-boligrafos",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-lapices",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-borradores",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-sacapuntas",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-corrector-liquido",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-cuadernos",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-libretas",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-blocs-de-notas",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-notas-adhesivas-post-it",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-tacos-de-papel",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-separadores-de-hojas",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-protectores-de-hojas",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-cartuchos-de-tinta",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-toner-de-impresora",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-tabla-portapapeles",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-calculadora",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-regla",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-pizarra-acrilica",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-borrador-de-pizarra",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-archivador-caja",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-sellos-y-almohadillas",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            }
+          ]
+        },
+        {
+          "nombre": "Limpieza y cafetería",
+          "tipos": [
+            {
+              "id": "procura-cafe",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-azucar",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-endulzante",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-filtros-de-cafe",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-vasos-desechables",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-servilletas",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-agua-embotellada",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-te-infusiones",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-tazas",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-cucharillas",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-jabon-de-manos",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-gel-antibacterial",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-papel-toalla",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-papel-higienico",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-bolsas-de-basura",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-desinfectante",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-cloro",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-ambientador",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-guantes-de-limpieza",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-escoba-y-coleto",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            }
+          ]
+        },
+        {
+          "nombre": "Tecnología y consumibles",
+          "tipos": [
+            {
+              "id": "procura-mouse",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-teclado",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-pen-drive-usb",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-cable-hdmi",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-cable-de-red",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-regleta-multitoma",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-baterias-aa-aaa",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-audifonos",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-webcam",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-cargador",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            }
+          ]
+        },
+        {
+          "nombre": "Logística",
+          "tipos": [
+            {
+              "id": "procura-traslado-de-equipos",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-envio-de-encomienda-nacional",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-retiro-de-encomienda",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-contratacion-de-mensajeria",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-movilizacion-de-personal",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-transporte-de-mercancia",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-coordinacion-de-flete",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-retiro-de-material-en-proveedor",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-distribucion-de-material-a-sucursales",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-solicitud-de-vehiculo",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            }
+          ]
+        },
+        {
+          "nombre": "Material P.O.P.",
+          "tipos": [
+            {
+              "id": "procura-volantes",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-afiches",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-pendones-banners",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-tarjetas-de-presentacion",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-brochures",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-stickers-calcomanias",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-roll-up",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-backing-photocall",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-merchandising-boligrafos-llaveros",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-senaletica",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            }
+          ]
+        },
+        {
+          "nombre": "Eventos corporativos",
+          "tipos": [
+            {
+              "id": "procura-solicitud-de-evento-interno",
+              "flujo": [
+                "supervisor",
+                "procura",
+                "admin"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-activacion-comercial",
+              "flujo": [
+                "supervisor",
+                "procura",
+                "admin"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-coffee-break",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-alquiler-de-local-salon",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-catering-refrigerio",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-mobiliario-para-evento",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-sonido-y-audiovisuales",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-decoracion",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-obsequios-corporativos",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "procura-cobertura-fotografica",
+              "flujo": [
+                "supervisor",
+                "procura"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "servicios",
+      "nombre": "Servicios Generales",
+      "descripcion": "Mantenimiento de infraestructura y mobiliario de las oficinas.",
+      "color": "#C9772A",
+      "flujo": [
+        "supervisor",
+        "servicios"
+      ],
+      "categorias": [
+        {
+          "nombre": "Mantenimiento e infraestructura",
+          "tipos": [
+            {
+              "id": "servicios-reparacion-de-aire-acondicionado",
+              "flujo": [
+                "supervisor",
+                "servicios"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "servicios-mantenimiento-de-aire-acondicionado",
+              "flujo": [
+                "supervisor",
+                "servicios"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "servicios-falla-electrica-tomacorriente",
+              "flujo": [
+                "supervisor",
+                "servicios"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "servicios-cambio-de-bombillos-iluminacion",
+              "flujo": [
+                "supervisor",
+                "servicios"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "servicios-reparacion-de-plomeria-filtracion",
+              "flujo": [
+                "supervisor",
+                "servicios"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "servicios-reparacion-de-puerta-cerradura",
+              "flujo": [
+                "supervisor",
+                "servicios"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "servicios-limpieza-profunda-de-area",
+              "flujo": [
+                "supervisor",
+                "servicios"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "servicios-fumigacion-control-de-plagas",
+              "flujo": [
+                "supervisor",
+                "servicios"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "servicios-mantenimiento-general-de-infraestructura",
+              "flujo": [
+                "supervisor",
+                "servicios"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            }
+          ]
+        },
+        {
+          "nombre": "Mobiliario y equipos",
+          "tipos": [
+            {
+              "id": "servicios-reparacion-de-mobiliario-silla-escritorio",
+              "flujo": [
+                "supervisor",
+                "servicios"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "servicios-solicitud-de-mobiliario-nuevo",
+              "flujo": [
+                "supervisor",
+                "servicios"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "servicios-reparacion-de-cafetera-nevera-cocina",
+              "flujo": [
+                "supervisor",
+                "servicios"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "nomina",
+      "nombre": "Nómina",
+      "descripcion": "Tarjetas Todoticket, gestión de personal, vacaciones, descuentos y reportes legales.",
+      "color": "#B23A6E",
+      "flujo": [
+        "supervisor",
+        "nomina"
+      ],
+      "categorias": [
+        {
+          "nombre": "Todoticket",
+          "tipos": [
+            {
+              "id": "nomina-alta-de-tarjeta-todoticket",
+              "flujo": [
+                "supervisor",
+                "nomina"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "nomina-reposicion-de-tarjeta-todoticket",
+              "flujo": [
+                "supervisor",
+                "nomina"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "nomina-bloqueo-de-tarjeta-todoticket",
+              "flujo": [
+                "supervisor",
+                "nomina"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "nomina-reclamo-de-recarga-todoticket",
+              "flujo": [
+                "supervisor",
+                "nomina"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            }
+          ]
+        },
+        {
+          "nombre": "Gestión de personal",
+          "tipos": [
+            {
+              "id": "nomina-alta-de-nuevo-empleado-en-nomina",
+              "flujo": [
+                "supervisor",
+                "rrhh",
+                "nomina"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "nomina-baja-de-empleado-en-nomina",
+              "flujo": [
+                "supervisor",
+                "rrhh",
+                "nomina"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "nomina-modificacion-de-datos-bancarios",
+              "flujo": [
+                "supervisor",
+                "nomina"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "nomina-modificacion-de-salario-cargo",
+              "flujo": [
+                "supervisor",
+                "rrhh",
+                "nomina"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            }
+          ]
+        },
+        {
+          "nombre": "Vacaciones y ausencias",
+          "tipos": [
+            {
+              "id": "nomina-calculo-de-vacaciones",
+              "flujo": [
+                "supervisor",
+                "nomina"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "nomina-registro-de-reposo-medico",
+              "flujo": [
+                "supervisor",
+                "nomina"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "nomina-registro-de-permiso-no-remunerado",
+              "flujo": [
+                "supervisor",
+                "nomina"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            }
+          ]
+        },
+        {
+          "nombre": "Descuentos y beneficios",
+          "tipos": [
+            {
+              "id": "nomina-aplicacion-de-descuento-prestamo-anticipo",
+              "flujo": [
+                "supervisor",
+                "nomina"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "nomina-solicitud-de-adelanto-de-nomina",
+              "flujo": [
+                "supervisor",
+                "nomina"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "nomina-cesta-ticket-bono-de-alimentacion",
+              "flujo": [
+                "supervisor",
+                "nomina"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            }
+          ]
+        },
+        {
+          "nombre": "Reportes legales",
+          "tipos": [
+            {
+              "id": "nomina-constancia-de-retencion-islr",
+              "flujo": [
+                "supervisor",
+                "nomina"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            },
+            {
+              "id": "nomina-reporte-recibo-de-pago",
+              "flujo": [
+                "supervisor",
+                "nomina"
+              ],
+              "pide_rango": false,
+              "genera_documento": false,
+              "perfil_prenda": null
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

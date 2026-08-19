@@ -1,0 +1,44 @@
+/* Manual de marca VEPAGOS · web y aplicativos */
+*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  *{animation-delay:-99s !important;animation-duration:.001s !important;animation-iteration-count:1 !important;animation-fill-mode:both !important;animation-play-state:running !important;transition-duration:0s !important}
+  doc-page:not(:defined){visibility:hidden}
+  body{margin:0;font-family:'Barlow',system-ui,sans-serif;color:#1B2A4A}
+  h1,h2,h3,h4,p,ul,ol{margin:0}
+  code,pre{font-family:'IBM Plex Mono',ui-monospace,monospace}
+  a{color:#001F60;text-decoration:none}
+
+  /* el contenedor de pantalla no manda: la hoja define el ancho */
+  .doc-wrap{max-width:none !important;padding:0 !important;margin:0 !important;width:100%}
+
+  /* nada se desborda ni se recorta */
+  .doc-wrap *{max-width:100%}
+  .doc-wrap img{max-width:100%;height:auto}
+  .doc-wrap pre{white-space:pre-wrap;word-break:break-word;font-size:10px;line-height:1.75;padding:16px 18px}
+  .doc-wrap code{word-break:break-word}
+  .doc-wrap table{table-layout:fixed;width:100%;font-size:11.5px}
+  .doc-wrap th,.doc-wrap td{padding:8px 10px !important;word-break:break-word;vertical-align:middle}
+  .doc-wrap table th:nth-child(1),.doc-wrap table td:nth-child(1){width:33%}
+  .doc-wrap table th:nth-child(2),.doc-wrap table td:nth-child(2){width:25%}
+  .doc-wrap table th:nth-child(3),.doc-wrap table td:nth-child(3){width:16%}
+  .doc-wrap table th:nth-child(4),.doc-wrap table td:nth-child(4){width:26%}
+  .doc-wrap span[style*="border-radius:999px"]{white-space:nowrap !important;font-size:10.5px !important;padding:3px 9px !important}
+
+  /* rejillas: nunca más de dos columnas en una hoja */
+  .doc-wrap [style*="minmax(300px"],.doc-wrap [style*="minmax(280px"],
+  .doc-wrap [style*="minmax(260px"],.doc-wrap [style*="minmax(250px"],
+  .doc-wrap [style*="minmax(240px"],.doc-wrap [style*="minmax(230px"]{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+  .doc-wrap [style*="minmax(216px"],.doc-wrap [style*="minmax(210px"],
+  .doc-wrap [style*="minmax(190px"],.doc-wrap [style*="minmax(168px"],
+  .doc-wrap [style*="minmax(150px"],.doc-wrap [style*="minmax(148px"]{grid-template-columns:repeat(3,minmax(0,1fr)) !important}
+  .doc-wrap nav{grid-template-columns:repeat(3,minmax(0,1fr)) !important}
+  .doc-wrap [style*="1fr 210px"]{grid-template-columns:1fr 150px !important}
+  .doc-wrap [style*="1.2fr 1fr 80px"]{grid-template-columns:1.3fr 1fr 60px !important}
+
+  /* paginación */
+  .doc-wrap > section{break-before:page}
+  .doc-wrap > section:first-of-type{break-before:auto}
+  .doc-wrap > section > div > div,
+  .doc-wrap pre, .doc-wrap img, .doc-wrap tr, .doc-wrap li{break-inside:avoid}
+  .doc-wrap > section > div{break-inside:auto}
+  .doc-wrap h2,.doc-wrap h3,.doc-wrap h4{break-after:avoid}
+  .doc-wrap p,.doc-wrap li{orphans:3;widows:3}

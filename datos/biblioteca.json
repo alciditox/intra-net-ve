@@ -1,0 +1,127 @@
+{
+  "_nota": "Las 10 categorías de la Biblioteca. perfiles = quiénes la ven (se evalúa con herencia). es_personal: cada usuario ve solo los suyos.",
+  "categorias": [
+    {
+      "id": "fichas",
+      "nombre": "Fichas técnicas",
+      "descripcion": "PDF de todos los modelos POS",
+      "perfiles": [
+        "admin",
+        "gerente",
+        "rrhh",
+        "interno",
+        "inces"
+      ],
+      "es_personal": false
+    },
+    {
+      "id": "planes",
+      "nombre": "Planes de servicio",
+      "descripcion": "Planes, tarifas y comisiones",
+      "perfiles": [
+        "admin",
+        "gerente",
+        "rrhh",
+        "interno"
+      ],
+      "es_personal": false
+    },
+    {
+      "id": "presentaciones",
+      "nombre": "Presentaciones",
+      "descripcion": "Material para presentar a clientes",
+      "perfiles": [
+        "admin",
+        "gerente",
+        "rrhh",
+        "interno",
+        "inces"
+      ],
+      "es_personal": false
+    },
+    {
+      "id": "oferta",
+      "nombre": "Oferta comercial",
+      "descripcion": "Ofertas y promociones vigentes",
+      "perfiles": [
+        "admin",
+        "gerente",
+        "rrhh",
+        "interno"
+      ],
+      "es_personal": false
+    },
+    {
+      "id": "contratos",
+      "nombre": "Contratos",
+      "descripcion": "Modelos de contrato con clientes",
+      "perfiles": [
+        "admin",
+        "gerente"
+      ],
+      "es_personal": false
+    },
+    {
+      "id": "rrhh",
+      "nombre": "Capital humano",
+      "descripcion": "Manuales y formatos internos",
+      "perfiles": [
+        "admin",
+        "rrhh",
+        "gerente",
+        "interno"
+      ],
+      "es_personal": false
+    },
+    {
+      "id": "captaciones",
+      "nombre": "Captaciones",
+      "descripcion": "Manual de contratación, perfiles de vacantes, guías de búsqueda y piezas de difusión del proceso de reclutamiento.",
+      "perfiles": [
+        "admin",
+        "rrhh",
+        "gerente",
+        "director"
+      ],
+      "es_personal": false
+    },
+    {
+      "id": "marca",
+      "nombre": "Marca",
+      "descripcion": "Logos y recursos gráficos",
+      "perfiles": [
+        "admin",
+        "gerente",
+        "rrhh",
+        "interno"
+      ],
+      "es_personal": false
+    },
+    {
+      "id": "prompts",
+      "nombre": "Prompts para IA",
+      "descripcion": "Prompts listos para usar con asistentes de IA (ventas, soporte, redacción y más). Cópialos y pégalos.",
+      "perfiles": [
+        "admin",
+        "gerente",
+        "rrhh",
+        "interno",
+        "inces"
+      ],
+      "es_personal": false
+    },
+    {
+      "id": "personales",
+      "nombre": "Mis documentos",
+      "descripcion": "Documentos privados que usas a diario y que solo te corresponden a ti. Nadie más puede verlos: constancias, aprobaciones y soportes emitidos por Capital Humano.",
+      "perfiles": [
+        "admin",
+        "gerente",
+        "rrhh",
+        "interno",
+        "inces"
+      ],
+      "es_personal": true
+    }
+  ]
+}

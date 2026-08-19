@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es-VE">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/x-icon" href="favicon.ico?v=8">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=8">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png?v=8">
+<title>Somos VEPAGOS · Portal interno</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#001F60">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div class="lg" id="viewLogin">
+  <div class="lg-side">
+    <a href="/" class="lg-back" aria-label="Volver al sitio">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg>
+      <span>Volver al inicio</span>
+    </a>
+    <img src="assets/marca/logo-blanco-tag.png" alt="VEPAGOS">
+    <h1>Portal Somos <span class="g">VEPAGOS</span></h1>
+    <p>Hacemos crecer tu negocio.</p>
+  </div>
+  <div class="lg-main">
+    <div class="lg-card" id="loginCard">
+      <h2>Inicia sesión</h2>
+      <p>Accede con tu correo corporativo.</p>
+      <form id="loginForm">
+        <div class="fld"><label for="lgCedula">Cédula</label><div style="display:flex;gap:8px"><span style="display:flex;align-items:center;justify-content:center;min-width:44px;border:1.5px solid #D9E2EF;border-radius:10px;background:#F1F5FB;color:var(--navy);font-weight:700">V-</span><input id="lgCedula" type="text" inputmode="numeric" placeholder="12345678" required style="flex:1"></div></div>
+        <div class="fld"><label for="lgEmail">Correo</label><input id="lgEmail" type="email" placeholder="tucorreo@somosvepagos.com" required></div>
+        <div class="fld"><label for="lgPass">Contraseña</label><input id="lgPass" type="password" placeholder="••••••••" required></div>
+        <div class="lg-err" id="lgErr">Correo o contraseña incorrectos.</div>
+        <button type="submit" class="btn-p">Entrar</button>
+      </form>
+      <div style="text-align:center;margin-top:12px"><a href="#" id="lgForgot" style="font-size:13.5px;font-weight:700;color:var(--navy)">¿Olvidaste tu contraseña?</a></div>
+      <div class="lg-demo">
+        <div class="t">Acceso rápido (demo)</div>
+        <div class="lg-roles" id="lgRoles"></div>
+      </div>
+      <div class="lg-alt" style="display:none">¿Quieres unirte a la fuerza de ventas? <a href="#" id="goApply">Postúlate aquí</a></div>
+    </div>
+
+    <div class="lg-card hidden" id="applyCard">
+      <h2>Postúlate a la fuerza de ventas</h2>
+      <p>Crea tu cuenta de candidato. Tu onboarding y entrenamiento serán por esta vía.</p>
+      <form id="applyForm">
+        <div class="grid g2" style="gap:12px">
+          <div class="fld"><label>Nombre</label><input id="apNombre" type="text" required placeholder="Tu nombre"></div>
+          <div class="fld"><label>Apellido</label><input id="apApellido" type="text" required placeholder="Tu apellido"></div>
+        </div>
+        <div class="fld"><label>Correo electrónico</label><input id="apEmail" type="email" required placeholder="tucorreo@ejemplo.com"></div>
+        <div class="grid g2" style="gap:12px">
+          <div class="fld"><label>Teléfono / WhatsApp</label><input id="apTel" type="tel" required placeholder="0424 000 0000"></div>
+          <div class="fld"><label>Ciudad</label><input id="apCiudad" type="text" required placeholder="Ej: Valencia"></div>
+        </div>
+        <div class="fld"><label>LinkedIn</label><input id="apLinkedin" type="url" required placeholder="https://www.linkedin.com/in/tuperfil"></div>
+        <div class="fld"><label>Experiencia en ventas</label>
+          <select id="apExp" required><option value="" disabled selected>Selecciona</option><option>Menos de 1 año</option><option>1 a 3 años</option><option>3 a 5 años</option><option>Más de 5 años</option></select>
+        </div>
+        <div class="fld"><label>Contraseña</label><input id="apPass" type="password" required minlength="6" placeholder="Mínimo 6 caracteres"></div>
+        <button type="submit" class="btn-p">Crear mi cuenta y postularme</button>
+      </form>
+      <div class="lg-alt"><a href="#" id="goLogin">← Volver a iniciar sesión</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div class="app" id="viewApp">
+  <aside class="sb" id="sidebar">
+    <div class="sb-logo"><img src="assets/marca/logo-blanco.png" alt="VEPAGOS"></div>
+    <nav class="sb-nav" id="sbNav"></nav>
+    <div class="sb-user">
+      <div class="avatar" id="meAvatar"></div>
+      <div><div class="n" id="meNombre"></div><div class="r" id="meRol"></div></div>
+      <button class="sb-out" id="btnLogout" title="Cerrar sesión"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><path d="M16 17l5-5-5-5"></path><path d="M21 12H9"></path></svg></button>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="topbar">
+      <button class="burger-app" id="burgerApp" aria-label="Abrir menú"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg></button>
+      <h1 id="pageTitle">Inicio</h1>
+      <span class="sp"></span>
+      <span class="rolepill" id="pillRol"></span>
+    </div>
+    <div id="content"></div>
+  </main>
+</div>
+
+<div id="modalHost"></div>
+<div id="toast"></div>
+
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script src="api.js"></script>
+<script src="data.js"></script>
+<script src="tickets.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

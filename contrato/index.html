@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portal Somos VEPAGOS · Contrato de datos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <span class="eyebrow"><span class="dot"></span>Contrato de datos para desarrollo</span>
+    <h1>Portal Somos VEPAGOS<br>esquema y endpoints</h1>
+    <p class="lede">Las entidades que hay que crear y los endpoints que el portal espera consumir. Está derivado del prototipo funcional: los nombres de campo y los valores de enumeración son los que la interfaz ya usa. Respetarlos ahorra una capa de traducción.</p>
+    <div class="grid g4" style="margin-top:28px">
+      <div class="kpi"><span class="k">Entidades</span><span class="v" id="kEnt">—</span><span class="s">tablas a modelar</span></div>
+      <div class="kpi"><span class="k">Campos</span><span class="v" id="kCam">—</span><span class="s">documentados</span></div>
+      <div class="kpi"><span class="k">Endpoints</span><span class="v" id="kEnd">—</span><span class="s">en <span id="kGru">—</span> grupos</span></div>
+      <div class="kpi"><span class="k">Perfiles</span><span class="v">8</span><span class="s">con herencia</span></div>
+    </div>
+  </header>
+
+  <nav class="toc">
+    <a href="#reglas"><span>01</span> &nbsp;Reglas que no se negocian</a>
+    <a href="#permisos"><span>02</span> &nbsp;Resolución de accesos</a>
+    <a href="#esquema"><span>03</span> &nbsp;Esquema de entidades</a>
+    <a href="#endpoints"><span>04</span> &nbsp;Endpoints REST</a>
+    <a href="#formatos"><span>05</span> &nbsp;Formatos y convenciones</a>
+    <a href="#pendientes"><span>06</span> &nbsp;Pendientes por definir</a>
+  </nav>
+
+  <!-- 01 -->
+  <section id="reglas">
+    <div class="sec-h"><span class="n">01</span><h2>Reglas que no se negocian</h2></div>
+    <p class="sub">Seis comportamientos que el prototipo ya tiene y que el backend debe replicar exactamente. Si alguno se implementa distinto, la interfaz deja de cuadrar con la API.</p>
+    <div class="grid g2">
+      <div class="card">
+        <div class="t">1 · El perfil nunca se evalúa solo</div>
+        <p>Antes de decidir un acceso se resuelve la <strong>cadena</strong> del perfil: el propio más los que hereda por <code>base_key</code>, subiendo hasta seis niveles y descartando repetidos. Si cualquier eslabón tiene el acceso, el usuario lo tiene. Un endpoint que compare <code>perfil === 'gerente'</code> rechaza al Director.</p>
+      </div>
+      <div class="card">
+        <div class="t">2 · Los equipos se calculan, no se guardan</div>
+        <p>El equipo de una persona se obtiene subiendo por <code>supervisor_id</code> hasta la primera con <code>es_ancla_equipo</code>. Tope de veinte niveles. Guardarlo como columna lo desincroniza en el primer cambio de estructura. Quien está por encima de toda ancla queda sin equipo: es correcto.</p>
+      </div>
+      <div class="card">
+        <div class="t">3 · Los requerimientos heredan de «General»</div>
+        <p>Si un perfil no define su lista para un área de onboarding, usa la de <code>General</code>. Una lista vacía significa «lo mismo que General», <strong>no</strong> «nada que entregar». La respuesta del endpoint debe distinguir lo propio de lo heredado.</p>
+      </div>
+      <div class="card">
+        <div class="t">4 · La cadena de aprobación es un snapshot</div>
+        <p>Al crear la solicitud se resuelve el aprobador de cada paso y se guarda en <code>cadena</code>. Si después la persona cambia de jefe, la solicitud abierta conserva su aprobador original. No recalcular sobre solicitudes en curso.</p>
+      </div>
+      <div class="card">
+        <div class="t">5 · Nadie se borra</div>
+        <p>Desincorporar es <code>activo = false</code>. La persona sale del organigrama, del directorio y de las audiencias de encuesta, pero su expediente, historial y documentos se conservan. El borrado físico de un usuario no debe existir en la aplicación.</p>
+      </div>
+      <div class="card">
+        <div class="t">6 · Los permisos solo suman</div>
+        <p>Los permisos individuales se otorgan por encima del perfil. No existe un permiso negativo que quite lo que el perfil concede. Para restringir a alguien se le cambia el perfil, no se le resta un permiso.</p>
+      </div>
+    </div>
+    <div class="note bad">
+      <span class="k">Crítico</span>
+      <p>Hoy los accesos se resuelven en el navegador. Ocultar un ítem de menú <strong>no es seguridad</strong>: cada endpoint tiene que volver a evaluar el acceso del lado del servidor antes de responder. Es el primer punto a cerrar antes de producción.</p>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section id="permisos">
+    <div class="sec-h"><span class="n">02</span><h2>Resolución de accesos</h2></div>
+    <p class="sub">El orden exacto en que se decide si alguien puede abrir una pantalla. Se evalúa en secuencia y se detiene en el primer sí.</p>
+    <div class="ent">
+      <table>
+        <thead><tr><th style="width:70px">Paso</th><th style="width:280px">Se pregunta</th><th>Detalle</th></tr></thead>
+        <tbody>
+          <tr><td class="f">1</td><td class="no"><strong>¿Permiso individual?</strong></td><td class="no">¿La persona tiene ese permiso concedido directamente en <code>permisos_usuario</code>? Si sí, entra.</td></tr>
+          <tr><td class="f">2</td><td class="no"><strong>¿Alguno de sus perfiles?</strong></td><td class="no">Se recorre la cadena de herencia. Si algún perfil de la cadena tiene el permiso activo, entra.</td></tr>
+          <tr><td class="f">3</td><td class="no"><strong>¿Está en la lista de menús?</strong></td><td class="no">Si el perfil declara <code>menus</code>, esa lista manda. <code>inicio</code> y <code>perfil</code> siempre pasan, estén o no.</td></tr>
+          <tr><td class="f">4</td><td class="no"><strong>¿Los perfiles de la pantalla?</strong></td><td class="no">Si el perfil no declara menús, se compara <code>pantallas.perfiles</code> contra la cadena del usuario.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h4 class="lbl">Dos condiciones que no dependen del perfil</h4>
+    <div class="grid g2">
+      <div class="card">
+        <div class="t">Es aprobador de algún paso</div>
+        <p>Si la persona está asignada como responsable en <code>pasos_aprobacion</code>, se le habilitan las bandejas de aprobación aunque su perfil no las traiga.</p>
+      </div>
+      <div class="card">
+        <div class="t">Tiene reportes directos</div>
+        <p>Quien tiene al menos una persona activa con <code>supervisor_id</code> apuntándole cuenta como supervisor para las vistas de equipo, sin importar su perfil.</p>
+      </div>
+    </div>
+    <h4 class="lbl">Los 8 perfiles y su herencia</h4>
+    <div class="ent">
+      <table>
+        <thead><tr><th style="width:150px">Clave</th><th style="width:240px">Etiqueta</th><th style="width:200px">Hereda de</th><th>Alcance</th></tr></thead>
+        <tbody>
+          <tr><td class="f">admin</td><td class="no"><strong>Administradora</strong></td><td class="ty">—</td><td class="no">Todo el portal, incluida la configuración. Único que ve Perfiles, Requerimientos, Accesos y Aplicativos.</td></tr>
+          <tr><td class="f">director</td><td class="no"><strong>Director</strong></td><td class="ty">gerente</td><td class="no">Un nivel por encima del Gerente Ejecutivo en la empresa; usa su misma lista de accesos.</td></tr>
+          <tr><td class="f">gerente</td><td class="no"><strong>Gerente Ejecutivo</strong></td><td class="ty">—</td><td class="no">Metas, organigrama, directorio, ventas, contratos y notificaciones de su equipo.</td></tr>
+          <tr><td class="f">gerenteop</td><td class="no"><strong>Gerente Operativo</strong></td><td class="ty">gerente</td><td class="no">Un nivel por debajo del Gerente Ejecutivo; usa su misma lista de accesos.</td></tr>
+          <tr><td class="f">coordinador</td><td class="no"><strong>Coordinador / Supervisor</strong></td><td class="ty">interno</td><td class="no">Aparece como aprobador en la cadena de solicitudes de su gente.</td></tr>
+          <tr><td class="f">rrhh</td><td class="no"><strong>Capital Humano</strong></td><td class="ty">—</td><td class="no">Empleados, claves, activos, encuestas, contratos y onboarding del equipo. No ve configuración.</td></tr>
+          <tr><td class="f">interno</td><td class="no"><strong>Equipo interno</strong></td><td class="ty">—</td><td class="no">Solo el grupo Personal más Asistencia. Es el perfil de la mayoría de la nómina.</td></tr>
+          <tr><td class="f">inces</td><td class="no"><strong>Pasante INCES</strong></td><td class="ty">—</td><td class="no">Acceso reducido, con su propia ruta de inducción. Sí aparece en el organigrama.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <h4 class="lbl">Los 13 permisos granulares</h4>
+    <div class="ent">
+      <table>
+        <thead><tr><th style="width:230px">Clave</th><th style="width:210px">Grupo</th><th>Qué habilita</th></tr></thead>
+        <tbody>
+          <tr><td class="f">procuraVer</td><td class="no">Activos y procura</td><td class="no">Entrar al módulo y consultar solicitudes y órdenes.</td></tr>
+          <tr><td class="f">procuraCrear</td><td class="no">Activos y procura</td><td class="no">Registrar solicitudes de compra. No puede aprobarlas.</td></tr>
+          <tr><td class="f">procuraAprobar</td><td class="no">Activos y procura</td><td class="no">Aprobar o rechazar solicitudes de compra.</td></tr>
+          <tr><td class="f">procuraOrden</td><td class="no">Activos y procura</td><td class="no">Crear órdenes de compra y registrar proveedores.</td></tr>
+          <tr><td class="f">procuraRecibir</td><td class="no">Activos y procura</td><td class="no">Registrar recepción de mercancía e ingresarla al inventario.</td></tr>
+          <tr><td class="f">almacenVer</td><td class="no">Almacén y activos</td><td class="no">Consultar inventario, kardex y activos fijos. Solo lectura.</td></tr>
+          <tr><td class="f">almacenMover</td><td class="no">Almacén y activos</td><td class="no">Entradas, salidas y ajustes de consumibles.</td></tr>
+          <tr><td class="f">almacenCrear</td><td class="no">Almacén y activos</td><td class="no">Alta y carga masiva de artículos; reglas de stock y reposición.</td></tr>
+          <tr><td class="f">activosGestionar</td><td class="no">Almacén y activos</td><td class="no">Alta, asignación, devolución, sustitución y baja de activos.</td></tr>
+          <tr><td class="f">verContratos</td><td class="no">Otros módulos</td><td class="no">Acceso al módulo de control laboral.</td></tr>
+          <tr><td class="f">verEmpleados</td><td class="no">Otros módulos</td><td class="no">Acceso al listado y perfiles de empleados.</td></tr>
+          <tr><td class="f">verEncuestas</td><td class="no">Otros módulos</td><td class="no">Acceso al módulo de encuestas.</td></tr>
+          <tr><td class="f">notifEquipo</td><td class="no">Otros módulos</td><td class="no">Ver pendientes y solicitudes del equipo que dirige o apoya.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note ok">
+      <span class="k">Nota</span>
+      <p>Un permiso concedido hace aparecer el ítem de menú asociado aunque el perfil no lo traiga. Por eso <code>/api/me/menu</code> debe calcularse con los cuatro pasos y no con una tabla estática por perfil.</p>
+    </div>
+  </section>
+
+  <!-- 03 -->
+  <section id="esquema">
+    <div class="sec-h"><span class="n">03</span><h2>Esquema de entidades</h2></div>
+    <p class="sub">Los nombres de campo y los valores de enumeración son los que la interfaz ya usa. Los campos marcados como <strong>derivado</strong> se calculan al leer; no deben existir como columna editable.</p>
+    <div id="schema"></div>
+  </section>
+
+  <!-- 04 -->
+  <section id="endpoints">
+    <div class="sec-h"><span class="n">04</span><h2>Endpoints REST</h2></div>
+    <p class="sub">Todos bajo autenticación, salvo el login. Cada uno debe re-verificar el acceso del usuario en sesión con los cuatro pasos de la sección 02, sin confiar en lo que el cliente pida.</p>
+    <div id="endpoints"></div>
+  </section>
+
+  <!-- 05 -->
+  <section id="formatos">
+    <div class="sec-h"><span class="n">05</span><h2>Formatos y convenciones</h2></div>
+    <div class="grid g3">
+      <div class="card">
+        <div class="t">Fechas y horas</div>
+        <p>La API viaja en <strong>ISO 8601</strong> con zona. La interfaz formatea a <code>dd/mm/aaaa</code> y hora de 12 h con a.m. y p.m., con meses en español. El campo <code>cumple</code> es la excepción: <code>MM-DD</code>, sin año.</p>
+      </div>
+      <div class="card">
+        <div class="t">Números y moneda</div>
+        <p>La API viaja con punto decimal. La interfaz muestra miles con punto y decimal con coma: <strong>1.248,50</strong>. Bolívares como «Bs.» y dólares como «$».</p>
+      </div>
+      <div class="card">
+        <div class="t">Enumeraciones</div>
+        <p>Cerradas. Cualquier valor fuera de las listas de este documento es un dato inválido y debe rechazarse en el borde, no normalizarse en silencio.</p>
+      </div>
+      <div class="card">
+        <div class="t">Errores</div>
+        <p>El mensaje describe la acción correctiva, no el fallo: «El RIF debe tener 9 dígitos», no «Valor inválido». Los errores de campo vuelven asociados a su campo para pintarlos junto al input.</p>
+      </div>
+      <div class="card">
+        <div class="t">Paginación</div>
+        <p>Los listados de personas, solicitudes, documentos, activos y movimientos deben paginar. El prototipo trae todo de golpe porque el set es pequeño; con datos reales no escala.</p>
+      </div>
+      <div class="card">
+        <div class="t">Auditoría</div>
+        <p>Toda acción relevante escribe en <code>historial_actividad</code> con actor y timestamp: completar inducción, responder encuesta, aprobar solicitud, reiniciar clave, mover almacén.</p>
+      </div>
+    </div>
+    <h4 class="lbl">Forma esperada de <code>/api/me</code></h4>
+    <pre>{
+  "usuario": {
+    "id": 10, "nombre": "Antonio Palermo", "cargo": "Director Comercial",
+    "area": "Comercial", "email": "antonio.palermo@somosvepagos.com",
+    "perfil": { "key": "director", "label": "Director" },
+    "supervisor_id": 1,
+    "equipo": null                    // derivado; null si está por encima de toda ancla
+  },
+  "cadena_perfiles": ["director", "gerente"],   // resultado de la herencia
+  "permisos": ["notifEquipo"],                  // efectivos: perfil + individuales
+  "menu": ["inicio","metas","metas2026","metasvision","metashist","somos",
+           "cultura","docs","solicitudes","pendientes","onboarding","perfil",
+           "solequipo","org","directorio","ventasmenu","ventasfv","ventasbancos",
+           "asistencia","contratos"],
+  "es_aprobador": false,
+  "tiene_reportes": true
+}</pre>
+    <div class="note">
+      <span class="k">Ojo</span>
+      <p><code>cadena_perfiles</code> y <code>menu</code> vienen resueltos por el servidor. El cliente no debe recalcularlos: si los recalcula, vuelve a existir la posibilidad de que difieran de lo que la API autoriza.</p>
+    </div>
+  </section>
+
+  <!-- 06 -->
+  <section id="pendientes">
+    <div class="sec-h"><span class="n">06</span><h2>Pendientes por definir</h2></div>
+    <p class="sub">Puntos abiertos que conviene cerrar antes de empezar la entidad correspondiente. Cada uno detiene una parte del desarrollo.</p>
+    <div class="grid g3">
+      <div class="card"><div class="t">Autenticación real</div><p>El prototipo usa una clave compartida de demostración. Falta definir el mecanismo: directorio corporativo, correo, o clave propia del portal con su política de vigencia.</p></div>
+      <div class="card"><div class="t">Permisos en el servidor</div><p>Replicar los cuatro pasos en cada endpoint y decidir si el menú se sirve calculado desde la API. Es el punto crítico.</p></div>
+      <div class="card"><div class="t">Sesión con Eureka y SAC</div><p>Los dos enlaces externos abren su propio login. Falta definir si comparten sesión con el portal.</p></div>
+      <div class="card"><div class="t">Notificaciones por correo</div><p>Qué eventos disparan correo (solicitud creada, aprobada, rechazada) y a quién le llega cada uno.</p></div>
+      <div class="card"><div class="t">Tiempos de atención</div><p>Si hay tiempo de respuesta esperado por prioridad y qué ocurre cuando se vence.</p></div>
+      <div class="card"><div class="t">Suplencia de aprobadores</div><p>Qué pasa cuando el responsable de un paso está de vacaciones o sale de la empresa con solicitudes abiertas a su nombre.</p></div>
+      <div class="card"><div class="t">Almacenamiento de archivos</div><p>Dónde viven los documentos, con qué límite de tamaño, y cómo se impide que un documento personal sea accesible por URL adivinable.</p></div>
+      <div class="card"><div class="t">Anonimato de encuestas</div><p>Clima laboral se anuncia como anónima pero la respuesta guarda el <code>usuario_id</code>. Decidir si se disocia al guardar o si el anonimato es solo frente al equipo.</p></div>
+      <div class="card"><div class="t">Organigrama definitivo</div><p>El cargado hoy es un set de prueba con errores conocidos. Falta la estructura validada por Capital Humano y definir si el sistema de nómina es la fuente de verdad del supervisor.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <div>
+      <img src="../marca/assets/marca/logo-color.png" alt="VEPAGOS" style="height:24px;width:auto;display:block">
+      <div style="margin-top:10px">Portal Somos VEPAGOS · contrato de datos v1.0</div>
+      <div style="margin-top:3px">Consultora Alca, C.A. · RIF J-411024449</div>
+    </div>
+    <div style="text-align:right;max-width:340px;line-height:1.6">Ante cualquier caso no cubierto por este documento, consultar antes de implementar. Una excepción no documentada se convierte en deuda técnica.</div>
+  </footer>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

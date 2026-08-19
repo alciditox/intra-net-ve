@@ -1,0 +1,138 @@
+{
+  "_nota": "Modelos POS que muestra la pantalla Somos VEPAGOS, con sus fichas técnicas.",
+  "_rutas": "Las rutas de imagen y ficha son relativas a la raíz del portal. Los archivos están en ../portal/assets/productos/ y ../portal/fichas/.",
+  "modelos": [
+    {
+      "name": "Mini",
+      "tag": "Más ligero",
+      "sub": "Portátil y ligero para delivery.",
+      "bullets": [
+        "Android 9.0 · NFC",
+        "4.0\" táctil · Sin impresora",
+        "222 g · Wi-Fi · 4G · 2500 mAh"
+      ],
+      "sw": "credicard",
+      "img": "assets/productos/norm-mini-front-new.png"
+    },
+    {
+      "name": "Plus",
+      "tag": "Mostrador estable",
+      "sub": "Teclado físico e impresora integrada.",
+      "bullets": [
+        "Android 13 · NFC",
+        "Teclado + impresora 58 mm",
+        "Wi-Fi 5GHz · 4G · 5200 mAh"
+      ],
+      "sw": "credicard",
+      "img": "assets/productos/norm-plus-front-new.png"
+    },
+    {
+      "name": "Pro",
+      "tag": "Más potente",
+      "sub": "Pantalla grande y alto rendimiento.",
+      "bullets": [
+        "Android 12 · NFC + chip",
+        "Pantalla 5.5\" HD · Impresora",
+        "Wi-Fi 5GHz · 4G · 5200 mAh"
+      ],
+      "sw": "credicard",
+      "img": "assets/productos/norm-pro-front-new.png"
+    },
+    {
+      "name": "Q2",
+      "tag": "Smart POS",
+      "sub": "Smart POS Android con impresora.",
+      "bullets": [
+        "Android 5.X · NFC",
+        "5.5\" HD · Impresora",
+        "415 g · Wi-Fi · 4G/3G"
+      ],
+      "sw": "credicard",
+      "img": "assets/productos/norm-q2-front.png"
+    },
+    {
+      "name": "Q3",
+      "tag": "POS portátil",
+      "sub": "POS portátil ultraligero.",
+      "bullets": [
+        "Snapdragon · NFC",
+        "Sin impresora",
+        "205 g · Wi-Fi · 4G/3G"
+      ],
+      "sw": "credicard",
+      "img": "assets/productos/norm-q3-front.png"
+    },
+    {
+      "name": "T1 Pro",
+      "tag": "Smart POS",
+      "sub": "Smart POS Android con impresora integrada.",
+      "bullets": [
+        "Android 7.0 · NFC",
+        "Impresora integrada",
+        "Wi-Fi · 4G · SIM a elección"
+      ],
+      "sw": "credicard",
+      "img": "assets/productos/norm-t1pro-side.png"
+    },
+    {
+      "name": "A50",
+      "tag": "POS portátil",
+      "sub": "POS portátil ultraligero.",
+      "bullets": [
+        "Android 8.1 · NFC",
+        "4.5\" · Sin impresora",
+        "161 g · Wi-Fi · 4G"
+      ],
+      "sw": "credicard",
+      "img": "assets/productos/norm-a50-front.png"
+    },
+    {
+      "name": "9220 (Platco)",
+      "tag": "Smart POS",
+      "sub": "Smart POS Android de gama alta.",
+      "bullets": [
+        "Android 12 · NFC",
+        "5.5\" HD · Impresora",
+        "5200 mAh · Octa-core"
+      ],
+      "sw": "platco",
+      "img": "assets/productos/norm-9220-front.png"
+    },
+    {
+      "name": "9810 (Platco)",
+      "tag": "Smart POS",
+      "sub": "Smart POS Android compacto.",
+      "bullets": [
+        "Android 13 · NFC",
+        "Impresora integrada",
+        "Wi-Fi 5G · 4G"
+      ],
+      "sw": "platco",
+      "img": "assets/productos/norm-9810-front.png"
+    },
+    {
+      "name": "A50 (Banesco)",
+      "tag": "POS portátil",
+      "sub": "POS portátil ultraligero.",
+      "bullets": [
+        "Android 8.1",
+        "4.5\" · Sin impresora",
+        "161 g · Wi-Fi · 4G"
+      ],
+      "sw": "banesco",
+      "img": "assets/productos/norm-a50-front.png"
+    },
+    {
+      "name": "A8900 (Banesco)",
+      "tag": "POS con teclado",
+      "sub": "POS tradicional con teclado e impresora.",
+      "bullets": [
+        "Android 12 · Teclado",
+        "5.5\" HD · Impresora",
+        "Wi-Fi 5GHz · 4G"
+      ],
+      "sw": "banesco",
+      "img": "assets/productos/norm-a8900-front.png"
+    }
+  ]
+}
