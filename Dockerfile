@@ -1,11 +1,6 @@
 # =============================================================
 #  Dockerfile — Portal Somos VEPAGOS (backend + frontend)
 # =============================================================
-#  Imagen multi-stage: 
-#    1) Instala dependencias de Node.js
-#    2) Copia el frontend estático
-#    3) Ejecuta el servidor Express que sirve todo
-# =============================================================
 
 FROM node:20-alpine AS deps
 
@@ -39,15 +34,9 @@ COPY datos/ ./datos/
 # Copiar frontend estático
 COPY portal/ ./portal/
 
-# Variables de entorno por defecto
+# Solo defaults que NO son sensibles — lo demás viene del .env
 ENV NODE_ENV=production \
     PORT=3000 \
-    DB_HOST=db \
-    DB_PORT=3306 \
-    DB_USER=root \
-    DB_PASSWORD=vepagos2026 \
-    DB_NAME=intranet_vepagos \
-    JWT_SECRET=vepagos_intranet_secret_2026 \
     PORTAL_PATH=/app/portal
 
 EXPOSE 3000
