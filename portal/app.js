@@ -273,6 +273,16 @@
     });
     saveDB(db);
   }
+  /* Migración: asegurar que el perfil admin tenga adminmenu en sus menús */
+  if (!db._adminMenuMig) {
+    db._adminMenuMig = true;
+    var _ap = (db.perfiles || []).find(function (p) { return p.key === 'admin'; });
+    if (_ap) {
+      if (_ap.menus && _ap.menus.indexOf('adminmenu') < 0) _ap.menus.push('adminmenu');
+      if (!_ap.menus) _ap.menus = null; // null = hereda todo via legacyMenuSet, que incluirá adminmenu por roles
+    }
+    saveDB(db);
+  }
   db.comunicaciones = db.comunicaciones || [];
   if (!db.nextComId) db.nextComId = 1;
   db.encuestas = db.encuestas || [];
