@@ -396,24 +396,3 @@ CREATE TABLE IF NOT EXISTS metas_historico (
   filas     JSON         NOT NULL,
   orden     SMALLINT     NOT NULL DEFAULT 0
 ) ENGINE=InnoDB;
-
--- ---------- Pantallas: Módulo Administración ----------
-
-INSERT IGNORE INTO pantallas (id, titulo, grupo, padre_id, icono, href_externo, orden) VALUES
-  ('adminmenu', 'Administración', 'personal', NULL,
-   '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle>',
-   NULL, 2);
-
-INSERT IGNORE INTO pantallas (id, titulo, grupo, padre_id, icono, href_externo, orden) VALUES
-  ('adminfrec',  'Accesos frecuentes', 'personal', 'adminmenu', NULL, NULL, 1),
-  ('adminsomos', 'Somos VEPAGOS',      'personal', 'adminmenu', NULL, NULL, 2),
-  ('adminenc',   'Encuestas',          'personal', 'adminmenu', NULL, NULL, 3),
-  ('admincom',   'Comunicaciones',     'personal', 'adminmenu', NULL, NULL, 4);
-
--- Asignar al perfil admin
-INSERT IGNORE INTO perfil_pantallas (perfil_key, pantalla_id) VALUES
-  ('admin', 'adminmenu'),
-  ('admin', 'adminfrec'),
-  ('admin', 'adminsomos'),
-  ('admin', 'adminenc'),
-  ('admin', 'admincom');

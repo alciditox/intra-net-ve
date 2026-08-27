@@ -112,6 +112,12 @@ async function seed() {
     // Externos
     { id: 'eureka', g: 'personal', t: 'Eureka', orden: 99, ico: '<rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect>', href: 'https://eureka.vepagos.com/login' },
     { id: 'sac', g: 'personal', t: 'SAC', orden: 100, ico: '<path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>', href: 'https://solicitudes.vepagos.com/login' },
+    // Administración (solo admin)
+    { id: 'adminmenu', g: 'personal', t: 'Administración', orden: 1, ico: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle>' },
+    { id: 'adminfrec', g: 'personal', t: 'Accesos frecuentes', orden: 1, padre: 'adminmenu', ico: null },
+    { id: 'adminsomos', g: 'personal', t: 'Somos VEPAGOS', orden: 2, padre: 'adminmenu', ico: null },
+    { id: 'adminenc', g: 'personal', t: 'Encuestas', orden: 3, padre: 'adminmenu', ico: null },
+    { id: 'admincom', g: 'personal', t: 'Comunicaciones', orden: 4, padre: 'adminmenu', ico: null },
   ];
 
   // Insert parent items first (no padre), then children

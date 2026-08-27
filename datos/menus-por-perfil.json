@@ -45,7 +45,8 @@
       "perfiles",
       "requerimientos",
       "accesos",
-      "recursos"
+      "recursos",
+      "adminmenu"
     ],
     "director": [
       "inicio",
