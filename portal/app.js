@@ -784,6 +784,10 @@
   /* ---------- navegación / permisos ---------- */
   var NAV = [
     { id: 'inicio', g: 'personal', t: 'Inicio', roles: 'all', ico: '<path d="M3 10.5L12 3l9 7.5"></path><path d="M5 9.5V21h14V9.5"></path>' },
+    { id: 'adminmenu', g: 'personal', t: 'Administración', roles: ['admin'], ico: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle>', sub: [
+      { id: 'adminfrec', t: 'Accesos frecuentes' },
+      { id: 'adminsomos', t: 'Somos VEPAGOS' }
+    ] },
     { id: 'metas', g: 'personal', t: 'Metas', roles: ['admin', 'gerente'], ico: '<circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1"></circle>', sub: [
       { id: 'metas2026', t: 'Metas 2026' },
       { id: 'metasvision', t: 'Visión' },
@@ -1093,8 +1097,8 @@
     $$('#sbNav a').forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-go') === id); });
     var item = null;
     NAV.forEach(function (n) { if (n.id === id) item = n; if (n.sub) n.sub.forEach(function (c) { if (c.id === id) item = c; }); });
-    $('#pageTitle').textContent = item ? (item.t === 'Metas 2026' || item.t === 'Visión' || item.t === 'Histórico' ? 'Metas · ' + item.t : ((id === 'afpanel' || id === 'afactivos' || id === 'aftech' || id === 'afalmacen' || id === 'afmercadeo' || id === 'afprocura') ? 'Activos y procura · ' + item.t : ((id === 'ventasfv' || id === 'ventasbancos') ? 'Ventas · ' + item.t : navLabel(item)))) : '';
-    var R = { inicio: rInicio, metas: rMetas, metas2026: rMetas, metasvision: rMetas, metashist: rMetas, somos: rSomos, cultura: rCultura, docs: rDocs, solicitudes: rSolicitudes, solequipo: rSolEquipo, claves: rClaves, activos: rAfPanel, afpanel: rAfPanel, afactivos: rAfActivos, aftech: rAfTech, afalmacen: rAfAlmacen, afmercadeo: rAfMercadeo, afprocura: rAfProcura, ventasmenu: rEquipo, ventasfv: rEquipo, ventasbancos: rBancos, org: rOrg, directorio: rDirectorio, equipo: rEquipo, onboarding: rOnboarding, induccionequipo: rOnboarding, pendientes: rPendientes, candidatos: rCandidatos, empleados: rEmpleados, asistencia: rAsistencia, encuestas: rEncuestas, contratos: rContratos, marketing: rMarketing, perfil: rPerfil, perfiles: rPerfiles, requerimientos: rRequerimientos, accesos: rAccesos, recursos: rRecursos };
+    $('#pageTitle').textContent = item ? (id === 'adminfrec' || id === 'adminsomos' ? 'Administración · ' + item.t : (item.t === 'Metas 2026' || item.t === 'Visión' || item.t === 'Histórico' ? 'Metas · ' + item.t : ((id === 'afpanel' || id === 'afactivos' || id === 'aftech' || id === 'afalmacen' || id === 'afmercadeo' || id === 'afprocura') ? 'Activos y procura · ' + item.t : ((id === 'ventasfv' || id === 'ventasbancos') ? 'Ventas · ' + item.t : navLabel(item))))) : '';
+    var R = { inicio: rInicio, adminmenu: rAdminFrec, adminfrec: rAdminFrec, adminsomos: rAdminSomos, metas: rMetas, metas2026: rMetas, metasvision: rMetas, metashist: rMetas, somos: rSomos, cultura: rCultura, docs: rDocs, solicitudes: rSolicitudes, solequipo: rSolEquipo, claves: rClaves, activos: rAfPanel, afpanel: rAfPanel, afactivos: rAfActivos, aftech: rAfTech, afalmacen: rAfAlmacen, afmercadeo: rAfMercadeo, afprocura: rAfProcura, ventasmenu: rEquipo, ventasfv: rEquipo, ventasbancos: rBancos, org: rOrg, directorio: rDirectorio, equipo: rEquipo, onboarding: rOnboarding, induccionequipo: rOnboarding, pendientes: rPendientes, candidatos: rCandidatos, empleados: rEmpleados, asistencia: rAsistencia, encuestas: rEncuestas, contratos: rContratos, marketing: rMarketing, perfil: rPerfil, perfiles: rPerfiles, requerimientos: rRequerimientos, accesos: rAccesos, recursos: rRecursos };
     (R[id] || rInicio)();
     window.scrollTo(0, 0);
   }
@@ -1953,6 +1957,7 @@
   /* ---------- SOMOS VEPAGOS ---------- */
   function rSomos() {
     resetContent();
+    var cfg = getSomosConfig();
     var anios = new Date().getFullYear() - 2019;
     function sec(t, ico, col, bg) {
       col = col || '#00874f'; bg = bg || 'rgba(0,206,124,.12)';
@@ -1966,51 +1971,51 @@
       '<div class="card" style="background:linear-gradient(135deg,#001F60 0%,#023180 100%);border:none;margin-bottom:16px;padding:28px">' +
         '<div style="display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;color:#00E58C;margin-bottom:8px"><span style="width:8px;height:8px;border-radius:50%;background:#00CE7C"></span>Quiénes somos</div>' +
         '<div style="font-size:clamp(22px,2.8vw,30px);font-weight:800;color:#fff;letter-spacing:-.4px">Somos VEPAGOS</div>' +
-        '<div style="font-size:14.5px;color:rgba(255,255,255,.78);margin-top:8px;max-width:700px;line-height:1.65">Desde 2019 hacemos que cobrar sea simple para los comercios de Venezuela. Ofrecemos puntos de venta procesados por Credicard, Platco y Banesco, con soporte los 365 días del año. Nuestra promesa: <b style="color:#00E58C">hacer crecer tu negocio</b>.</div>' +
-        '<div style="font-size:13px;color:rgba(255,255,255,.7);margin-top:12px;max-width:700px;line-height:1.6;border-top:1px solid rgba(255,255,255,.16);padding-top:12px">Nuestro nombre jurídico es <b style="color:#fff">Consultora Alca, C.A.</b> · <b style="color:#00E58C">VEPAGOS</b> es nuestro nombre comercial.</div>' +
+        '<div style="font-size:14.5px;color:rgba(255,255,255,.78);margin-top:8px;max-width:700px;line-height:1.65">' + esc(cfg.intro) + '</div>' +
+        '<div style="font-size:13px;color:rgba(255,255,255,.7);margin-top:12px;max-width:700px;line-height:1.6;border-top:1px solid rgba(255,255,255,.16);padding-top:12px">' + esc(cfg.juridico) + '</div>' +
       '</div>' +
       (function () {
-        var STATS = [
-          ['2019', 'Año de fundación', '<path d="M8 2v4M16 2v4M3 10h18"></path><rect x="3" y="4" width="18" height="18" rx="2"></rect>', '#2A6FDB', 'rgba(42,111,219,.12)'],
-          [anios + ' años', 'Operando en Venezuela', '<path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"></path><path d="M12 6v6l4 2"></path>', '#7C5CFC', 'rgba(124,92,252,.12)'],
-          ['+80.000', 'Clientes atendidos', '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>', '#00B871', 'rgba(0,184,113,.13)'],
-          ['+50.000', 'Clientes activos', '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="M22 4L12 14.01l-3-3"></path>', '#2AB0C4', 'rgba(42,176,196,.13)'],
-          ['15', 'Bancos aliados', '<rect x="3" y="8" width="18" height="12" rx="2"></rect><path d="M3 8l9-5 9 5M7 12h.01M12 12h.01M17 12h.01"></path>', '#FF9F45', 'rgba(255,159,69,.14)']
+        var STAT_ICONS = [
+          ['<path d="M8 2v4M16 2v4M3 10h18"></path><rect x="3" y="4" width="18" height="18" rx="2"></rect>', '#2A6FDB', 'rgba(42,111,219,.12)'],
+          ['<path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"></path><path d="M12 6v6l4 2"></path>', '#7C5CFC', 'rgba(124,92,252,.12)'],
+          ['<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>', '#00B871', 'rgba(0,184,113,.13)'],
+          ['<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="M22 4L12 14.01l-3-3"></path>', '#2AB0C4', 'rgba(42,176,196,.13)'],
+          ['<rect x="3" y="8" width="18" height="12" rx="2"></rect><path d="M3 8l9-5 9 5M7 12h.01M12 12h.01M17 12h.01"></path>', '#FF9F45', 'rgba(255,159,69,.14)']
         ];
-        return '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:16px">' + STATS.map(function (s) {
+        return '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:16px">' + cfg.stats.map(function (s, i) {
+          var si = STAT_ICONS[i] || STAT_ICONS[0];
           return '<div style="position:relative;overflow:hidden;background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px 18px">' +
-            '<div style="position:absolute;right:-24px;top:-24px;width:96px;height:96px;border-radius:50%;background:' + s[4] + ';pointer-events:none"></div>' +
-            '<span style="position:relative;display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;background:' + s[4] + ';color:' + s[3] + ';margin-bottom:14px"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + s[2] + '</svg></span>' +
-            '<div style="position:relative;font-size:30px;font-weight:800;color:var(--navy);letter-spacing:-.6px;line-height:1">' + s[0] + '</div>' +
-            '<div style="position:relative;font-size:13px;color:var(--muted);font-weight:600;margin-top:5px">' + s[1] + '</div>' +
+            '<div style="position:absolute;right:-24px;top:-24px;width:96px;height:96px;border-radius:50%;background:' + si[2] + ';pointer-events:none"></div>' +
+            '<span style="position:relative;display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:12px;background:' + si[2] + ';color:' + si[1] + ';margin-bottom:14px"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + si[0] + '</svg></span>' +
+            '<div style="position:relative;font-size:30px;font-weight:800;color:var(--navy);letter-spacing:-.6px;line-height:1">' + esc(s.valor) + '</div>' +
+            '<div style="position:relative;font-size:13px;color:var(--muted);font-weight:600;margin-top:5px">' + esc(s.label) + '</div>' +
           '</div>';
         }).join('') + '</div>';
       })() +
       '<div class="grid g2" style="margin-bottom:16px">' +
         '<div class="card">' + sec('Qué incluye el servicio del POS', '<path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>', '#00B871', 'rgba(0,184,113,.12)') +
-          li('<b>Transacciones ilimitadas</b>, sin topes ni comisiones por transacción') +
-          li('<b>Conectividad 4G + Wi-Fi</b> con SIM incluida (Digitel o Movistar): el cliente elige una') +
-          li('<b>Soporte 365 días</b> con atención local real') +
-          li('<b>Garantía y reemplazo</b>: el equipo siempre cubierto') +
-          li('<b>Sin cuota de instalación</b> ni permanencia') +
+          cfg.servicios.map(function (s) { return li(esc(s)); }).join('') +
         '</div>' +
         '<div class="card">' + sec('Beneficios para el cliente', '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"></path>', '#E0447B', 'rgba(224,68,123,.12)') +
-          li('Cobra con tarjetas nacionales e internacionales y NFC (según modelo)') +
-          li('Atención personalizada por WhatsApp y visitas en sitio') +
-          li('Reposición y reemplazo de equipos con garantía') +
-          li('Acompañamiento de un asesor durante toda la relación') +
-          li('Cobertura en todo el país: Caracas, Maracaibo, Valencia y más') +
+          cfg.beneficios.map(function (s) { return li(esc(s)); }).join('') +
         '</div>' +
       '</div>' +
       '<div class="card" style="margin-bottom:16px">' + sec('Modelos disponibles para la venta', '<rect x="5" y="2" width="14" height="20" rx="2"></rect><path d="M12 18h.01"></path>', '#2A6FDB', 'rgba(42,111,219,.12)') +
-        '<div id="svPosFilters" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">' +
-          '<button class="btn-s sv-pf" data-sw="all">Todos (11)</button>' +
-          '<button class="btn-s sv-pf" data-sw="credicard">Credicard</button>' +
-          '<button class="btn-s sv-pf" data-sw="platco">Platco</button>' +
-          '<button class="btn-s sv-pf" data-sw="banesco">Banesco</button>' +
-        '</div>' +
+        (function () {
+          var _POS = db.somosPOS || window.SV_SEED.POS_CATALOGO || [];
+          var cAll = _POS.length;
+          var cCC = _POS.filter(function (p) { return p.sw === 'credicard'; }).length;
+          var cPL = _POS.filter(function (p) { return p.sw === 'platco'; }).length;
+          var cBA = _POS.filter(function (p) { return p.sw === 'banesco'; }).length;
+          return '<div id="svPosFilters" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">' +
+            '<button class="btn-s sv-pf" data-sw="all">Todos (' + cAll + ')</button>' +
+            '<button class="btn-s sv-pf" data-sw="credicard">Credicard (' + cCC + ')</button>' +
+            '<button class="btn-s sv-pf" data-sw="platco">Platco (' + cPL + ')</button>' +
+            '<button class="btn-s sv-pf" data-sw="banesco">Banesco (' + cBA + ')</button>' +
+          '</div>';
+        })() +
         '<div id="svPosGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px"></div>' +
-        '<div class="note" style="margin-top:12px">11 opciones en total · 3 plataformas de procesamiento. Las fichas técnicas están en la <a href="#" data-go2="docs" style="color:#00874f;font-weight:700">Biblioteca</a>.</div>' +
+        '<div class="note" style="margin-top:12px">' + (db.somosPOS || window.SV_SEED.POS_CATALOGO || []).length + ' opciones en total · 3 plataformas de procesamiento. Las fichas técnicas están en la <a href="#" data-go2="docs" style="color:#00874f;font-weight:700">Biblioteca</a>.</div>' +
       '</div>' +
       '<div class="card" style="margin-bottom:16px">' + sec('Nuestros 15 bancos aliados', '<rect x="3" y="8" width="18" height="12" rx="2"></rect><path d="M3 8l9-5 9 5M7 12h.01M12 12h.01M17 12h.01"></path>', '#FF9F45', 'rgba(255,159,69,.14)') +
         '<div class="note" style="margin:0 0 14px">Los bancos con los que un comercio puede cobrar, según la plataforma de su terminal.</div>' +
@@ -2052,43 +2057,37 @@
       '</div>' +
       '<div class="grid g2">' +
         '<div class="card">' + sec('Tarifa y Plan Regular', '<path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>', '#00874f', 'rgba(0,206,124,.12)') +
-          '<div style="font-size:14.5px;color:#33415C;line-height:1.65"><b style="color:var(--navy)">desde $1,66 al día</b> por comercio — una tarifa diaria, todo incluido. El monto varía según el plan contratado, siempre con transacciones ilimitadas.</div>' +
-          li('Sin comisión por transacción') +
-          li('Sin cuota de instalación ni permanencia') +
-          li('Un solo pago diario, sin sorpresas a fin de mes') +
-          li('<b>Cómo se cobra:</b> por domiciliación de cuenta, en bolívares a la tasa legal vigente del BCV. Sin efectivo ni gestiones manuales') +
+          '<div style="font-size:14.5px;color:#33415C;line-height:1.65"><b style="color:var(--navy)">' + esc(cfg.tarifa) + '</b></div>' +
+          cfg.tarifaItems.map(function (s) { return li(esc(s)); }).join('') +
           '<div class="note" style="margin-top:8px">La tarifa vigente por modelo está en la <a href="#" data-go2="docs" style="color:#00874f;font-weight:700">Biblioteca → Planes de servicio</a>.</div>' +
         '</div>' +
         '<div class="card">' + sec('Nuestros hitos', '<path d="M12 15a7 7 0 1 0 0-14 7 7 0 0 0 0 14z"></path><path d="M8.21 13.89L7 23l5-3 5 3-1.21-9.12"></path>', '#7C5CFC', 'rgba(124,92,252,.12)') +
-          li('2019 — Nace VEPAGOS (Consultora Alca, C.A.)') +
-          li('Representantes UROVO en Venezuela') +
-          li('Alianzas con Credicard, Platco y Banesco') +
-          li('+80.000 clientes atendidos en todo el país') +
-          li('Red de fuerza de ventas a nivel nacional') +
+          cfg.hitos.map(function (s) { return li(esc(s)); }).join('') +
         '</div>' +
       '</div>' +
       '<div class="card" style="margin-top:16px">' + sec('Nuestras redes sociales', '<circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"></path>', '#2AB0C4', 'rgba(42,176,196,.13)') +
         '<div class="note" style="margin:0 0 12px">Síguelas y compártelas con tus clientes.</div>' +
         '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">' +
-          '<a href="https://www.instagram.com/vepagos/?hl=es" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:11px;border:1px solid #E6ECF4;border-radius:14px;padding:12px 14px;background:#fff;text-decoration:none">' +
-            '<span style="width:38px;height:38px;border-radius:11px;background:linear-gradient(45deg,#F58529,#DD2A7B,#8134AF);display:flex;align-items:center;justify-content:center;flex:0 0 auto"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.7 3.7 0 0 1-1.38-.9 3.7 3.7 0 0 1-.9-1.38c-.16-.42-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.9 5.9 0 0 0-2.13 1.39A5.9 5.9 0 0 0 .63 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.27.26 2.15.56 2.91.31.8.72 1.48 1.39 2.13a5.9 5.9 0 0 0 2.13 1.39c.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c1.27-.06 2.15-.26 2.91-.56a5.9 5.9 0 0 0 2.13-1.39 5.9 5.9 0 0 0 1.39-2.13c.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.9 5.9 0 0 0-1.39-2.13A5.9 5.9 0 0 0 19.86.63c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0zm0 5.84A6.16 6.16 0 1 0 18.16 12 6.16 6.16 0 0 0 12 5.84zm0 10.16A4 4 0 1 1 16 12a4 4 0 0 1-4 4zm7.85-10.4a1.44 1.44 0 1 1-1.44-1.44 1.44 1.44 0 0 1 1.44 1.44z"></path></svg></span>' +
-            '<span><span style="display:block;font-weight:800;color:var(--navy);font-size:14.5px">Instagram</span><span style="display:block;font-size:12px;color:var(--muted2)">@vepagos</span></span></a>' +
-          '<a href="https://www.facebook.com/vepagos/?locale=es_LA" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:11px;border:1px solid #E6ECF4;border-radius:14px;padding:12px 14px;background:#fff;text-decoration:none">' +
-            '<span style="width:38px;height:38px;border-radius:11px;background:#1877F2;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07z"></path></svg></span>' +
-            '<span><span style="display:block;font-weight:800;color:var(--navy);font-size:14.5px">Facebook</span><span style="display:block;font-size:12px;color:var(--muted2)">/vepagos</span></span></a>' +
-          '<a href="https://www.linkedin.com/company/vepagos/?viewAsMember=true" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:11px;border:1px solid #E6ECF4;border-radius:14px;padding:12px 14px;background:#fff;text-decoration:none">' +
-            '<span style="width:38px;height:38px;border-radius:11px;background:#0A66C2;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.07 2.07 0 1 1 0-4.13 2.07 2.07 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.55C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.72C24 .77 23.2 0 22.22 0z"></path></svg></span>' +
-            '<span><span style="display:block;font-weight:800;color:var(--navy);font-size:14.5px">LinkedIn</span><span style="display:block;font-size:12px;color:var(--muted2)">/company/vepagos</span></span></a>' +
-          '<a href="https://www.google.com/search?q=VEPAGOS+rese%C3%B1as" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:11px;border:1px solid #E6ECF4;border-radius:14px;padding:12px 14px;background:#fff;text-decoration:none">' +
-            '<span style="width:38px;height:38px;border-radius:11px;background:#fff;border:1px solid #E6ECF4;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47a5.57 5.57 0 0 1-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"></path><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09A11.99 11.99 0 0 0 12 24z"></path><path fill="#FBBC05" d="M5.27 14.29A7.2 7.2 0 0 1 4.9 12c0-.8.14-1.57.37-2.29V6.62H1.29a12 12 0 0 0 0 10.76l3.98-3.09z"></path><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.69 1.29 6.62l3.98 3.09C6.22 6.86 8.87 4.75 12 4.75z"></path></svg></span>' +
-            '<span><span style="display:block;font-weight:800;color:var(--navy);font-size:14.5px">Google Reviews</span><span style="display:block;font-size:12px;color:var(--muted2)">Reseñas de clientes</span></span></a>' +
-          '<a href="https://www.vepagos.com" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:11px;border:1px solid #E6ECF4;border-radius:14px;padding:12px 14px;background:#fff;text-decoration:none">' +
-            '<span style="width:38px;height:38px;border-radius:11px;background:var(--navy);display:flex;align-items:center;justify-content:center;flex:0 0 auto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00CE7C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18z"></path></svg></span>' +
-            '<span><span style="display:block;font-weight:800;color:var(--navy);font-size:14.5px">Página web</span><span style="display:block;font-size:12px;color:var(--muted2)">www.vepagos.com</span></span></a>' +
+        (function () {
+          var RED_STYLES = {
+            'Instagram': { bg: 'linear-gradient(45deg,#F58529,#DD2A7B,#8134AF)', svg: '<path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.7 3.7 0 0 1-1.38-.9 3.7 3.7 0 0 1-.9-1.38c-.16-.42-.36-1.06-.41-2.23C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63a5.9 5.9 0 0 0-2.13 1.39A5.9 5.9 0 0 0 .63 4.14C.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.27.26 2.15.56 2.91.31.8.72 1.48 1.39 2.13a5.9 5.9 0 0 0 2.13 1.39c.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c1.27-.06 2.15-.26 2.91-.56a5.9 5.9 0 0 0 2.13-1.39 5.9 5.9 0 0 0 1.39-2.13c.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91a5.9 5.9 0 0 0-1.39-2.13A5.9 5.9 0 0 0 19.86.63c-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0zm0 5.84A6.16 6.16 0 1 0 18.16 12 6.16 6.16 0 0 0 12 5.84zm0 10.16A4 4 0 1 1 16 12a4 4 0 0 1-4 4zm7.85-10.4a1.44 1.44 0 1 1-1.44-1.44 1.44 1.44 0 0 1 1.44 1.44z"></path>' },
+            'Facebook': { bg: '#1877F2', svg: '<path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.7 4.53-4.7 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07z"></path>' },
+            'LinkedIn': { bg: '#0A66C2', svg: '<path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.07 2.07 0 1 1 0-4.13 2.07 2.07 0 0 1 0 4.13zM7.12 20.45H3.55V9h3.57v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.55C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.72C24 .77 23.2 0 22.22 0z"></path>' },
+            'Google Reviews': { bg: '#fff;border:1px solid #E6ECF4', svg: '<path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47a5.57 5.57 0 0 1-2.4 3.58v3h3.86c2.26-2.09 3.56-5.17 3.56-8.82z"></path><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.16-4.07 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09A11.99 11.99 0 0 0 12 24z"></path><path fill="#FBBC05" d="M5.27 14.29A7.2 7.2 0 0 1 4.9 12c0-.8.14-1.57.37-2.29V6.62H1.29a12 12 0 0 0 0 10.76l3.98-3.09z"></path><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.69 1.29 6.62l3.98 3.09C6.22 6.86 8.87 4.75 12 4.75z"></path>', fill: true },
+            'Página web': { bg: 'var(--navy)', svg: '<circle cx="12" cy="12" r="9"></circle><path d="M3 12h18"></path><path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18z"></path>', stroke: true }
+          };
+          return cfg.redes.map(function (r) {
+            var st = RED_STYLES[r.nombre] || { bg: 'var(--navy)', svg: '<circle cx="12" cy="12" r="9"></circle>', stroke: true };
+            var svgAttr = st.fill ? ' fill="#fff"' : (st.stroke ? ' fill="none" stroke="#00CE7C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"' : ' fill="#fff"');
+            return '<a href="' + esc(r.url) + '" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:11px;border:1px solid #E6ECF4;border-radius:14px;padding:12px 14px;background:#fff;text-decoration:none">' +
+              '<span style="width:38px;height:38px;border-radius:11px;background:' + st.bg + ';display:flex;align-items:center;justify-content:center;flex:0 0 auto"><svg width="20" height="20" viewBox="0 0 24 24"' + svgAttr + '>' + st.svg + '</svg></span>' +
+              '<span><span style="display:block;font-weight:800;color:var(--navy);font-size:14.5px">' + esc(r.nombre) + '</span><span style="display:block;font-size:12px;color:var(--muted2)">' + esc(r.handle) + '</span></span></a>';
+          }).join('');
+        })() +
         '</div>' +
       '</div>';
     $('#content').addEventListener('click', goBtnHandler);
-    var POS = window.SV_SEED.POS_CATALOGO || [];
+    var POS = db.somosPOS || window.SV_SEED.POS_CATALOGO || [];
     var SWL = { credicard: 'Credicard', platco: 'Platco', banesco: 'Banesco' };
     function pfStyle(b, on) {
       b.style.borderRadius = '999px';
@@ -6462,6 +6461,332 @@
       if (edit) db.recursos[recTab][idx] = data; else db.recursos[recTab].push(data);
       saveDB(db); closeModal(); rRecursos(); toast(edit ? 'Actualizado.' : 'Agregado.');
     });
+  }
+
+  /* ---------- ADMINISTRACIÓN · ACCESOS FRECUENTES ---------- */
+  function rAdminFrec() {
+    resetContent();
+    /* Recopilar herramientas únicas de TODOS los usuarios (fuente real) */
+    var seen = {};
+    var allTools = [];
+    var TIPO_LABEL = { app: 'Aplicativo interno', ext: 'Aplicativo externo', drive: 'Drive autorizado', link: 'Aplicativo externo' };
+    db.users.forEach(function (u) {
+      if (!u.herramientas) return;
+      u.herramientas.forEach(function (h) {
+        var key = h.nombre.toLowerCase();
+        if (!seen[key]) {
+          seen[key] = true;
+          allTools.push({ nombre: h.nombre, url: h.url || '', tipo: h.tipo || 'link' });
+        }
+      });
+    });
+    var html = '<div class="card" style="margin-bottom:14px"><div class="toolrow" style="margin:0"><div><h3 style="margin:0">Accesos frecuentes</h3><div class="note" style="margin:4px 0 0;max-width:680px">Modifica el nombre y enlace de los aplicativos, drives y herramientas. Los cambios se reflejan en todos los usuarios que los tengan asignados.</div></div></div></div>';
+    html += '<div class="card" style="padding:6px 16px"><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Nombre</th><th>Tipo</th><th>Enlace</th><th></th></tr></thead><tbody>' +
+      (allTools.length ? allTools.map(function (t, gi) {
+        var link = t.url ? '<a href="' + esc(t.url) + '" target="_blank" rel="noopener" style="color:var(--green);font-weight:600;word-break:break-all">' + esc(t.url) + '</a>' : '<span style="color:var(--muted2)">—</span>';
+        return '<tr><td><b style="color:var(--navy)">' + esc(t.nombre) + '</b></td><td style="font-size:13px;color:#33415C">' + esc(TIPO_LABEL[t.tipo] || t.tipo) + '</td><td style="font-size:12.5px">' + link + '</td><td><button class="btn-s" data-adminedit="' + gi + '" style="font-size:12.5px;padding:6px 11px">Editar</button></td></tr>';
+      }).join('') : '<tr><td colspan="4"><div class="empty">No hay aplicativos o herramientas registrados.</div></td></tr>') +
+      '</tbody></table></div></div>';
+    $('#content').innerHTML = html;
+    $$('#content [data-adminedit]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var gi = +b.getAttribute('data-adminedit');
+        var t = allTools[gi]; if (!t) return;
+        adminFrecEdit(t.nombre, t.url);
+      });
+    });
+  }
+  function adminFrecEdit(oldNombre, oldUrl) {
+    modal('<button class="mod-x">✕</button><h3>Editar acceso frecuente</h3>' +
+      '<div class="fld"><label>Nombre *</label><input id="afeN" type="text" value="' + esc(oldNombre) + '" placeholder="Nombre del aplicativo"></div>' +
+      '<div class="fld"><label>Enlace (URL)</label><input id="afeL" type="url" value="' + esc(oldUrl || '') + '" placeholder="https://…"></div>' +
+      '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="afeOk">Guardar cambios</button></div>');
+    $('#afeOk').addEventListener('click', function () {
+      var newNombre = $('#afeN').value.trim();
+      if (!newNombre) { toast('Escribe el nombre.'); return; }
+      var newLink = $('#afeL').value.trim();
+      /* Propagar a TODOS los usuarios que tengan esta herramienta */
+      db.users.forEach(function (u) {
+        if (!u.herramientas) return;
+        u.herramientas.forEach(function (h) {
+          if (h.nombre.toLowerCase() === oldNombre.toLowerCase()) {
+            h.nombre = newNombre;
+            h.url = newLink;
+          }
+        });
+      });
+      /* También actualizar en db.recursos si existe ahí */
+      if (db.recursos) {
+        ['apps', 'drives', 'herramientas'].forEach(function (tipo) {
+          (db.recursos[tipo] || []).forEach(function (r) {
+            if (r.nombre.toLowerCase() === oldNombre.toLowerCase()) {
+              r.nombre = newNombre;
+              r.link = newLink;
+            }
+          });
+        });
+      }
+      saveDB(db);
+      closeModal();
+      renderShell();
+      rAdminFrec();
+      toast('Acceso frecuente actualizado.');
+    });
+  }
+
+  /* ---------- ADMINISTRACIÓN · SOMOS VEPAGOS ---------- */
+  var adminSomosTab = 'intro';
+  function somosDefaults() {
+    return {
+      intro: 'Desde 2019 hacemos que cobrar sea simple para los comercios de Venezuela. Ofrecemos puntos de venta procesados por Credicard, Platco y Banesco, con soporte los 365 días del año. Nuestra promesa: hacer crecer tu negocio.',
+      juridico: 'Nuestro nombre jurídico es Consultora Alca, C.A. · VEPAGOS es nuestro nombre comercial.',
+      stats: [
+        { valor: '2019', label: 'Año de fundación' },
+        { valor: '7 años', label: 'Operando en Venezuela' },
+        { valor: '+80.000', label: 'Clientes atendidos' },
+        { valor: '+50.000', label: 'Clientes activos' },
+        { valor: '15', label: 'Bancos aliados' }
+      ],
+      servicios: [
+        'Transacciones ilimitadas, sin topes ni comisiones por transacción',
+        'Conectividad 4G + Wi-Fi con SIM incluida (Digitel o Movistar): el cliente elige una',
+        'Soporte 365 días con atención local real',
+        'Garantía y reemplazo: el equipo siempre cubierto',
+        'Sin cuota de instalación ni permanencia'
+      ],
+      beneficios: [
+        'Cobra con tarjetas nacionales e internacionales y NFC (según modelo)',
+        'Atención personalizada por WhatsApp y visitas en sitio',
+        'Reposición y reemplazo de equipos con garantía',
+        'Acompañamiento de un asesor durante toda la relación',
+        'Cobertura en todo el país: Caracas, Maracaibo, Valencia y más'
+      ],
+      tarifa: 'desde $1,66 al día por comercio — una tarifa diaria, todo incluido. El monto varía según el plan contratado, siempre con transacciones ilimitadas.',
+      tarifaItems: [
+        'Sin comisión por transacción',
+        'Sin cuota de instalación ni permanencia',
+        'Un solo pago diario, sin sorpresas a fin de mes',
+        'Cómo se cobra: por domiciliación de cuenta, en bolívares a la tasa legal vigente del BCV. Sin efectivo ni gestiones manuales'
+      ],
+      hitos: [
+        '2019 — Nace VEPAGOS (Consultora Alca, C.A.)',
+        'Representantes UROVO en Venezuela',
+        'Alianzas con Credicard, Platco y Banesco',
+        '+80.000 clientes atendidos en todo el país',
+        'Red de fuerza de ventas a nivel nacional'
+      ],
+      redes: [
+        { nombre: 'Instagram', handle: '@vepagos', url: 'https://www.instagram.com/vepagos/?hl=es' },
+        { nombre: 'Facebook', handle: '/vepagos', url: 'https://www.facebook.com/vepagos/?locale=es_LA' },
+        { nombre: 'LinkedIn', handle: '/company/vepagos', url: 'https://www.linkedin.com/company/vepagos/?viewAsMember=true' },
+        { nombre: 'Google Reviews', handle: 'Reseñas de clientes', url: 'https://www.google.com/search?q=VEPAGOS+rese%C3%B1as' },
+        { nombre: 'Página web', handle: 'www.vepagos.com', url: 'https://www.vepagos.com' }
+      ]
+    };
+  }
+  function getSomosConfig() {
+    if (!db.somosConfig) db.somosConfig = somosDefaults();
+    var d = somosDefaults();
+    Object.keys(d).forEach(function (k) { if (db.somosConfig[k] === undefined) db.somosConfig[k] = d[k]; });
+    return db.somosConfig;
+  }
+  function rAdminSomos() {
+    resetContent();
+    var cfg = getSomosConfig();
+    var TABS = [
+      ['intro', 'Introducción'],
+      ['stats', 'Estadísticas'],
+      ['servicios', 'Servicios POS'],
+      ['beneficios', 'Beneficios'],
+      ['tarifa', 'Tarifa'],
+      ['hitos', 'Hitos'],
+      ['redes', 'Redes sociales'],
+      ['modelos', 'Modelos POS']
+    ];
+    var html = '<div class="card" style="margin-bottom:14px"><div class="toolrow" style="margin:0"><div><h3 style="margin:0">Somos VEPAGOS</h3><div class="note" style="margin:4px 0 0;max-width:680px">Gestiona el contenido del panel "Somos VEPAGOS". Los cambios se reflejan para todos los usuarios.</div></div></div></div>';
+    html += '<div class="doccat" style="margin-bottom:14px">' + TABS.map(function (t) { return '<button data-somostab="' + t[0] + '" class="' + (adminSomosTab === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</div>';
+    html += '<div id="adminSomosBody"></div>';
+    $('#content').innerHTML = html;
+    $$('#content [data-somostab]').forEach(function (b) { b.addEventListener('click', function () { adminSomosTab = b.getAttribute('data-somostab'); rAdminSomos(); }); });
+    renderAdminSomosTab(cfg);
+  }
+  function renderAdminSomosTab(cfg) {
+    var body = $('#adminSomosBody');
+    if (adminSomosTab === 'intro') {
+      body.innerHTML = '<div class="card"><h3 style="margin:0 0 12px">Texto de introducción</h3>' +
+        '<div class="fld"><label>Descripción principal</label><textarea id="asIntro" style="min-height:100px">' + esc(cfg.intro) + '</textarea></div>' +
+        '<div class="fld"><label>Texto jurídico</label><textarea id="asJuridico" style="min-height:60px">' + esc(cfg.juridico) + '</textarea></div>' +
+        '<div class="mod-actions" style="justify-content:flex-start"><button class="btn-g" id="asIntroOk">Guardar cambios</button></div></div>';
+      $('#asIntroOk').addEventListener('click', function () {
+        cfg.intro = $('#asIntro').value.trim(); cfg.juridico = $('#asJuridico').value.trim();
+        saveDB(db); toast('Introducción actualizada.'); rAdminSomos();
+      });
+    } else if (adminSomosTab === 'stats') {
+      body.innerHTML = '<div class="card"><h3 style="margin:0 0 4px">Estadísticas</h3><div class="note" style="margin:0 0 14px">Las cifras que se muestran en las tarjetas del panel.</div>' +
+        '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Valor</th><th>Etiqueta</th><th></th></tr></thead><tbody>' +
+        cfg.stats.map(function (s, i) {
+          return '<tr><td><b style="color:var(--navy)">' + esc(s.valor) + '</b></td><td>' + esc(s.label) + '</td><td><button class="btn-s" data-editstat="' + i + '" style="font-size:12.5px;padding:6px 11px">Editar</button></td></tr>';
+        }).join('') +
+        '</tbody></table></div></div>';
+      $$('#adminSomosBody [data-editstat]').forEach(function (b) { b.addEventListener('click', function () {
+        var i = +b.getAttribute('data-editstat'); var s = cfg.stats[i];
+        modal('<button class="mod-x">✕</button><h3>Editar estadística</h3>' +
+          '<div class="fld"><label>Valor *</label><input id="asV" type="text" value="' + esc(s.valor) + '"></div>' +
+          '<div class="fld"><label>Etiqueta *</label><input id="asL" type="text" value="' + esc(s.label) + '"></div>' +
+          '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="asStatOk">Guardar</button></div>');
+        $('#asStatOk').addEventListener('click', function () {
+          var v = $('#asV').value.trim(), l = $('#asL').value.trim();
+          if (!v || !l) { toast('Completa ambos campos.'); return; }
+          cfg.stats[i] = { valor: v, label: l }; saveDB(db); closeModal(); rAdminSomos(); toast('Estadística actualizada.');
+        });
+      }); });
+    } else if (adminSomosTab === 'servicios') {
+      body.innerHTML = '<div class="card"><h3 style="margin:0 0 4px">Qué incluye el servicio del POS</h3><div class="note" style="margin:0 0 14px">Lista de características del servicio. Un elemento por línea.</div>' +
+        '<div class="fld"><textarea id="asSrv" style="min-height:140px">' + esc(cfg.servicios.join('\n')) + '</textarea></div>' +
+        '<div class="mod-actions" style="justify-content:flex-start"><button class="btn-g" id="asSrvOk">Guardar cambios</button></div></div>';
+      $('#asSrvOk').addEventListener('click', function () {
+        cfg.servicios = $('#asSrv').value.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+        saveDB(db); toast('Servicios actualizados.'); rAdminSomos();
+      });
+    } else if (adminSomosTab === 'beneficios') {
+      body.innerHTML = '<div class="card"><h3 style="margin:0 0 4px">Beneficios para el cliente</h3><div class="note" style="margin:0 0 14px">Lista de beneficios. Un elemento por línea.</div>' +
+        '<div class="fld"><textarea id="asBen" style="min-height:140px">' + esc(cfg.beneficios.join('\n')) + '</textarea></div>' +
+        '<div class="mod-actions" style="justify-content:flex-start"><button class="btn-g" id="asBenOk">Guardar cambios</button></div></div>';
+      $('#asBenOk').addEventListener('click', function () {
+        cfg.beneficios = $('#asBen').value.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+        saveDB(db); toast('Beneficios actualizados.'); rAdminSomos();
+      });
+    } else if (adminSomosTab === 'tarifa') {
+      body.innerHTML = '<div class="card"><h3 style="margin:0 0 4px">Tarifa y Plan Regular</h3><div class="note" style="margin:0 0 14px">Texto principal de la tarifa y sus puntos.</div>' +
+        '<div class="fld"><label>Descripción de la tarifa</label><textarea id="asTar" style="min-height:80px">' + esc(cfg.tarifa) + '</textarea></div>' +
+        '<div class="fld"><label>Puntos de la tarifa (uno por línea)</label><textarea id="asTarI" style="min-height:120px">' + esc(cfg.tarifaItems.join('\n')) + '</textarea></div>' +
+        '<div class="mod-actions" style="justify-content:flex-start"><button class="btn-g" id="asTarOk">Guardar cambios</button></div></div>';
+      $('#asTarOk').addEventListener('click', function () {
+        cfg.tarifa = $('#asTar').value.trim();
+        cfg.tarifaItems = $('#asTarI').value.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+        saveDB(db); toast('Tarifa actualizada.'); rAdminSomos();
+      });
+    } else if (adminSomosTab === 'hitos') {
+      body.innerHTML = '<div class="card"><h3 style="margin:0 0 4px">Nuestros hitos</h3><div class="note" style="margin:0 0 14px">Lista de logros e hitos de la empresa. Un elemento por línea.</div>' +
+        '<div class="fld"><textarea id="asHit" style="min-height:140px">' + esc(cfg.hitos.join('\n')) + '</textarea></div>' +
+        '<div class="mod-actions" style="justify-content:flex-start"><button class="btn-g" id="asHitOk">Guardar cambios</button></div></div>';
+      $('#asHitOk').addEventListener('click', function () {
+        cfg.hitos = $('#asHit').value.split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+        saveDB(db); toast('Hitos actualizados.'); rAdminSomos();
+      });
+    } else if (adminSomosTab === 'redes') {
+      body.innerHTML = '<div class="card"><h3 style="margin:0 0 4px">Redes sociales</h3><div class="note" style="margin:0 0 14px">Links a las redes sociales y sitio web de la empresa.</div>' +
+        '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Nombre</th><th>Handle</th><th>URL</th><th></th></tr></thead><tbody>' +
+        cfg.redes.map(function (r, i) {
+          return '<tr><td><b style="color:var(--navy)">' + esc(r.nombre) + '</b></td><td>' + esc(r.handle) + '</td><td style="font-size:12.5px"><a href="' + esc(r.url) + '" target="_blank" rel="noopener" style="color:var(--green);font-weight:600;word-break:break-all">' + esc(r.url) + '</a></td><td><button class="btn-s" data-editred="' + i + '" style="font-size:12.5px;padding:6px 11px">Editar</button></td></tr>';
+        }).join('') +
+        '</tbody></table></div></div>';
+      $$('#adminSomosBody [data-editred]').forEach(function (b) { b.addEventListener('click', function () {
+        var i = +b.getAttribute('data-editred'); var r = cfg.redes[i];
+        modal('<button class="mod-x">✕</button><h3>Editar red social</h3>' +
+          '<div class="fld"><label>Nombre *</label><input id="asRN" type="text" value="' + esc(r.nombre) + '"></div>' +
+          '<div class="fld"><label>Handle</label><input id="asRH" type="text" value="' + esc(r.handle) + '"></div>' +
+          '<div class="fld"><label>URL *</label><input id="asRU" type="url" value="' + esc(r.url) + '"></div>' +
+          '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="asRedOk">Guardar</button></div>');
+        $('#asRedOk').addEventListener('click', function () {
+          var n = $('#asRN').value.trim(), u = $('#asRU').value.trim();
+          if (!n || !u) { toast('Nombre y URL son requeridos.'); return; }
+          cfg.redes[i] = { nombre: n, handle: $('#asRH').value.trim(), url: u };
+          saveDB(db); closeModal(); rAdminSomos(); toast('Red social actualizada.');
+        });
+      }); });
+    } else if (adminSomosTab === 'modelos') {
+      var POS = db.somosPOS || window.SV_SEED.POS_CATALOGO || [];
+      var SWL = { credicard: 'Credicard', platco: 'Platco', banesco: 'Banesco' };
+      body.innerHTML = '<div class="card"><div class="toolrow" style="margin:0 0 14px"><div><h3 style="margin:0">Modelos disponibles para la venta</h3><div class="note" style="margin:4px 0 0">Gestiona el catálogo de terminales POS.</div></div><span class="sp"></span><button class="btn-g" id="apAdd"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Agregar modelo</button></div>' +
+        '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Imagen</th><th>Nombre</th><th>Etiqueta</th><th>Plataforma</th><th>Descripción</th><th></th></tr></thead><tbody>' +
+        (POS.length ? POS.map(function (p, i) {
+          return '<tr><td><div data-previmg="' + i + '" style="width:48px;height:48px;border-radius:10px;border:1px solid #EEF3F9;background:#fff url(\'' + esc(p.img) + '\') center/contain no-repeat;cursor:pointer" title="Click para ampliar"></div></td><td><b style="color:var(--navy)">' + esc(p.name) + '</b></td><td>' + esc(p.tag) + '</td><td><span style="font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:#E7FAF1;color:#00874f">' + esc(SWL[p.sw] || p.sw) + '</span></td><td style="font-size:12.5px;color:#33415C">' + esc(p.sub) + '</td><td style="white-space:nowrap"><button class="btn-s" data-editpos="' + i + '" style="font-size:12.5px;padding:6px 11px">Editar</button> <button class="btn-s" data-delpos="' + i + '" style="font-size:12.5px;padding:6px 11px;color:#E0447B;border-color:#E0447B">Eliminar</button></td></tr>';
+        }).join('') : '<tr><td colspan="6"><div class="empty">No hay modelos registrados.</div></td></tr>') +
+        '</tbody></table></div></div>';
+      $$('#adminSomosBody [data-previmg]').forEach(function (d) { d.addEventListener('click', function () {
+        var i = +d.getAttribute('data-previmg'); var p = POS[i]; if (!p) return;
+        modal('<button class="mod-x">✕</button><h3 style="margin-bottom:12px">' + esc(p.name) + '</h3><div style="text-align:center"><img src="' + esc(p.img) + '" alt="' + esc(p.name) + '" style="max-width:100%;max-height:420px;object-fit:contain;border-radius:12px;border:1px solid #EEF3F9"></div>');
+      }); });
+      $$('#adminSomosBody [data-editpos]').forEach(function (b) { b.addEventListener('click', function () {
+        var i = +b.getAttribute('data-editpos'); var p = POS[i]; if (!p) return;
+        modal('<button class="mod-x">✕</button><h3>Editar modelo POS</h3>' +
+          '<div class="fld"><label>Nombre *</label><input id="apN" type="text" value="' + esc(p.name) + '"></div>' +
+          '<div class="fld"><label>Etiqueta (tag)</label><input id="apT" type="text" value="' + esc(p.tag) + '" placeholder="Ej: Smart POS, Más ligero"></div>' +
+          '<div class="fld"><label>Descripción</label><input id="apS" type="text" value="' + esc(p.sub) + '"></div>' +
+          '<div class="fld"><label>Especificaciones (una por línea)</label><textarea id="apB" style="min-height:80px">' + esc(p.bullets.join('\n')) + '</textarea></div>' +
+          '<div class="fld"><label>Plataforma</label><select id="apSW" style="padding:8px 12px;border:1px solid var(--line);border-radius:10px;font-size:14px"><option value="credicard"' + (p.sw === 'credicard' ? ' selected' : '') + '>Credicard</option><option value="platco"' + (p.sw === 'platco' ? ' selected' : '') + '>Platco</option><option value="banesco"' + (p.sw === 'banesco' ? ' selected' : '') + '>Banesco</option></select></div>' +
+          '<div class="fld"><label>Imagen del modelo</label>' +
+            '<div style="display:flex;gap:10px;align-items:flex-start">' +
+              '<div id="apImgPrev" style="width:120px;height:120px;border-radius:12px;border:1px solid #EEF3F9;background:#fff url(\'' + esc(p.img) + '\') center/contain no-repeat;cursor:pointer;flex:0 0 auto" title="Click para ampliar"></div>' +
+              '<div style="flex:1;display:flex;flex-direction:column;gap:8px">' +
+                '<input id="apI" type="hidden" value="' + esc(p.img) + '">' +
+                '<label for="apFile" class="btn-s" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;text-align:center;justify-content:center"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>Subir imagen</label>' +
+                '<input id="apFile" type="file" accept="image/*" style="display:none">' +
+                '<div id="apFileNote" class="note" style="margin:0;font-size:11.5px"></div>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="apOk">Guardar</button></div>', 'wide');
+        document.getElementById('apI').addEventListener('input', function () {
+          var v = this.value.trim();
+          document.getElementById('apImgPrev').style.backgroundImage = v ? 'url(\'' + v + '\')' : 'none';
+        });
+        document.getElementById('apFile').addEventListener('change', function () {
+          var file = this.files[0]; if (!file) return;
+          if (!file.type.startsWith('image/')) { toast('Solo se permiten imágenes.'); return; }
+          if (file.size > 2 * 1024 * 1024) { toast('La imagen no debe superar 2 MB.'); return; }
+          var reader = new FileReader();
+          reader.onload = function (e) {
+            var dataUri = e.target.result;
+            document.getElementById('apI').value = dataUri;
+            document.getElementById('apImgPrev').style.backgroundImage = 'url(\'' + dataUri + '\')';
+            document.getElementById('apFileNote').textContent = file.name + ' (' + (file.size / 1024).toFixed(0) + ' KB) — cargada';
+          };
+          reader.readAsDataURL(file);
+        });
+        document.getElementById('apImgPrev').addEventListener('click', function () {
+          var src = document.getElementById('apI').value.trim(); if (!src) return;
+          var overlay = document.createElement('div');
+          overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer';
+          overlay.innerHTML = '<img src="' + esc(src) + '" style="max-width:90vw;max-height:85vh;object-fit:contain;border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.4)">';
+          overlay.addEventListener('click', function () { overlay.remove(); });
+          document.body.appendChild(overlay);
+        });
+        $('#apOk').addEventListener('click', function () {
+          var n = $('#apN').value.trim();
+          if (!n) { toast('El nombre es requerido.'); return; }
+          if (!db.somosPOS) db.somosPOS = JSON.parse(JSON.stringify(window.SV_SEED.POS_CATALOGO || []));
+          db.somosPOS[i] = {
+            name: n,
+            tag: $('#apT').value.trim(),
+            sub: $('#apS').value.trim(),
+            bullets: $('#apB').value.split('\n').map(function (l) { return l.trim(); }).filter(Boolean),
+            sw: $('#apSW').value,
+            img: $('#apI').value.trim()
+          };
+          saveDB(db); closeModal(); rAdminSomos(); toast('Modelo actualizado.');
+        });
+      }); });
+      /* Agregar nuevo modelo */
+      $('#apAdd').addEventListener('click', function () {
+        if (!db.somosPOS) db.somosPOS = JSON.parse(JSON.stringify(window.SV_SEED.POS_CATALOGO || []));
+        db.somosPOS.push({ name: 'Nuevo modelo', tag: 'POS', sub: '', bullets: [], sw: 'credicard', img: '' });
+        saveDB(db); rAdminSomos(); toast('Modelo agregado. Edita sus datos.');
+      });
+      /* Eliminar modelo */
+      $$('#adminSomosBody [data-delpos]').forEach(function (b) { b.addEventListener('click', function () {
+        var i = +b.getAttribute('data-delpos'); var p = POS[i]; if (!p) return;
+        modal('<button class="mod-x">✕</button><h3>Eliminar modelo</h3>' +
+          '<p style="color:#33415C;font-size:14px;margin:8px 0 16px">¿Seguro que deseas eliminar <b>' + esc(p.name) + '</b>? Esta acción no se puede deshacer.</p>' +
+          '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-s" id="apDelOk" style="color:#fff;background:#E0447B;border-color:#E0447B">Sí, eliminar</button></div>');
+        $('#apDelOk').addEventListener('click', function () {
+          if (!db.somosPOS) db.somosPOS = JSON.parse(JSON.stringify(window.SV_SEED.POS_CATALOGO || []));
+          db.somosPOS.splice(i, 1);
+          saveDB(db); closeModal(); rAdminSomos(); toast('Modelo eliminado.');
+        });
+      }); });
+    }
   }
 
   /* ---------- CONFIGURACIÓN · REQUERIMIENTOS ---------- */
