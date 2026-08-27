@@ -1,0 +1,34 @@
+{
+  "_nota": "Metas corporativas, KPIs y datos históricos — seed",
+  "config": {
+    "vision": "Ser la fintech de pagos líder de Venezuela, reconocida por la confianza, la cercanía y la innovación en cada transacción.",
+    "norte": "Alcanzar 85.000 POS activos y 10% de market share para 2028, con un revenue de $76,5 M.",
+    "updated": "Abril 2026"
+  },
+  "objetivos": [
+    { "titulo": "Colocaciones", "descripcion": "Colocar 28.000 POS en 2026. A abril vamos en 8.321 (29,7%), por encima de meta.", "metrica": "28.000 POS", "plazo": "Dic 2026" },
+    { "titulo": "Reducir churn", "descripcion": "Bajar el churn mensual de 2,8% a 1,5% al cierre de año con un plan de retención y reactivaciones.", "metrica": "Churn 1,5%", "plazo": "Dic 2026" },
+    { "titulo": "Crecer ARPU", "descripcion": "Subir el ARPU de $40 a $52 activando cash-out, recargas y pago de servicios.", "metrica": "ARPU $52", "plazo": "Dic 2026" },
+    { "titulo": "Efectividad de cobranza", "descripcion": "Elevar la cobranza de 86% a 92% y reducir la concentración en BDV (hoy 69% del recaudo).", "metrica": "Cobranza 92%", "plazo": "Dic 2026" },
+    { "titulo": "Market share", "descripcion": "Crecer del 6% al 8% de participación en POS conectados a Credicard.", "metrica": "8% share", "plazo": "Dic 2026" }
+  ],
+  "kpis": [
+    { "nombre": "POS Activos", "actual": "46.000", "meta": "52.000", "direccion": "up" },
+    { "nombre": "Market Share", "actual": "6%", "meta": "8%", "direccion": "up" },
+    { "nombre": "Revenue Anual", "actual": "$26 M", "meta": "$28,7 M", "direccion": "up" },
+    { "nombre": "ARPU", "actual": "$40", "meta": "$52", "direccion": "up" },
+    { "nombre": "Churn Mensual", "actual": "2,8%", "meta": "1,5%", "direccion": "down" },
+    { "nombre": "Cobranza", "actual": "86%", "meta": "92%", "direccion": "up" },
+    { "nombre": "Colocaciones YTD", "actual": "8.321", "meta": "28.000", "direccion": "up" }
+  ],
+  "historico": [
+    { "area_key": "dash", "area": "Dashboard Ejecutivo", "color": "#001F60", "bg": "#E7ECF7", "intro": "Estado actual (abril 2026) frente a la meta de cierre de año, y la evolución de colocaciones desde 2022.", "columnas": ["Año","Colocados","Prom/mes","Prom/día","Desconex.","Churn %","Reactiv.","Crec. neto"], "filas": [["2022","13.610","1.134","57","—","—","—","—"],["2023","11.288","941","45","5.693","—","450","—"],["2024","15.768","1.281","64","6.115","1,9%","952","+10.605"],["2025","21.180","1.765","83","10.083","1,4%","963","+12.060"],["2026 (YTD abr)","8.321","2.080","102","5.295","2,8%","326","+3.352"]] },
+    { "area_key": "coloc", "area": "Colocaciones 2026", "color": "#1F8A5B", "bg": "#E7F6EE", "intro": "Meta vs. real mes a mes. El año arranca por encima de meta: 8.321 colocados a abril (29,7% de la meta anual de 28.000).", "columnas": ["Mes","Meta","Real","% Cumpl.","Acumulado"], "filas": [["Enero","1.000","1.312","131%","1.312"],["Febrero","1.400","1.681","120%","2.993"],["Marzo","1.956","2.575","132%","5.568"],["Abril","2.190","2.753","126%","8.321"]] },
+    { "area_key": "churn", "area": "Churn y Retención", "color": "#B23A6E", "bg": "#FBE9F0", "intro": "El churn de inicio de año (2,8%) está por encima de la meta máxima (2%). El plan lo lleva a 1,5% en diciembre con reactivaciones crecientes.", "columnas": ["Mes","Desconex.","Churn %","Meta máx.","Reactiv."], "filas": [["Enero","895","2,0%","2,0%","77"],["Febrero","1.137","2,5%","2,0%","96"],["Marzo","1.889","4,0%","2,0%","82"],["Abril","1.374","2,9%","2,0%","71"]] },
+    { "area_key": "arpu", "area": "ARPU y Revenue", "color": "#C9922B", "bg": "#FBF1DC", "intro": "El ARPU sube de $40 a $52 durante 2026 al activar cash-out, recargas y pago de servicios. Revenue estimado del año: $25,9 M.", "columnas": ["Concepto","2026 (proy.)","2027","2028"], "filas": [["POS activos (cierre)","52.000","68.000","85.000"],["ARPU promedio","$46","$65","$75"],["Revenue POS fees","$22 M","$32 M","$40 M"],["Revenue cash-out","$1,5 M","$5 M","$7 M"],["Revenue SaaS","—","$8 M","$12 M"],["Revenue total","$24,2 M","$51 M","$76,5 M"]] },
+    { "area_key": "cobranza", "area": "Cobranza Bancaria", "color": "#00B871", "bg": "#E7FAF1", "intro": "Efectividad de cobro por banco (últimos 10 meses). El BDV concentra el 69% del recaudo — principal riesgo de concentración.", "columnas": ["Banco","Recaudado","Efectividad","% del total","Riesgo"], "filas": [["BDV","$7,91 M","90%","69,3%","Concentración"],["Tesoro","$1,59 M","90%","14,0%","Bajo"],["Bancrecer","$0,89 M","83%","7,8%","Medio"],["Bicentenario","$0,49 M","80%","4,3%","Alto"],["Plaza","$0,22 M","88%","1,9%","Bajo"],["BFC","$0,11 M","81%","1,0%","Alto"]] },
+    { "area_key": "credicard", "area": "Mercado Credicard", "color": "#D9463E", "bg": "#FDEBEA", "intro": "Posición de mercado según datos Credicard (abril 2026). El mercado total es enorme: 589.301 POS y $97,9 M anuales en fees de switch.", "columnas": ["Indicador","Valor","Oportunidad"], "filas": [["POS totales Venezuela","589.301","TAM enorme"],["POS VEPAGOS","35.008","6% market share"],["Market share POS","6%","Meta: 10% en 2028"],["% transacciones VEPAGOS","8,3%","POS más productivos"],["TX mensuales del mercado","209,83 M","—"],["POS transactando","85%","vs ~70% del mercado"]] },
+    { "area_key": "fv", "area": "Fuerza de ventas", "color": "#2A6FDB", "bg": "#EAF1FD", "intro": "Espacio para las métricas del equipo comercial. Aún por cargar desde el plan.", "columnas": ["Indicador","Valor"], "filas": [["Pendiente de carga","—"]] },
+    { "area_key": "mkt", "area": "Mercadeo", "color": "#8A5CD1", "bg": "#F1EAFB", "intro": "Espacio para las métricas de mercadeo. Aún por cargar desde el plan.", "columnas": ["Indicador","Valor"], "filas": [["Pendiente de carga","—"]] }
+  ]
+}

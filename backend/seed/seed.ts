@@ -284,6 +284,150 @@ async function seed() {
     console.log('   ⏭️  No se encontró inducciones.json, omitido');
   }
 
+  // 10. Cargar documentos (biblioteca)
+  console.log('📄 Cargando documentos...');
+  const docsPath = path.join(DATOS_DIR, 'documentos.json');
+  if (fs.existsSync(docsPath)) {
+    const docsData = JSON.parse(fs.readFileSync(docsPath, 'utf-8'));
+    for (const d of docsData.documentos) {
+      await conn.execute(
+        `INSERT INTO documentos (categoria_id, nombre, archivo_url, es_real, prompt_texto, fecha, creado_por, departamento, equipo, descripcion)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [d.categoria_id, d.nombre, d.archivo_url || null, d.es_real ? 1 : 0,
+         d.prompt_texto || null, d.fecha || null, d.creado_por || null,
+         d.departamento || null, d.equipo || null, d.descripcion || null]
+      );
+    }
+    console.log(`   ✅ ${docsData.documentos.length} documentos cargados`);
+  }
+
+  // 11. Cargar vacantes
+  console.log('💼 Cargando vacantes...');
+  const vacPath = path.join(DATOS_DIR, 'vacantes.json');
+  if (fs.existsSync(vacPath)) {
+    const vacData = JSON.parse(fs.readFileSync(vacPath, 'utf-8'));
+    for (const v of vacData.vacantes) {
+      const mgrExists = v.manager_id ? userIds.has(v.manager_id) : false;
+      await conn.execute(
+        'INSERT INTO vacantes (cargo, manager_id, perfil_key, fecha, estado) VALUES (?, ?, ?, ?, ?)',
+        [v.cargo, mgrExists ? v.manager_id : null, v.perfil_key || null, v.fecha || null, v.estado || 'abierta']
+      );
+    }
+    console.log(`   ✅ ${vacData.vacantes.length} vacantes cargadas`);
+  }
+
+  // 12. Cargar candidatos
+  console.log('👤 Cargando candidatos...');
+  const candPath = path.join(DATOS_DIR, 'candidatos.json');
+  if (fs.existsSync(candPath)) {
+    const candData = JSON.parse(fs.readFileSync(candPath, 'utf-8'));
+    for (const c of candData.candidatos) {
+      await conn.execute(
+        'INSERT INTO candidatos (nombre, email, telefono, linkedin, ciudad, experiencia, etapa, fecha, nota) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [c.nombre, c.email || null, c.telefono || null, c.linkedin || null, c.ciudad || null, c.experiencia || null, c.etapa || 'nuevo', c.fecha || null, c.nota || null]
+      );
+    }
+    console.log(`   ✅ ${candData.candidatos.length} candidatos cargados`);
+  }
+
+  // 13. Cargar activos fijos
+  console.log('🏗️  Cargando activos fijos...');
+  const afPath = path.join(DATOS_DIR, 'activos-fijos.json');
+  if (fs.existsSync(afPath)) {
+    const afData = JSON.parse(fs.readFileSync(afPath, 'utf-8'));
+    // Catálogos auxiliares
+    const catTables: Record<string, string> = {
+      categorias: 'af_cat_categorias', sedes: 'af_cat_sedes', areas: 'af_cat_areas',
+      departamentos: 'af_cat_departamentos', estados: 'af_cat_estados', unidades: 'af_cat_unidades'
+    };
+    for (const [key, table] of Object.entries(catTables)) {
+      const items = afData.catalogos[key] || [];
+      for (const [i, nombre] of items.entries()) {
+        await conn.execute(`INSERT IGNORE INTO ${table} (nombre, orden) VALUES (?, ?)`, [nombre, i]);
+      }
+    }
+    console.log('   ✅ Catálogos auxiliares cargados');
+    // Activos
+    for (const a of afData.activos) {
+      const aUserId = a.usuario_id && userIds.has(a.usuario_id) ? a.usuario_id : null;
+      await conn.execute(
+        `INSERT IGNORE INTO af_activos (id, categoria, descripcion, marca, modelo, serial, fecha_compra, costo, proveedor, factura, sede, area, departamento, usuario_id, fecha_asig, estado, estado_fisico, ultimo_inv, creado_por, obs)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+        [a.id, a.categoria, a.descripcion, a.marca, a.modelo, a.serial, a.fecha_compra, a.costo, a.proveedor, a.factura, a.sede, a.area, a.departamento, aUserId, a.fecha_asig, a.estado, a.estado_fisico, a.ultimo_inv, a.creado_por, a.obs || '']
+      );
+    }
+    console.log(`   ✅ ${afData.activos.length} activos cargados`);
+    // Consumibles
+    for (const c of afData.consumibles) {
+      await conn.execute(
+        'INSERT IGNORE INTO af_consumibles (id, nombre, unidad, minimo, ubicacion, almacen) VALUES (?,?,?,?,?,?)',
+        [c.id, c.nombre, c.unidad, c.minimo, c.ubicacion, c.almacen]
+      );
+    }
+    console.log(`   ✅ ${afData.consumibles.length} consumibles cargados`);
+    // Movimientos
+    for (const m of afData.movimientos) {
+      await conn.execute(
+        'INSERT INTO af_movimientos (articulo_id, tipo, cantidad, fecha, referencia, por, departamento, para) VALUES (?,?,?,?,?,?,?,?)',
+        [m.articulo_id, m.tipo, m.cantidad, m.fecha, m.referencia, m.por, m.departamento || null, m.para || null]
+      );
+    }
+    console.log(`   ✅ ${afData.movimientos.length} movimientos de stock cargados`);
+    // Proveedores
+    for (const p of afData.proveedores) {
+      await conn.execute(
+        'INSERT INTO af_proveedores (razon, rif, contacto, condiciones) VALUES (?,?,?,?)',
+        [p.razon, p.rif, p.contacto, p.condiciones]
+      );
+    }
+    console.log(`   ✅ ${afData.proveedores.length} proveedores cargados`);
+    // Solicitudes de compra
+    for (const s of afData.solicitudes_compra) {
+      const sUserId = s.solicitante_id && userIds.has(s.solicitante_id) ? s.solicitante_id : null;
+      await conn.execute(
+        'INSERT IGNORE INTO af_solicitudes_compra (id, solicitante_id, departamento, items, justificacion, estado, fecha, aprobado_por, aprobado_fecha) VALUES (?,?,?,?,?,?,?,?,?)',
+        [s.id, sUserId, s.departamento, JSON.stringify(s.items), s.justificacion, s.estado, s.fecha, s.aprobado_por || null, s.aprobado_fecha || null]
+      );
+    }
+    console.log(`   ✅ ${afData.solicitudes_compra.length} solicitudes de compra cargadas`);
+  }
+
+  // 14. Cargar metas y KPIs
+  console.log('🎯 Cargando metas y KPIs...');
+  const metasPath = path.join(DATOS_DIR, 'metas.json');
+  if (fs.existsSync(metasPath)) {
+    const metasData = JSON.parse(fs.readFileSync(metasPath, 'utf-8'));
+    // Config
+    await conn.execute(
+      'INSERT INTO metas_config (vision, norte, updated) VALUES (?, ?, ?)',
+      [metasData.config.vision, metasData.config.norte, metasData.config.updated]
+    );
+    // Objetivos
+    for (const [i, o] of metasData.objetivos.entries()) {
+      await conn.execute(
+        'INSERT INTO metas_objetivos (titulo, descripcion, metrica, plazo, orden) VALUES (?,?,?,?,?)',
+        [o.titulo, o.descripcion, o.metrica, o.plazo, i]
+      );
+    }
+    console.log(`   ✅ ${metasData.objetivos.length} objetivos cargados`);
+    // KPIs
+    for (const [i, k] of metasData.kpis.entries()) {
+      await conn.execute(
+        'INSERT INTO metas_kpis (nombre, actual, meta, direccion, orden) VALUES (?,?,?,?,?)',
+        [k.nombre, k.actual, k.meta, k.direccion, i]
+      );
+    }
+    console.log(`   ✅ ${metasData.kpis.length} KPIs cargados`);
+    // Histórico
+    for (const [i, h] of metasData.historico.entries()) {
+      await conn.execute(
+        'INSERT INTO metas_historico (area_key, area, color, bg, intro, columnas, filas, orden) VALUES (?,?,?,?,?,?,?,?)',
+        [h.area_key, h.area, h.color, h.bg, h.intro, JSON.stringify(h.columnas), JSON.stringify(h.filas), i]
+      );
+    }
+    console.log(`   ✅ ${metasData.historico.length} dashboards históricos cargados`);
+  }
+
   console.log('\n🎉 ¡Seed completado exitosamente!\n');
   console.log('   Base de datos: intranet_vepagos');
   console.log('   phpMyAdmin:    http://localhost:8080/phpmyadmin\n');

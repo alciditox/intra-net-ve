@@ -1,0 +1,7 @@
+{
+  "candidatos": [
+    { "nombre": "María Fernanda Rojas", "email": "mf.rojas@gmail.com", "telefono": "+58 414-5550123", "linkedin": "https://www.linkedin.com/in/mfrojas", "ciudad": "Valencia", "experiencia": "3 a 5 años", "etapa": "entrevista", "fecha": "2026-07-02", "nota": "Experiencia en banca comercial." },
+    { "nombre": "Jorge Andrade", "email": "jandrade87@gmail.com", "telefono": "+58 424-5559834", "linkedin": "https://www.linkedin.com/in/jorgeandrade", "ciudad": "Maracaibo", "experiencia": "Más de 5 años", "etapa": "nuevo", "fecha": "2026-07-06", "nota": "" },
+    { "nombre": "Karla Mendoza", "email": "karlam.ve@gmail.com", "telefono": "+58 412-5551277", "linkedin": "https://www.linkedin.com/in/karlamendoza", "ciudad": "Caracas", "experiencia": "1 a 3 años", "etapa": "entrenamiento", "fecha": "2026-06-24", "nota": "Aprobó entrevista. Inició entrenamiento." }
+  ]
+}

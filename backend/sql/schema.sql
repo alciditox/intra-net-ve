@@ -196,3 +196,203 @@ INSERT IGNORE INTO nav_groups (id, titulo, orden) VALUES
   ('personal', 'Tu espacio', 1),
   ('gestion', 'Seguimiento del equipo', 2),
   ('config', 'Configuración', 3);
+
+-- ---------- Documentos (biblioteca) ----------
+
+CREATE TABLE IF NOT EXISTS documentos (
+  id           BIGINT       AUTO_INCREMENT PRIMARY KEY,
+  categoria_id VARCHAR(30)  NOT NULL,
+  nombre       VARCHAR(200) NOT NULL,
+  archivo_url  VARCHAR(300) NULL,
+  es_real      TINYINT(1)   NOT NULL DEFAULT 0,
+  prompt_texto TEXT         NULL COMMENT 'Texto del prompt para cat=prompts',
+  fecha        DATE         NULL,
+  creado_por   VARCHAR(120) NULL,
+  departamento VARCHAR(60)  NULL,
+  equipo       VARCHAR(80)  NULL,
+  descripcion  TEXT         NULL,
+  FOREIGN KEY (categoria_id) REFERENCES categorias_documento(id),
+  INDEX idx_docs_cat (categoria_id)
+) ENGINE=InnoDB;
+
+-- ---------- Vacantes ----------
+
+CREATE TABLE IF NOT EXISTS vacantes (
+  id          BIGINT       AUTO_INCREMENT PRIMARY KEY,
+  cargo       VARCHAR(120) NOT NULL,
+  manager_id  BIGINT       NULL,
+  perfil_key  VARCHAR(30)  NULL,
+  fecha       DATE         NULL,
+  estado      VARCHAR(20)  NOT NULL DEFAULT 'abierta',
+  FOREIGN KEY (manager_id) REFERENCES usuarios(id) ON DELETE SET NULL,
+  FOREIGN KEY (perfil_key) REFERENCES perfiles(`key`) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- ---------- Candidatos ----------
+
+CREATE TABLE IF NOT EXISTS candidatos (
+  id          BIGINT       AUTO_INCREMENT PRIMARY KEY,
+  nombre      VARCHAR(120) NOT NULL,
+  email       VARCHAR(160) NULL,
+  telefono    VARCHAR(30)  NULL,
+  linkedin    VARCHAR(200) NULL,
+  ciudad      VARCHAR(60)  NULL,
+  experiencia VARCHAR(30)  NULL,
+  etapa       VARCHAR(30)  NOT NULL DEFAULT 'nuevo',
+  fecha       DATE         NULL,
+  nota        TEXT         NULL
+) ENGINE=InnoDB;
+
+-- ---------- Activos fijos — catálogos auxiliares ----------
+
+CREATE TABLE IF NOT EXISTS af_cat_categorias (
+  id     BIGINT       AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(60)  NOT NULL UNIQUE,
+  orden  SMALLINT     NOT NULL DEFAULT 0
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS af_cat_sedes (
+  id     BIGINT       AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(60)  NOT NULL UNIQUE,
+  orden  SMALLINT     NOT NULL DEFAULT 0
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS af_cat_areas (
+  id     BIGINT       AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(80)  NOT NULL UNIQUE,
+  orden  SMALLINT     NOT NULL DEFAULT 0
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS af_cat_departamentos (
+  id     BIGINT       AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(60)  NOT NULL UNIQUE,
+  orden  SMALLINT     NOT NULL DEFAULT 0
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS af_cat_estados (
+  id     BIGINT       AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(30)  NOT NULL UNIQUE,
+  orden  SMALLINT     NOT NULL DEFAULT 0
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS af_cat_unidades (
+  id     BIGINT       AUTO_INCREMENT PRIMARY KEY,
+  nombre VARCHAR(30)  NOT NULL UNIQUE,
+  orden  SMALLINT     NOT NULL DEFAULT 0
+) ENGINE=InnoDB;
+
+-- ---------- Activos fijos ----------
+
+CREATE TABLE IF NOT EXISTS af_activos (
+  id            VARCHAR(10)  PRIMARY KEY,
+  categoria     VARCHAR(60)  NOT NULL,
+  descripcion   VARCHAR(200) NOT NULL,
+  marca         VARCHAR(60)  NULL,
+  modelo        VARCHAR(60)  NULL,
+  serial        VARCHAR(60)  NULL,
+  fecha_compra  DATE         NULL,
+  costo         DECIMAL(12,2) NULL,
+  proveedor     VARCHAR(120) NULL,
+  factura       VARCHAR(40)  NULL,
+  sede          VARCHAR(60)  NULL,
+  area          VARCHAR(80)  NULL,
+  departamento  VARCHAR(60)  NULL,
+  usuario_id    BIGINT       NULL,
+  fecha_asig    DATE         NULL,
+  estado        VARCHAR(20)  NOT NULL DEFAULT 'Disponible',
+  estado_fisico VARCHAR(20)  NULL,
+  ultimo_inv    DATE         NULL,
+  creado_por    VARCHAR(120) NULL,
+  obs           TEXT         NULL,
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- ---------- Consumibles (almacén) ----------
+
+CREATE TABLE IF NOT EXISTS af_consumibles (
+  id        VARCHAR(10)  PRIMARY KEY,
+  nombre    VARCHAR(120) NOT NULL,
+  unidad    VARCHAR(30)  NOT NULL DEFAULT 'Unidad',
+  minimo    INT          NOT NULL DEFAULT 0,
+  ubicacion VARCHAR(80)  NULL,
+  almacen   VARCHAR(20)  NOT NULL DEFAULT 'consumibles'
+) ENGINE=InnoDB;
+
+-- ---------- Movimientos de stock ----------
+
+CREATE TABLE IF NOT EXISTS af_movimientos (
+  id           BIGINT       AUTO_INCREMENT PRIMARY KEY,
+  articulo_id  VARCHAR(10)  NOT NULL,
+  tipo         VARCHAR(10)  NOT NULL COMMENT 'Entrada|Salida',
+  cantidad     INT          NOT NULL,
+  fecha        DATE         NULL,
+  referencia   VARCHAR(120) NULL,
+  por          VARCHAR(120) NULL,
+  departamento VARCHAR(60)  NULL,
+  para         VARCHAR(120) NULL,
+  FOREIGN KEY (articulo_id) REFERENCES af_consumibles(id)
+) ENGINE=InnoDB;
+
+-- ---------- Proveedores ----------
+
+CREATE TABLE IF NOT EXISTS af_proveedores (
+  id          BIGINT       AUTO_INCREMENT PRIMARY KEY,
+  razon       VARCHAR(160) NOT NULL,
+  rif         VARCHAR(20)  NULL,
+  contacto    VARCHAR(160) NULL,
+  condiciones VARCHAR(80)  NULL
+) ENGINE=InnoDB;
+
+-- ---------- Solicitudes de compra ----------
+
+CREATE TABLE IF NOT EXISTS af_solicitudes_compra (
+  id              VARCHAR(10)  PRIMARY KEY,
+  solicitante_id  BIGINT       NULL,
+  departamento    VARCHAR(60)  NULL,
+  items           JSON         NOT NULL,
+  justificacion   TEXT         NULL,
+  estado          VARCHAR(20)  NOT NULL DEFAULT 'Enviada',
+  fecha           DATE         NULL,
+  aprobado_por    VARCHAR(120) NULL,
+  aprobado_fecha  DATE         NULL,
+  FOREIGN KEY (solicitante_id) REFERENCES usuarios(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- ---------- Metas y KPIs ----------
+
+CREATE TABLE IF NOT EXISTS metas_config (
+  id       BIGINT       AUTO_INCREMENT PRIMARY KEY,
+  vision   TEXT         NOT NULL,
+  norte    TEXT         NOT NULL,
+  updated  VARCHAR(30)  NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS metas_objetivos (
+  id          BIGINT       AUTO_INCREMENT PRIMARY KEY,
+  titulo      VARCHAR(120) NOT NULL,
+  descripcion TEXT         NULL,
+  metrica     VARCHAR(60)  NULL,
+  plazo       VARCHAR(30)  NULL,
+  orden       SMALLINT     NOT NULL DEFAULT 0
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS metas_kpis (
+  id        BIGINT       AUTO_INCREMENT PRIMARY KEY,
+  nombre    VARCHAR(60)  NOT NULL,
+  actual    VARCHAR(30)  NULL,
+  meta      VARCHAR(30)  NULL,
+  direccion VARCHAR(10)  NOT NULL DEFAULT 'up',
+  orden     SMALLINT     NOT NULL DEFAULT 0
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS metas_historico (
+  id        BIGINT       AUTO_INCREMENT PRIMARY KEY,
+  area_key  VARCHAR(20)  NOT NULL,
+  area      VARCHAR(60)  NOT NULL,
+  color     CHAR(7)      NULL,
+  bg        CHAR(9)      NULL,
+  intro     TEXT         NULL,
+  columnas  JSON         NOT NULL,
+  filas     JSON         NOT NULL,
+  orden     SMALLINT     NOT NULL DEFAULT 0
+) ENGINE=InnoDB;

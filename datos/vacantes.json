@@ -1,0 +1,10 @@
+{
+  "vacantes": [
+    { "cargo": "Analista Fuerza de Venta 3", "manager_id": 12, "perfil_key": "interno", "fecha": "2026-06-15", "estado": "abierta" },
+    { "cargo": "Fuerza de Ventas Interna", "manager_id": 11, "perfil_key": "interno", "fecha": "2026-06-15", "estado": "abierta" },
+    { "cargo": "Gerente de Bancas Especializadas", "manager_id": 10, "perfil_key": "gerente", "fecha": "2026-05-30", "estado": "abierta" },
+    { "cargo": "Analista de Logística", "manager_id": 29, "perfil_key": "interno", "fecha": "2026-06-20", "estado": "abierta" },
+    { "cargo": "Especialista de Recuperación", "manager_id": 24, "perfil_key": "interno", "fecha": "2026-06-22", "estado": "abierta" },
+    { "cargo": "SAC Televentas", "manager_id": 30, "perfil_key": "interno", "fecha": "2026-07-01", "estado": "abierta" }
+  ]
+}

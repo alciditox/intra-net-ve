@@ -8,6 +8,11 @@ import usersRoutes from './routes/users.routes';
 import perfilesRoutes from './routes/perfiles.routes';
 import pantallasRoutes from './routes/pantallas.routes';
 import permisosRoutes from './routes/permisos.routes';
+import documentosRoutes from './routes/documentos.routes';
+import vacantesRoutes from './routes/vacantes.routes';
+import candidatosRoutes from './routes/candidatos.routes';
+import activosRoutes from './routes/activos.routes';
+import metasRoutes from './routes/metas.routes';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -27,6 +32,11 @@ app.use('/api/users', usersRoutes);
 app.use('/api/perfiles', perfilesRoutes);
 app.use('/api/pantallas', pantallasRoutes);
 app.use('/api/permisos', permisosRoutes);
+app.use('/api/documentos', documentosRoutes);
+app.use('/api/vacantes', vacantesRoutes);
+app.use('/api/candidatos', candidatosRoutes);
+app.use('/api/activos', activosRoutes);
+app.use('/api/metas', metasRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

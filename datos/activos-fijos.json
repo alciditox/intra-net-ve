@@ -1,0 +1,60 @@
+{
+  "_nota": "Activos fijos, consumibles, movimientos, proveedores y solicitudes — seed",
+  "catalogos": {
+    "categorias": ["Computación", "Climatización", "Mobiliario", "Electrodomésticos", "Audiovisual", "Herramientas", "Seguridad", "POS / Terminales", "Mercadeo", "Otros"],
+    "sedes": ["Sede Principal", "Depósito", "Remoto / Casa del empleado"],
+    "areas": ["PB - Recepción", "PB - Almacén", "Piso 1 - Administración", "Piso 1 - Finanzas", "Piso 2 - Tecnología", "Piso 2 - Comercial", "Sala de reuniones", "Cocina / Comedor"],
+    "departamentos": ["Administración", "Finanzas", "RRHH", "Tecnología", "Operaciones", "Comercial", "Legal"],
+    "estados": ["Nuevo", "Bueno", "Regular", "Malo", "Inoperativo"],
+    "unidades": ["Unidad", "Resma", "Caja", "Paquete", "Cartucho", "Litro", "Rollo"]
+  },
+  "activos": [
+    { "id": "AF-0001", "categoria": "Computación", "descripcion": "Laptop 14\" administración", "marca": "Dell", "modelo": "Latitude 3440", "serial": "DL-3440-4821", "fecha_compra": "2025-11-12", "costo": 650, "proveedor": "Distribuidora TecnoZulia", "factura": "F-00821", "sede": "Sede Principal", "area": "Piso 1 - Finanzas", "departamento": "Finanzas", "usuario_id": 74, "fecha_asig": "2025-11-20", "estado": "Asignado", "estado_fisico": "Bueno", "ultimo_inv": "2026-07-10", "creado_por": "Isabella M.", "obs": "" },
+    { "id": "AF-0002", "categoria": "Computación", "descripcion": "Laptop 15\" comercial", "marca": "Lenovo", "modelo": "ThinkPad E15", "serial": "LNV-E15-1190", "fecha_compra": "2025-09-03", "costo": 720, "proveedor": "Distribuidora TecnoZulia", "factura": "F-00655", "sede": "Sede Principal", "area": "Piso 2 - Comercial", "departamento": "Comercial", "usuario_id": null, "fecha_asig": null, "estado": "Disponible", "estado_fisico": "Bueno", "ultimo_inv": "2026-07-10", "creado_por": "Isabella M.", "obs": "" },
+    { "id": "AF-0003", "categoria": "Climatización", "descripcion": "Aire acondicionado split 12.000 BTU", "marca": "LG", "modelo": "Dual Inverter", "serial": "LG-DI-77120", "fecha_compra": "2024-05-20", "costo": 480, "proveedor": "ClimaCentro C.A.", "factura": "F-00190", "sede": "Sede Principal", "area": "Sala de reuniones", "departamento": "Administración", "usuario_id": null, "fecha_asig": null, "estado": "Disponible", "estado_fisico": "Regular", "ultimo_inv": "2026-07-10", "creado_por": "Isabella M.", "obs": "Requiere mantenimiento anual." },
+    { "id": "AF-0004", "categoria": "POS / Terminales", "descripcion": "Terminal POS demo A50", "marca": "PAX", "modelo": "A50", "serial": "PAX-A50-0219", "fecha_compra": "2026-01-15", "costo": 210, "proveedor": "VEPAGOS Importaciones", "factura": "F-01002", "sede": "Depósito", "area": "PB - Almacén", "departamento": "Comercial", "usuario_id": null, "fecha_asig": null, "estado": "En reparación", "estado_fisico": "Malo", "ultimo_inv": "2026-07-10", "creado_por": "Isabella M.", "obs": "Pantalla con falla táctil." },
+    { "id": "AF-0005", "categoria": "Mobiliario", "descripcion": "Escritorio ejecutivo en L", "marca": "Oficenter", "modelo": "Ejecutivo L", "serial": "—", "fecha_compra": "2023-08-01", "costo": 180, "proveedor": "Muebles Maracaibo", "factura": "F-00044", "sede": "Sede Principal", "area": "Piso 1 - Administración", "departamento": "Administración", "usuario_id": 77, "fecha_asig": "2023-08-05", "estado": "Asignado", "estado_fisico": "Bueno", "ultimo_inv": "2026-07-10", "creado_por": "Isabella M.", "obs": "" },
+    { "id": "AF-0006", "categoria": "Mercadeo", "descripcion": "Stand modular para feria", "marca": "PopExpo", "modelo": "Modular 3x3", "serial": "", "fecha_compra": "2026-02-10", "costo": 900, "proveedor": "BrandLab C.A.", "factura": "", "sede": "Depósito", "area": "PB - Almacén", "departamento": "Comercial", "usuario_id": null, "fecha_asig": null, "estado": "Disponible", "estado_fisico": "Bueno", "ultimo_inv": "2026-07-10", "creado_por": "Isabella M.", "obs": "Activo de mercadeo (no consumible)." },
+    { "id": "AF-0007", "categoria": "Mercadeo", "descripcion": "Televisor 55\" para punto de venta", "marca": "Samsung", "modelo": "Crystal UHD", "serial": "", "fecha_compra": "2026-02-10", "costo": 520, "proveedor": "BrandLab C.A.", "factura": "", "sede": "Depósito", "area": "PB - Almacén", "departamento": "Comercial", "usuario_id": null, "fecha_asig": null, "estado": "Disponible", "estado_fisico": "Bueno", "ultimo_inv": "2026-07-10", "creado_por": "Isabella M.", "obs": "Activo de mercadeo (no consumible)." },
+    { "id": "AF-0008", "categoria": "Mercadeo", "descripcion": "Counter/mostrador de activación", "marca": "BrandLab", "modelo": "Counter Pro", "serial": "", "fecha_compra": "2026-02-10", "costo": 340, "proveedor": "BrandLab C.A.", "factura": "", "sede": "Depósito", "area": "PB - Almacén", "departamento": "Comercial", "usuario_id": null, "fecha_asig": null, "estado": "Disponible", "estado_fisico": "Bueno", "ultimo_inv": "2026-07-10", "creado_por": "Isabella M.", "obs": "Activo de mercadeo (no consumible)." }
+  ],
+  "consumibles": [
+    { "id": "CO-001", "nombre": "Resma de papel carta", "unidad": "Resma", "minimo": 10, "ubicacion": "Estante A - Nivel 2", "almacen": "consumibles" },
+    { "id": "CO-002", "nombre": "Cartucho tóner HP 26A", "unidad": "Cartucho", "minimo": 4, "ubicacion": "Estante B - Nivel 1", "almacen": "consumibles" },
+    { "id": "CO-003", "nombre": "Caja de bolígrafos (12u)", "unidad": "Caja", "minimo": 6, "ubicacion": "Estante A - Nivel 1", "almacen": "consumibles" },
+    { "id": "CO-004", "nombre": "Rollo papel térmico POS", "unidad": "Rollo", "minimo": 20, "ubicacion": "Estante C - Nivel 3", "almacen": "consumibles" },
+    { "id": "MK-001", "nombre": "Franela institucional VEPAGOS", "unidad": "Unidad", "minimo": 20, "ubicacion": "Estante D - Nivel 1", "almacen": "mercadeo" },
+    { "id": "MK-002", "nombre": "Gorra corporativa", "unidad": "Unidad", "minimo": 15, "ubicacion": "Estante D - Nivel 1", "almacen": "mercadeo" },
+    { "id": "MK-003", "nombre": "Agenda corporativa 2026", "unidad": "Unidad", "minimo": 15, "ubicacion": "Estante E - Nivel 2", "almacen": "mercadeo" },
+    { "id": "MK-004", "nombre": "Lapicero con logo", "unidad": "Caja", "minimo": 10, "ubicacion": "Estante E - Nivel 1", "almacen": "mercadeo" },
+    { "id": "MK-005", "nombre": "Banner roll-up POP", "unidad": "Unidad", "minimo": 3, "ubicacion": "Depósito mercadeo", "almacen": "mercadeo" },
+    { "id": "MK-006", "nombre": "Volante / flyer promocional", "unidad": "Paquete", "minimo": 10, "ubicacion": "Estante E - Nivel 3", "almacen": "mercadeo" },
+    { "id": "MK-007", "nombre": "Kit de regalo corporativo", "unidad": "Unidad", "minimo": 8, "ubicacion": "Estante F - Nivel 1", "almacen": "mercadeo" },
+    { "id": "MK-008", "nombre": "Mesa plegable para activación", "unidad": "Unidad", "minimo": 2, "ubicacion": "Depósito mercadeo", "almacen": "mercadeo" }
+  ],
+  "movimientos": [
+    { "articulo_id": "CO-001", "tipo": "Entrada", "cantidad": 25, "fecha": "2026-07-01", "referencia": "Inventario inicial", "por": "Isabella M." },
+    { "articulo_id": "CO-002", "tipo": "Entrada", "cantidad": 8, "fecha": "2026-07-01", "referencia": "Inventario inicial", "por": "Isabella M." },
+    { "articulo_id": "CO-003", "tipo": "Entrada", "cantidad": 15, "fecha": "2026-07-01", "referencia": "Inventario inicial", "por": "Isabella M." },
+    { "articulo_id": "CO-004", "tipo": "Entrada", "cantidad": 40, "fecha": "2026-07-01", "referencia": "Inventario inicial", "por": "Isabella M." },
+    { "articulo_id": "CO-001", "tipo": "Salida", "cantidad": 8, "fecha": "2026-07-08", "referencia": "Entrega a Finanzas", "por": "Isabella M.", "departamento": "Finanzas", "para": "Rosaura García" },
+    { "articulo_id": "CO-004", "tipo": "Salida", "cantidad": 25, "fecha": "2026-07-09", "referencia": "Entrega a Comercial", "por": "Isabella M.", "departamento": "Comercial", "para": "Equipo POS" },
+    { "articulo_id": "MK-001", "tipo": "Entrada", "cantidad": 60, "fecha": "2026-07-01", "referencia": "Inventario inicial", "por": "Isabella M." },
+    { "articulo_id": "MK-002", "tipo": "Entrada", "cantidad": 35, "fecha": "2026-07-01", "referencia": "Inventario inicial", "por": "Isabella M." },
+    { "articulo_id": "MK-003", "tipo": "Entrada", "cantidad": 40, "fecha": "2026-07-01", "referencia": "Inventario inicial", "por": "Isabella M." },
+    { "articulo_id": "MK-004", "tipo": "Entrada", "cantidad": 25, "fecha": "2026-07-01", "referencia": "Inventario inicial", "por": "Isabella M." },
+    { "articulo_id": "MK-005", "tipo": "Entrada", "cantidad": 8, "fecha": "2026-07-01", "referencia": "Inventario inicial", "por": "Isabella M." },
+    { "articulo_id": "MK-006", "tipo": "Entrada", "cantidad": 18, "fecha": "2026-07-01", "referencia": "Inventario inicial", "por": "Isabella M." },
+    { "articulo_id": "MK-007", "tipo": "Entrada", "cantidad": 12, "fecha": "2026-07-01", "referencia": "Inventario inicial", "por": "Isabella M." },
+    { "articulo_id": "MK-008", "tipo": "Entrada", "cantidad": 4, "fecha": "2026-07-01", "referencia": "Inventario inicial", "por": "Isabella M." }
+  ],
+  "proveedores": [
+    { "razon": "Distribuidora TecnoZulia", "rif": "J-30111222-4", "contacto": "ventas@tecnozulia.com", "condiciones": "Contado / 15 días" },
+    { "razon": "ClimaCentro C.A.", "rif": "J-29888111-0", "contacto": "clima@climacentro.com", "condiciones": "Contado" },
+    { "razon": "Muebles Maracaibo", "rif": "J-31222555-9", "contacto": "info@mueblesmcbo.com", "condiciones": "30 días" }
+  ],
+  "solicitudes_compra": [
+    { "id": "SC-0001", "solicitante_id": 78, "departamento": "Administración", "items": [{"desc": "Resma de papel carta", "artId": "CO-001", "cant": 20}, {"desc": "Cartucho tóner HP 26A", "artId": "CO-002", "cant": 6}], "justificacion": "Reposición de material de oficina bajo stock mínimo.", "estado": "Enviada", "fecha": "2026-07-11" },
+    { "id": "SC-0002", "solicitante_id": 50, "departamento": "Tecnología", "items": [{"desc": "Laptop 14\" para nuevo analista (equipo de Sistemas)", "artId": null, "cant": 1}], "justificacion": "Ingreso de nuevo analista de soporte. Requerimiento enviado al equipo de Sistemas.", "estado": "Aprobada", "fecha": "2026-07-09", "aprobado_por": "Administradora VEPAGOS", "aprobado_fecha": "2026-07-10" }
+  ]
+}

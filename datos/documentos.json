@@ -1,0 +1,58 @@
+{
+  "_nota": "Documentos de la biblioteca — seed de datos para la base de datos",
+  "documentos": [
+    { "categoria_id": "fichas", "nombre": "Ficha técnica — VEPAGOS Mini", "archivo_url": "fichas/Ficha-Mini-Credicard.pdf", "es_real": true, "fecha": "2026-05-10", "creado_por": "Administradora VEPAGOS" },
+    { "categoria_id": "fichas", "nombre": "Ficha técnica — VEPAGOS Plus", "archivo_url": "fichas/Ficha-Plus-Credicard.pdf", "es_real": true, "fecha": "2026-05-10", "creado_por": "Administradora VEPAGOS" },
+    { "categoria_id": "fichas", "nombre": "Ficha técnica — VEPAGOS Pro", "archivo_url": "fichas/Ficha-Pro-Credicard.pdf", "es_real": true, "fecha": "2026-05-10", "creado_por": "Administradora VEPAGOS" },
+    { "categoria_id": "fichas", "nombre": "Ficha técnica — Q2 (Credicard)", "archivo_url": "fichas/Ficha-Q2-Credicard.pdf", "es_real": true, "fecha": "2026-05-10", "creado_por": "Administradora VEPAGOS" },
+    { "categoria_id": "fichas", "nombre": "Ficha técnica — Q3 (Credicard)", "archivo_url": "fichas/Ficha-Q3-Credicard.pdf", "es_real": true, "fecha": "2026-05-10", "creado_por": "Administradora VEPAGOS" },
+    { "categoria_id": "fichas", "nombre": "Ficha técnica — T1 Pro (Credicard)", "archivo_url": "fichas/Ficha-T1-Pro-Credicard.pdf", "es_real": true, "fecha": "2026-05-10", "creado_por": "Administradora VEPAGOS" },
+    { "categoria_id": "fichas", "nombre": "Ficha técnica — A50 (Credicard)", "archivo_url": "fichas/Ficha-A50-Credicard.pdf", "es_real": true, "fecha": "2026-05-10", "creado_por": "Administradora VEPAGOS" },
+    { "categoria_id": "fichas", "nombre": "Ficha técnica — 9220 (Platco)", "archivo_url": "fichas/Ficha-9220-Platco.pdf", "es_real": true, "fecha": "2026-05-10", "creado_por": "Administradora VEPAGOS" },
+    { "categoria_id": "fichas", "nombre": "Ficha técnica — 9810 (Platco)", "archivo_url": "fichas/Ficha-9810-Platco.pdf", "es_real": true, "fecha": "2026-05-10", "creado_por": "Administradora VEPAGOS" },
+    { "categoria_id": "fichas", "nombre": "Ficha técnica — A50 (Banesco)", "archivo_url": "fichas/Ficha-A50-Banesco.pdf", "es_real": true, "fecha": "2026-05-10", "creado_por": "Administradora VEPAGOS" },
+    { "categoria_id": "fichas", "nombre": "Ficha técnica — A8900 (Banesco)", "archivo_url": "fichas/Ficha-A8900-Banesco.pdf", "es_real": true, "fecha": "2026-05-10", "creado_por": "Administradora VEPAGOS" },
+
+    { "categoria_id": "planes", "nombre": "Plan de servicio — Estándar 2026", "es_real": false, "fecha": "2026-06-01", "creado_por": "Administradora VEPAGOS" },
+    { "categoria_id": "planes", "nombre": "Plan de servicio — Alto volumen 2026", "es_real": false, "fecha": "2026-06-01", "creado_por": "Administradora VEPAGOS" },
+    { "categoria_id": "planes", "nombre": "Tabla de comisiones por switch 2026", "es_real": false, "fecha": "2026-06-01", "creado_por": "Administradora VEPAGOS" },
+    { "categoria_id": "planes", "nombre": "Política de comisiones — Fuerza de Ventas", "es_real": false, "fecha": "2026-06-20", "creado_por": "Administradora VEPAGOS", "equipo": "Fuerza de Ventas" },
+    { "categoria_id": "planes", "nombre": "Procedimiento de cobranzas a comercios", "es_real": false, "fecha": "2026-06-20", "creado_por": "Administradora VEPAGOS", "equipo": "Cobranzas" },
+
+    { "categoria_id": "presentaciones", "nombre": "Presentación comercial VEPAGOS 2026", "es_real": false, "fecha": "2026-06-01", "creado_por": "Administradora VEPAGOS" },
+    { "categoria_id": "presentaciones", "nombre": "Pitch corto — Fuerza de ventas", "es_real": false, "fecha": "2026-06-01", "creado_por": "Administradora VEPAGOS" },
+    { "categoria_id": "presentaciones", "nombre": "Presentación institucional", "es_real": false, "fecha": "2026-06-01", "creado_por": "Administradora VEPAGOS" },
+    { "categoria_id": "presentaciones", "nombre": "Roadmap de sistemas 2026", "es_real": false, "fecha": "2026-06-20", "creado_por": "Administradora VEPAGOS", "departamento": "Sistemas" },
+
+    { "categoria_id": "oferta", "nombre": "Oferta comercial vigente — Julio 2026", "es_real": false, "fecha": "2026-06-01", "creado_por": "Administradora VEPAGOS" },
+    { "categoria_id": "oferta", "nombre": "Promoción activación 72h", "es_real": false, "fecha": "2026-06-01", "creado_por": "Administradora VEPAGOS" },
+    { "categoria_id": "oferta", "nombre": "Guía de despacho y logística de terminales", "es_real": false, "fecha": "2026-06-20", "creado_por": "Administradora VEPAGOS", "equipo": "Retención, Logística y Parámetros" },
+
+    { "categoria_id": "contratos", "nombre": "Modelo de contrato — Afiliación de comercio", "es_real": false, "fecha": "2026-06-01", "creado_por": "Administradora VEPAGOS" },
+    { "categoria_id": "contratos", "nombre": "Modelo de contrato — Fuerza de ventas independiente", "es_real": false, "fecha": "2026-06-01", "creado_por": "Administradora VEPAGOS" },
+    { "categoria_id": "contratos", "nombre": "Acuerdo de confidencialidad (NDA)", "es_real": false, "fecha": "2026-06-01", "creado_por": "Administradora VEPAGOS" },
+
+    { "categoria_id": "rrhh", "nombre": "Manual del empleado 2026", "es_real": false, "fecha": "2026-06-01", "creado_por": "Administradora VEPAGOS" },
+    { "categoria_id": "rrhh", "nombre": "Código de ética", "es_real": false, "fecha": "2026-06-01", "creado_por": "Administradora VEPAGOS" },
+    { "categoria_id": "rrhh", "nombre": "Formato de solicitud de vacaciones", "es_real": false, "fecha": "2026-06-01", "creado_por": "Administradora VEPAGOS" },
+    { "categoria_id": "rrhh", "nombre": "Presupuesto y cierres contables", "es_real": false, "fecha": "2026-06-20", "creado_por": "Administradora VEPAGOS", "departamento": "Administración" },
+
+    { "categoria_id": "marca", "nombre": "Logo color (PNG)", "archivo_url": "assets/marca/logo-color.png", "es_real": true, "fecha": "2026-04-15", "creado_por": "Juan Centeno" },
+    { "categoria_id": "marca", "nombre": "Logo blanco (PNG)", "archivo_url": "assets/marca/logo-blanco.png", "es_real": true, "fecha": "2026-04-15", "creado_por": "Juan Centeno" },
+    { "categoria_id": "marca", "nombre": "Isotipo verde (PNG)", "archivo_url": "assets/marca/iso-verde.png", "es_real": true, "fecha": "2026-04-15", "creado_por": "Juan Centeno" },
+
+    { "categoria_id": "captaciones", "nombre": "Manual de Contratación — Vepagos (v2.0)", "archivo_url": "assets/captaciones/manual-de-contratacion-vepagos.pdf", "es_real": true, "fecha": "2026-06-15", "creado_por": "Capital Humano", "descripcion": "Guía de buenas prácticas de Capital Humano: filosofía de talento, proceso de 8 etapas, formatos y checklists. Framework \"Cinturón Unicornio\"." },
+    { "categoria_id": "captaciones", "nombre": "Presentación · Reclutamiento Vepagos", "archivo_url": "assets/captaciones/presentacion-reclutamiento-vepagos.pdf", "es_real": true, "fecha": "2026-06-15", "creado_por": "Capital Humano", "descripcion": "Cómo reclutamos: qué buscamos, cómo evaluamos y cómo es el proceso." },
+    { "categoria_id": "captaciones", "nombre": "Perfil · Asistente de Recepción Ejecutiva (PDF)", "archivo_url": "assets/captaciones/perfil-asistente-recepcion-ejecutiva.pdf", "es_real": true, "fecha": "2026-06-15", "creado_por": "Capital Humano", "descripcion": "Perfil publicable de la vacante, on-brand." },
+    { "categoria_id": "captaciones", "nombre": "Perfil · Asistente de Recepción Ejecutiva (DOCX editable)", "archivo_url": "assets/captaciones/perfil-asistente-recepcion-ejecutiva.docx", "es_real": true, "fecha": "2026-06-15", "creado_por": "Capital Humano", "descripcion": "Versión editable del perfil con la guía interna." },
+    { "categoria_id": "captaciones", "nombre": "Guía de búsqueda (interno) · Asistente de Recepción Ejecutiva", "archivo_url": "assets/captaciones/guia-de-busqueda-interno-asistente-recepcion-ejecutiva.pdf", "es_real": true, "fecha": "2026-06-15", "creado_por": "Capital Humano", "descripcion": "USO INTERNO: perfil de búsqueda, señales, red flags, cadena booleana y fuentes." },
+    { "categoria_id": "captaciones", "nombre": "Difusión · Historia WhatsApp — Asistente de Recepción Ejecutiva", "archivo_url": "assets/captaciones/difusion-historia-whatsapp-asistente-recepcion-ejecutiva.png", "es_real": true, "fecha": "2026-06-15", "creado_por": "Capital Humano", "descripcion": "Pieza vertical 1080×1920 lista para publicar." },
+
+    { "categoria_id": "prompts", "nombre": "Responder a un cliente indeciso", "es_real": false, "fecha": "2026-07-15", "creado_por": "Capital Humano", "prompt_texto": "Actúa como asesor comercial de VEPAGOS. Un comercio duda en contratar un punto de venta. Escribe una respuesta breve, cálida y persuasiva que resuelva su objeción sobre [OBJECIÓN], destaque el soporte 365 días y cierre invitando a agendar la activación. Máximo 120 palabras, tono venezolano profesional." },
+    { "categoria_id": "prompts", "nombre": "Explicar planes y comisiones a un prospecto", "es_real": false, "fecha": "2026-07-15", "creado_por": "Capital Humano", "prompt_texto": "Eres asesor de VEPAGOS. Explica de forma simple y en lenguaje claro los planes de servicio y cómo se cobra (por domiciliación, en bolívares a tasa BCV) a un comercio que factura aproximadamente [MONTO] al mes. Recomienda el plan que más le conviene y por qué. No inventes tarifas: si no las tienes, indícalas como [tarifa vigente]." },
+    { "categoria_id": "prompts", "nombre": "Redactar correo de seguimiento post-visita", "es_real": false, "fecha": "2026-07-15", "creado_por": "Capital Humano", "prompt_texto": "Redacta un correo de seguimiento para un cliente que visité hoy sobre la instalación de su POS. Resume lo conversado, confirma próximos pasos y deja una fecha tentativa de activación. Tono cercano y profesional. Firma como [TU NOMBRE], Fuerza de Ventas VEPAGOS." },
+    { "categoria_id": "prompts", "nombre": "Resumir una conversación de soporte (SAC)", "es_real": false, "fecha": "2026-07-15", "creado_por": "Capital Humano", "prompt_texto": "Resume el siguiente caso de soporte en 4 líneas: motivo del contacto, diagnóstico, solución aplicada y estatus. Luego sugiere una respuesta final para el cliente. Caso: [PEGA AQUÍ LA CONVERSACIÓN]." },
+    { "categoria_id": "prompts", "nombre": "Crear publicación para redes sociales", "es_real": false, "fecha": "2026-07-15", "creado_por": "Capital Humano", "prompt_texto": "Actúa como Community Manager de VEPAGOS. Crea 3 opciones de publicación para Instagram sobre [TEMA/PROMOCIÓN], con copy corto, 1 llamado a la acción y 3 hashtags. Mantén la identidad: cercano, confiable, \"hacemos crecer tu negocio\"." },
+    { "categoria_id": "prompts", "nombre": "Preparar guion de llamada en frío", "es_real": false, "fecha": "2026-07-15", "creado_por": "Capital Humano", "prompt_texto": "Genera un guion de llamada en frío de 45 segundos para ofrecer puntos de venta VEPAGOS a un comercio del sector [SECTOR]. Incluye apertura, propuesta de valor, una pregunta de calificación y cierre para agendar una visita." }
+  ]
+}
