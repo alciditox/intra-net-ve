@@ -786,7 +786,9 @@
     { id: 'inicio', g: 'personal', t: 'Inicio', roles: 'all', ico: '<path d="M3 10.5L12 3l9 7.5"></path><path d="M5 9.5V21h14V9.5"></path>' },
     { id: 'adminmenu', g: 'personal', t: 'Administración', roles: ['admin'], ico: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle>', sub: [
       { id: 'adminfrec', t: 'Accesos frecuentes' },
-      { id: 'adminsomos', t: 'Somos VEPAGOS' }
+      { id: 'adminsomos', t: 'Somos VEPAGOS' },
+      { id: 'adminenc', t: 'Encuestas' },
+      { id: 'admincom', t: 'Comunicaciones' }
     ] },
     { id: 'metas', g: 'personal', t: 'Metas', roles: ['admin', 'gerente'], ico: '<circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1"></circle>', sub: [
       { id: 'metas2026', t: 'Metas 2026' },
@@ -1097,8 +1099,8 @@
     $$('#sbNav a').forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-go') === id); });
     var item = null;
     NAV.forEach(function (n) { if (n.id === id) item = n; if (n.sub) n.sub.forEach(function (c) { if (c.id === id) item = c; }); });
-    $('#pageTitle').textContent = item ? (id === 'adminfrec' || id === 'adminsomos' ? 'Administración · ' + item.t : (item.t === 'Metas 2026' || item.t === 'Visión' || item.t === 'Histórico' ? 'Metas · ' + item.t : ((id === 'afpanel' || id === 'afactivos' || id === 'aftech' || id === 'afalmacen' || id === 'afmercadeo' || id === 'afprocura') ? 'Activos y procura · ' + item.t : ((id === 'ventasfv' || id === 'ventasbancos') ? 'Ventas · ' + item.t : navLabel(item))))) : '';
-    var R = { inicio: rInicio, adminmenu: rAdminFrec, adminfrec: rAdminFrec, adminsomos: rAdminSomos, metas: rMetas, metas2026: rMetas, metasvision: rMetas, metashist: rMetas, somos: rSomos, cultura: rCultura, docs: rDocs, solicitudes: rSolicitudes, solequipo: rSolEquipo, claves: rClaves, activos: rAfPanel, afpanel: rAfPanel, afactivos: rAfActivos, aftech: rAfTech, afalmacen: rAfAlmacen, afmercadeo: rAfMercadeo, afprocura: rAfProcura, ventasmenu: rEquipo, ventasfv: rEquipo, ventasbancos: rBancos, org: rOrg, directorio: rDirectorio, equipo: rEquipo, onboarding: rOnboarding, induccionequipo: rOnboarding, pendientes: rPendientes, candidatos: rCandidatos, empleados: rEmpleados, asistencia: rAsistencia, encuestas: rEncuestas, contratos: rContratos, marketing: rMarketing, perfil: rPerfil, perfiles: rPerfiles, requerimientos: rRequerimientos, accesos: rAccesos, recursos: rRecursos };
+    $('#pageTitle').textContent = item ? (id === 'adminfrec' || id === 'adminsomos' || id === 'adminenc' || id === 'admincom' ? 'Administración · ' + item.t : (item.t === 'Metas 2026' || item.t === 'Visión' || item.t === 'Histórico' ? 'Metas · ' + item.t : ((id === 'afpanel' || id === 'afactivos' || id === 'aftech' || id === 'afalmacen' || id === 'afmercadeo' || id === 'afprocura') ? 'Activos y procura · ' + item.t : ((id === 'ventasfv' || id === 'ventasbancos') ? 'Ventas · ' + item.t : navLabel(item))))) : '';
+    var R = { inicio: rInicio, adminmenu: rAdminFrec, adminfrec: rAdminFrec, adminsomos: rAdminSomos, adminenc: rEncuestas, admincom: rAdminCom, metas: rMetas, metas2026: rMetas, metasvision: rMetas, metashist: rMetas, somos: rSomos, cultura: rCultura, docs: rDocs, solicitudes: rSolicitudes, solequipo: rSolEquipo, claves: rClaves, activos: rAfPanel, afpanel: rAfPanel, afactivos: rAfActivos, aftech: rAfTech, afalmacen: rAfAlmacen, afmercadeo: rAfMercadeo, afprocura: rAfProcura, ventasmenu: rEquipo, ventasfv: rEquipo, ventasbancos: rBancos, org: rOrg, directorio: rDirectorio, equipo: rEquipo, onboarding: rOnboarding, induccionequipo: rOnboarding, pendientes: rPendientes, candidatos: rCandidatos, empleados: rEmpleados, asistencia: rAsistencia, encuestas: rEncuestas, contratos: rContratos, marketing: rMarketing, perfil: rPerfil, perfiles: rPerfiles, requerimientos: rRequerimientos, accesos: rAccesos, recursos: rRecursos };
     (R[id] || rInicio)();
     window.scrollTo(0, 0);
   }
@@ -2343,9 +2345,12 @@
     return Math.max(0, Math.floor(diff / m));
   }
   function encRespondio(e, uid) { var c = encCicloActual(e); return (e.respuestas || []).some(function (r) { return r.userId === uid && (r.ciclo || 0) === c; }); }
+  function _diasDesde(iso) { if (!iso) return 0; var d = new Date(iso), now = new Date(); return Math.floor((now - d) / 86400000); }
+  function encExpirada(e) { return e.vigenciaDias && e.vigenciaDias > 0 && _diasDesde(e.fechaCreacion || e.desde || e.fecha) > e.vigenciaDias; }
+  function comExpirada(c) { return c.vigenciaDias && c.vigenciaDias > 0 && _diasDesde(c.fecha) > c.vigenciaDias; }
   function encActivasPara(uid) {
     var u = byId(uid); if (!u) return [];
-    return (db.encuestas || []).filter(function (e) { return e.estado !== 'cerrada' && enAudiencia(e, u); });
+    return (db.encuestas || []).filter(function (e) { return e.estado !== 'cerrada' && enAudiencia(e, u) && !encExpirada(e); });
   }
   function encPendientes(uid) { return encActivasPara(uid).filter(function (e) { return !encRespondio(e, uid); }); }
   function pendMisActivos() { return db.pendientes.filter(function (p) { return p.userId === me.id && p.estado !== 'resuelto'; }); }
@@ -2554,21 +2559,17 @@
     }
 
     // --- Comunicaciones internas ---
-    var esRH = me.role === 'rrhh' || me.role === 'admin';
-    var coms = (db.comunicaciones || []).slice().sort(function (a, b) { return (a.fecha < b.fecha ? 1 : -1) || (b.id - a.id); });
+    var coms = (db.comunicaciones || []).filter(function (c) { return !comExpirada(c); }).sort(function (a, b) { return (a.fecha < b.fecha ? 1 : -1) || (b.id - a.id); });
     var noLeidas = comNoLeidas().length;
     html += '<div class="card">' +
       '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px">' +
         '<h3 style="margin:0;display:flex;align-items:center;gap:8px"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2A6FDB" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l18-5v12L3 14v-3z"></path><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path></svg>Comunicaciones internas' + (noLeidas ? ' <span class="chip y">' + noLeidas + ' nuevas</span>' : '') + '</h3>' +
-        '<span class="sp"></span>' +
-        (esRH ? '<button class="btn-g" id="btnNewCom"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Nueva comunicación</button>' : '') +
       '</div>' +
       '<div class="note" style="margin:4px 0 10px">Anuncios y novedades publicados por Capital Humano.</div>' +
       (coms.length ? coms.map(comRow).join('') : '<div class="empty">Aún no hay comunicaciones.</div>') +
     '</div>';
 
     $('#content').innerHTML = html;
-    var bnc = $('#btnNewCom'); if (bnc) bnc.addEventListener('click', function () { openComModal(); });
     $('#content').addEventListener('click', function (e) {
       var er = e.target.closest('[data-encr]');
       if (er) { var en = db.encuestas.find(function (x) { return x.id === +er.getAttribute('data-encr'); }); if (en) encResponder(en); return; }
@@ -4107,7 +4108,7 @@
         var preguntas = qs.filter(function (q) { return q.texto.trim(); }).map(function (q, i) { return { id: i + 1, texto: q.texto.trim(), tipo: q.tipo, opciones: q.tipo === 'opcion' ? q.opciones.split(',').map(function (s) { return s.trim(); }).filter(Boolean) : [] }; });
         if (!preguntas.length) { toast('Agrega al menos una pregunta.'); return; }
         db.encuestas.push({ id: db.nextEncId++, titulo: tit, descripcion: $('#enD').value.trim(), preguntas: preguntas, audiencia: meta.audiencia, cadencia: meta.cadencia, tipo: meta.tipo, desde: reqToday(), por: me.nombre, fecha: reqToday(), estado: 'activa', respuestas: [] });
-        saveDB(db); closeModal(); refreshNav(); rEncuestas();
+        saveDB(db); closeModal(); refreshNav(); (current === 'adminenc' ? rAdminEnc : rEncuestas)();
         toast(meta.cadencia === 'onboarding' ? 'Encuesta activada. Se asignará automáticamente al completar el onboarding.' : 'Encuesta publicada para ' + audLabel(meta.audiencia).toLowerCase() + '.');
       });
     }
@@ -6787,6 +6788,124 @@
         });
       }); });
     }
+  }
+
+  /* ---------- ADMINISTRACIÓN · ENCUESTAS ---------- */
+  function rAdminEnc() {
+    resetContent();
+    var encs = (db.encuestas || []).slice().sort(function (a, b) { return b.id - a.id; });
+    var html = '<div class="card"><div class="toolrow" style="margin:0 0 14px"><div><h3 style="margin:0">Encuestas</h3><div class="note" style="margin:4px 0 0">Gestiona las encuestas del equipo. Configura vigencia, cierra o elimina.</div></div><span class="sp"></span><button class="btn-g" id="aeAdd"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Nueva encuesta</button></div>' +
+      '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Título</th><th>Preguntas</th><th>Estado</th><th>Vigencia</th><th>Respuestas</th><th></th></tr></thead><tbody>' +
+      (encs.length ? encs.map(function (e, idx) {
+        var exp = encExpirada(e);
+        var estado = e.estado === 'cerrada' ? '<span class="chip n">Cerrada</span>' : (exp ? '<span class="chip y">Expirada</span>' : '<span class="chip g">Activa</span>');
+        var vig = !e.vigenciaDias || e.vigenciaDias <= 0 ? 'Permanente' : e.vigenciaDias + ' días' + (exp ? ' (vencida)' : '');
+        var resp = (e.respuestas || []).length;
+        return '<tr><td><b style="color:var(--navy)">' + esc(e.titulo) + '</b></td><td>' + (e.preguntas || []).length + '</td><td>' + estado + '</td><td style="font-size:13px">' + vig + '</td><td>' + resp + '</td><td style="white-space:nowrap">' +
+          '<button class="btn-s" data-aev="' + e.id + '" style="font-size:12.5px;padding:6px 11px">Vigencia</button> ' +
+          (e.estado !== 'cerrada' ? '<button class="btn-s" data-aec="' + e.id + '" style="font-size:12.5px;padding:6px 11px">Cerrar</button> ' : '<button class="btn-s" data-aeo="' + e.id + '" style="font-size:12.5px;padding:6px 11px">Abrir</button> ') +
+          '<button class="btn-s" data-aed="' + e.id + '" style="font-size:12.5px;padding:6px 11px;color:#E0447B;border-color:#E0447B">Eliminar</button></td></tr>';
+      }).join('') : '<tr><td colspan="6"><div class="empty">No hay encuestas registradas.</div></td></tr>') +
+      '</tbody></table></div></div>';
+    $('#content').innerHTML = html;
+    /* Nueva encuesta */
+    $('#aeAdd').addEventListener('click', function () { encPlantillaPicker(); });
+    /* Vigencia */
+    $$('#content [data-aev]').forEach(function (b) { b.addEventListener('click', function () {
+      var e = db.encuestas.find(function (x) { return x.id === +b.getAttribute('data-aev'); }); if (!e) return;
+      modal('<button class="mod-x">✕</button><h3>Vigencia de encuesta</h3>' +
+        '<p style="color:#33415C;font-size:14px;margin:4px 0 12px"><b>' + esc(e.titulo) + '</b></p>' +
+        '<div class="fld"><label>Días de vigencia (0 = permanente)</label><input id="aeVD" type="number" min="0" value="' + (e.vigenciaDias || 0) + '"></div>' +
+        '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="aeVOk">Guardar</button></div>');
+      $('#aeVOk').addEventListener('click', function () {
+        e.vigenciaDias = Math.max(0, parseInt($('#aeVD').value, 10) || 0);
+        if (!e.fechaCreacion) e.fechaCreacion = e.desde || e.fecha || reqToday();
+        saveDB(db); closeModal(); rAdminEnc(); toast('Vigencia actualizada.');
+      });
+    }); });
+    /* Cerrar */
+    $$('#content [data-aec]').forEach(function (b) { b.addEventListener('click', function () {
+      var e = db.encuestas.find(function (x) { return x.id === +b.getAttribute('data-aec'); }); if (!e) return;
+      e.estado = 'cerrada'; saveDB(db); rAdminEnc(); toast('Encuesta cerrada.');
+    }); });
+    /* Abrir */
+    $$('#content [data-aeo]').forEach(function (b) { b.addEventListener('click', function () {
+      var e = db.encuestas.find(function (x) { return x.id === +b.getAttribute('data-aeo'); }); if (!e) return;
+      e.estado = 'activa'; saveDB(db); rAdminEnc(); toast('Encuesta reabierta.');
+    }); });
+    /* Eliminar */
+    $$('#content [data-aed]').forEach(function (b) { b.addEventListener('click', function () {
+      var e = db.encuestas.find(function (x) { return x.id === +b.getAttribute('data-aed'); }); if (!e) return;
+      modal('<button class="mod-x">✕</button><h3>Eliminar encuesta</h3>' +
+        '<p style="color:#33415C;font-size:14px;margin:8px 0 16px">¿Seguro que deseas eliminar <b>' + esc(e.titulo) + '</b>? Se perderán todas las respuestas.</p>' +
+        '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-s" id="aeDelOk" style="color:#fff;background:#E0447B;border-color:#E0447B">Sí, eliminar</button></div>');
+      $('#aeDelOk').addEventListener('click', function () {
+        db.encuestas = db.encuestas.filter(function (x) { return x.id !== e.id; });
+        saveDB(db); closeModal(); refreshNav(); rAdminEnc(); toast('Encuesta eliminada.');
+      });
+    }); });
+  }
+
+  /* ---------- ADMINISTRACIÓN · COMUNICACIONES ---------- */
+  function rAdminCom() {
+    resetContent();
+    var coms = (db.comunicaciones || []).slice().sort(function (a, b) { return (a.fecha < b.fecha ? 1 : -1) || (b.id - a.id); });
+    var totalUsers = db.users.filter(function (u) { return u.role !== 'candidato'; }).length;
+    var html = '<div class="card"><div class="toolrow" style="margin:0 0 14px"><div><h3 style="margin:0">Comunicaciones internas</h3><div class="note" style="margin:4px 0 0">Gestiona los anuncios para el equipo. Configura vigencia o elimina.</div></div><span class="sp"></span><button class="btn-g" id="acAdd"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Nueva comunicación</button></div>' +
+      '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Título</th><th>Publicado por</th><th>Fecha</th><th>Vigencia</th><th>Leídas</th><th></th></tr></thead><tbody>' +
+      (coms.length ? coms.map(function (c) {
+        var exp = comExpirada(c);
+        var vig = !c.vigenciaDias || c.vigenciaDias <= 0 ? 'Permanente' : c.vigenciaDias + ' días' + (exp ? ' (vencida)' : '');
+        var leidas = (c.leidoPor || []).length;
+        return '<tr><td><b style="color:var(--navy)">' + esc(c.titulo) + '</b></td><td>' + esc(c.por) + '</td><td style="white-space:nowrap">' + fechaCorta(c.fecha) + '</td><td style="font-size:13px">' + vig + '</td><td>' + leidas + ' de ' + totalUsers + '</td><td style="white-space:nowrap">' +
+          '<button class="btn-s" data-acv="' + c.id + '" style="font-size:12.5px;padding:6px 11px">Vigencia</button> ' +
+          '<button class="btn-s" data-acd="' + c.id + '" style="font-size:12.5px;padding:6px 11px;color:#E0447B;border-color:#E0447B">Eliminar</button></td></tr>';
+      }).join('') : '<tr><td colspan="6"><div class="empty">No hay comunicaciones registradas.</div></td></tr>') +
+      '</tbody></table></div></div>';
+    $('#content').innerHTML = html;
+    /* Nueva comunicación */
+    $('#acAdd').addEventListener('click', function () {
+      var attach = { nombre: null, data: null };
+      modal('<button class="mod-x">✕</button><h3>Nueva comunicación interna</h3>' +
+        '<p style="color:var(--muted);font-size:14px;margin:4px 0 10px">Publica un anuncio para todo el equipo.</p>' +
+        '<div class="fld"><label>Título</label><input id="coT" type="text" placeholder="Ej: Nuevo horario de la sede"></div>' +
+        '<div class="fld"><label>Contenido</label><textarea id="coB" placeholder="Escribe el anuncio." style="min-height:120px"></textarea></div>' +
+        '<div class="fld"><label>Días de vigencia (0 = permanente)</label><input id="coVig" type="number" min="0" value="0"></div>' +
+        '<div class="fld"><label>Adjunto (opcional)</label><div style="display:flex;align-items:center;gap:10px"><button type="button" class="btn-s" id="coAdjBtn">Adjuntar archivo</button><span id="coAdjName" style="font-size:13px;color:var(--muted)">Ningún archivo</span></div></div>' +
+        '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="coOk">Publicar</button></div>', 'wide');
+      $('#coAdjBtn').addEventListener('click', function () { var inp = document.createElement('input'); inp.type = 'file'; inp.onchange = function () { var f = inp.files[0]; if (!f) return; var rd = new FileReader(); rd.onload = function () { attach.nombre = f.name; attach.data = rd.result; $('#coAdjName').textContent = f.name; }; rd.readAsDataURL(f); }; inp.click(); });
+      $('#coOk').addEventListener('click', function () {
+        var t = $('#coT').value.trim(), b = $('#coB').value.trim();
+        if (t.length < 3) { toast('Escribe un título.'); return; }
+        if (b.length < 10) { toast('Escribe el contenido.'); return; }
+        var vig = Math.max(0, parseInt($('#coVig').value, 10) || 0);
+        db.comunicaciones.push({ id: db.nextComId++, titulo: t, cuerpo: b, por: me.nombre, fecha: reqToday(), adjuntoNombre: attach.nombre, adjunto: attach.data, leidoPor: [me.id], vigenciaDias: vig });
+        saveDB(db); closeModal(); refreshNav(); rAdminCom(); toast('Comunicación publicada.');
+      });
+    });
+    /* Vigencia */
+    $$('#content [data-acv]').forEach(function (b) { b.addEventListener('click', function () {
+      var c = db.comunicaciones.find(function (x) { return x.id === +b.getAttribute('data-acv'); }); if (!c) return;
+      modal('<button class="mod-x">✕</button><h3>Vigencia de comunicación</h3>' +
+        '<p style="color:#33415C;font-size:14px;margin:4px 0 12px"><b>' + esc(c.titulo) + '</b></p>' +
+        '<div class="fld"><label>Días de vigencia (0 = permanente)</label><input id="acVD" type="number" min="0" value="' + (c.vigenciaDias || 0) + '"></div>' +
+        '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="acVOk">Guardar</button></div>');
+      $('#acVOk').addEventListener('click', function () {
+        c.vigenciaDias = Math.max(0, parseInt($('#acVD').value, 10) || 0);
+        saveDB(db); closeModal(); rAdminCom(); toast('Vigencia actualizada.');
+      });
+    }); });
+    /* Eliminar */
+    $$('#content [data-acd]').forEach(function (b) { b.addEventListener('click', function () {
+      var c = db.comunicaciones.find(function (x) { return x.id === +b.getAttribute('data-acd'); }); if (!c) return;
+      modal('<button class="mod-x">✕</button><h3>Eliminar comunicación</h3>' +
+        '<p style="color:#33415C;font-size:14px;margin:8px 0 16px">¿Seguro que deseas eliminar <b>' + esc(c.titulo) + '</b>?</p>' +
+        '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-s" id="acDelOk" style="color:#fff;background:#E0447B;border-color:#E0447B">Sí, eliminar</button></div>');
+      $('#acDelOk').addEventListener('click', function () {
+        db.comunicaciones = db.comunicaciones.filter(function (x) { return x.id !== c.id; });
+        saveDB(db); closeModal(); refreshNav(); rAdminCom(); toast('Comunicación eliminada.');
+      });
+    }); });
   }
 
   /* ---------- CONFIGURACIÓN · REQUERIMIENTOS ---------- */
