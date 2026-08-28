@@ -7,6 +7,8 @@
 
 CREATE DATABASE IF NOT EXISTS intranet_vepagos
   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+ALTER DATABASE intranet_vepagos
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE intranet_vepagos;
 
 -- ---------- Perfiles y permisos ----------
@@ -201,7 +203,7 @@ INSERT IGNORE INTO nav_groups (id, titulo, orden) VALUES
 
 CREATE TABLE IF NOT EXISTS documentos (
   id           BIGINT       AUTO_INCREMENT PRIMARY KEY,
-  categoria_id VARCHAR(30)  NOT NULL,
+  categoria_id VARCHAR(30)  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   nombre       VARCHAR(200) NOT NULL,
   archivo_url  VARCHAR(300) NULL,
   es_real      TINYINT(1)   NOT NULL DEFAULT 0,
@@ -213,7 +215,7 @@ CREATE TABLE IF NOT EXISTS documentos (
   descripcion  TEXT         NULL,
   FOREIGN KEY (categoria_id) REFERENCES categorias_documento(id),
   INDEX idx_docs_cat (categoria_id)
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------- Vacantes ----------
 
