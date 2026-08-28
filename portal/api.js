@@ -84,6 +84,18 @@ window.SV_API = (function () {
     return await request('GET', '/perfiles/' + key);
   }
 
+  async function createPerfil(data) {
+    return await request('POST', '/perfiles', data);
+  }
+
+  async function updatePerfil(key, data) {
+    return await request('PUT', '/perfiles/' + key, data);
+  }
+
+  async function deletePerfil(key) {
+    return await request('DELETE', '/perfiles/' + key);
+  }
+
   // ===== PANTALLAS =====
   async function getPantallas() {
     return await request('GET', '/pantallas');
@@ -100,6 +112,14 @@ window.SV_API = (function () {
   // ===== PERMISOS =====
   async function getPermisosCatalogo() {
     return await request('GET', '/permisos/catalogo');
+  }
+
+  async function getPermisosPerfil(key) {
+    return await request('GET', '/permisos/perfil/' + key);
+  }
+
+  async function setPermisosPerfil(key, permisos) {
+    return await request('PUT', '/permisos/perfil/' + key, { permisos: permisos });
   }
 
   async function getPermisosUsuario(id) {
@@ -124,10 +144,15 @@ window.SV_API = (function () {
     getUser: getUser,
     getPerfiles: getPerfiles,
     getPerfil: getPerfil,
+    createPerfil: createPerfil,
+    updatePerfil: updatePerfil,
+    deletePerfil: deletePerfil,
     getPantallas: getPantallas,
     getPantallasPerfil: getPantallasPerfil,
     setPantallasPerfil: setPantallasPerfil,
     getPermisosCatalogo: getPermisosCatalogo,
+    getPermisosPerfil: getPermisosPerfil,
+    setPermisosPerfil: setPermisosPerfil,
     getPermisosUsuario: getPermisosUsuario,
     grantPermiso: grantPermiso,
     revokePermiso: revokePermiso,

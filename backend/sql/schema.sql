@@ -52,6 +52,17 @@ CREATE TABLE IF NOT EXISTS pantallas (
   FOREIGN KEY (padre_id) REFERENCES pantallas(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
+CREATE TABLE IF NOT EXISTS nav_groups (
+  id      VARCHAR(20)  PRIMARY KEY,
+  titulo  VARCHAR(60)  NOT NULL,
+  orden   SMALLINT     NOT NULL DEFAULT 0
+) ENGINE=InnoDB;
+
+INSERT IGNORE INTO nav_groups (id, titulo, orden) VALUES
+  ('personal', 'Tu espacio', 1),
+  ('gestion', 'Seguimiento del equipo', 2),
+  ('config', 'Configuración', 3);
+
 CREATE TABLE IF NOT EXISTS perfil_pantallas (
   perfil_key   VARCHAR(30)  NOT NULL,
   pantalla_id  VARCHAR(30)  NOT NULL,

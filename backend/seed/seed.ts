@@ -138,34 +138,39 @@ async function seed() {
   }
   console.log(`   ✅ ${NAV_ITEMS.length} pantallas cargadas`);
 
-  // 5. Cargar menús por perfil
+  // 5. Cargar menús por perfil (solo si la tabla está vacía — no sobrescribe datos editados)
   console.log('📋 Cargando menús por perfil...');
-  const menusData = JSON.parse(fs.readFileSync(path.join(DATOS_DIR, 'menus-por-perfil.json'), 'utf-8'));
-
-  for (const [perfilKey, menuIds] of Object.entries(menusData.menus)) {
-    for (const pantallaId of menuIds as string[]) {
-      await conn.execute(
-        'INSERT IGNORE INTO perfil_pantallas (perfil_key, pantalla_id) VALUES (?, ?)',
-        [perfilKey, pantallaId]
-      );
-      // Also add sub-screens if the parent is included
-      const children = NAV_ITEMS.filter((n: any) => n.padre === pantallaId);
-      for (const child of children) {
+  const [existingMenus] = await conn.execute('SELECT 1 FROM perfil_pantallas LIMIT 1') as any;
+  if (existingMenus.length === 0) {
+    const MENUS_POR_PERFIL: Record<string, string[]> = {
+      admin: NAV_ITEMS.map((n: any) => n.id),
+      director: ['inicio','metas','somos','cultura','docs','solicitudes','pendientes','onboarding','perfil','solequipo','org','directorio','ventasmenu','asistencia','contratos'],
+      gerente: ['inicio','metas','somos','cultura','docs','solicitudes','pendientes','onboarding','perfil','solequipo','org','directorio','asistencia','contratos'],
+      gerenteop: ['inicio','metas','somos','cultura','docs','solicitudes','pendientes','onboarding','perfil','solequipo','org','directorio','ventasmenu','asistencia','contratos'],
+      coordinador: ['inicio','somos','cultura','docs','solicitudes','pendientes','onboarding','asistencia','perfil','solequipo','activos'],
+      rrhh: ['inicio','somos','cultura','docs','solicitudes','pendientes','onboarding','perfil','solequipo','org','directorio','induccionequipo','empleados','claves','activos','asistencia','encuestas','contratos'],
+      interno: ['inicio','somos','cultura','docs','solicitudes','pendientes','onboarding','asistencia','perfil'],
+      inces: ['inicio','somos','cultura','docs','solicitudes','pendientes','onboarding','asistencia','perfil'],
+    };
+    for (const [perfilKey, menuIds] of Object.entries(MENUS_POR_PERFIL)) {
+      for (const pantallaId of menuIds) {
         await conn.execute(
           'INSERT IGNORE INTO perfil_pantallas (perfil_key, pantalla_id) VALUES (?, ?)',
-          [perfilKey, child.id]
+          [perfilKey, pantallaId]
         );
+        const children = NAV_ITEMS.filter((n: any) => n.padre === pantallaId);
+        for (const child of children) {
+          await conn.execute(
+            'INSERT IGNORE INTO perfil_pantallas (perfil_key, pantalla_id) VALUES (?, ?)',
+            [perfilKey, child.id]
+          );
+        }
       }
     }
+    console.log('   ✅ Menús por perfil cargados (seed inicial)');
+  } else {
+    console.log('   ⏭️  perfil_pantallas ya tiene datos, no se sobrescribe');
   }
-  // Admin sees everything
-  for (const n of NAV_ITEMS) {
-    await conn.execute(
-      'INSERT IGNORE INTO perfil_pantallas (perfil_key, pantalla_id) VALUES (?, ?)',
-      ['admin', n.id]
-    );
-  }
-  console.log('   ✅ Menús por perfil cargados');
 
   // 6. Cargar usuarios
   console.log('👥 Cargando usuarios...');

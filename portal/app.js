@@ -639,15 +639,28 @@
     saveDB(db);
   })();
   var me = null;
+  var _apiMenuIds = null; /* cache de pantallas permitidas desde /api/menu */
   /* Restaurar sesión desde JWT si existe */
   (function _tryRestoreSession() {
     if (window.SV_API && window.SV_API.isLoggedIn()) {
       window.SV_API.getMe().then(function (data) {
         if (data && !data.error && data.id) {
           me = findOrBuildUser(data);
-          $('#viewLogin').style.display = 'none';
-          $('#viewApp').classList.add('on');
-          renderShell(); go('inicio');
+          /* Cargar menú desde API */
+          return window.SV_API.getMenu().then(function (menuData) {
+            if (menuData && menuData.groups) {
+              _apiMenuIds = [];
+              menuData.groups.forEach(function (g) {
+                g.items.forEach(function (it) {
+                  _apiMenuIds.push(it.id);
+                  if (it.sub) it.sub.forEach(function (s) { _apiMenuIds.push(s.id); });
+                });
+              });
+            }
+            $('#viewLogin').style.display = 'none';
+            $('#viewApp').classList.add('on');
+            renderShell(); go('inicio');
+          });
         }
       }).catch(function () {});
     }
@@ -907,6 +920,12 @@
   function reqAllOnboardItems() { var set = [], seen = {}; (REQ_CATALOG || []).forEach(function (x) { if (!seen[x]) { seen[x] = 1; set.push(x); } }); Object.keys(db.reqCatalogo.onboarding).forEach(function (d) { var g = reqOnbGroups(d); Object.keys(g).forEach(function (ak) { (g[ak] || []).forEach(function (x) { if (!seen[x]) { seen[x] = 1; set.push(x); } }); }); }); return set; }
   function esComercialLead() { return me.role === 'admin' || (esGerenteLike() && (/comercial|ventas/i.test(me.area || '') || /director.*comercial|comercial|fuerza de venta/i.test(me.cargo || ''))); }
   function canSee(item) {
+    /* Si tenemos menú del API, usarlo como fuente de verdad */
+    if (_apiMenuIds) {
+      if (item.id === 'inicio' || item.id === 'perfil') return true;
+      return _apiMenuIds.indexOf(item.id) > -1;
+    }
+    /* Fallback: lógica local (offline / sin API) */
     if (me.role === 'admin') return true;
     var menus = profileMenus(me.role);
     if (menus) {
@@ -986,8 +1005,20 @@
             Object.assign(local, { role: u.role, accesosPermisos: u.accesosPermisos, permisos: u.permisos });
             u = local;
           }
-          $('#lgErr').style.display = 'none';
-          doLogin(u);
+          /* Cargar menú desde API */
+          return window.SV_API.getMenu().then(function (menuData) {
+            if (menuData && menuData.groups) {
+              _apiMenuIds = [];
+              menuData.groups.forEach(function (g) {
+                g.items.forEach(function (it) {
+                  _apiMenuIds.push(it.id);
+                  if (it.sub) it.sub.forEach(function (s) { _apiMenuIds.push(s.id); });
+                });
+              });
+            }
+            $('#lgErr').style.display = 'none';
+            doLogin(u);
+          });
         }
       });
     }).catch(function (err) {
@@ -6243,74 +6274,123 @@
   function perfilCount(key) { return db.users.filter(function (u) { return u.activo && u.role === key; }).length; }
   function rPerfiles() {
     resetContent();
-    var baseOpts = db.perfiles.filter(function (p) { return !p.base; });
-    var html = '<div class="card" style="margin-bottom:16px"><div class="toolrow" style="margin:0"><div><h3 style="margin:0">Perfiles del sistema</h3><div class="note" style="margin:4px 0 0;max-width:640px">Define los tipos de perfil y qué permisos base hereda cada uno. Los perfiles marcados como <b>del sistema</b> no se pueden eliminar. Un perfil nuevo hereda todos los permisos del perfil base que elijas; luego se afinan.</div></div><span class="sp"></span><button class="btn-g" id="pfNew"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Nuevo perfil</button></div></div>';
-    html += '<div class="card" style="padding:6px 16px"><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Perfil</th><th>Hereda de</th><th>Personas</th><th>Descripción</th><th></th></tr></thead><tbody>' +
-      db.perfiles.map(function (p) {
-        var base = p.base ? (getPerfil(p.base) ? getPerfil(p.base).label : p.base) : '—';
-        return '<tr><td><b style="color:var(--navy)">' + esc(p.label) + '</b>' + (p.sistema ? ' <span class="chip n" style="font-size:10px">Sistema</span>' : ' <span class="chip b" style="font-size:10px">Personalizado</span>') + '</td>' +
-          '<td style="font-size:13px;color:var(--muted)">' + esc(base) + '</td>' +
-          '<td>' + perfilCount(p.key) + '</td>' +
-          '<td style="font-size:12.5px;color:#33415C;max-width:320px">' + esc(p.desc || '') + '</td>' +
-          '<td><div style="display:flex;gap:6px;justify-content:flex-end"><button class="btn-s" data-pfedit="' + esc(p.key) + '" style="font-size:12.5px;padding:6px 11px">Editar</button>' +
-          (p.sistema ? '' : '<button class="btn-s btn-danger" data-pfdel="' + esc(p.key) + '" style="font-size:12.5px;padding:6px 11px">Eliminar</button>') + '</div></td></tr>';
-      }).join('') + '</tbody></table></div></div>';
-    $('#content').innerHTML = html;
-    $('#pfNew').addEventListener('click', function () { perfilForm(null); });
-    $$('#content [data-pfedit]').forEach(function (b) { b.addEventListener('click', function () { perfilForm(getPerfil(b.getAttribute('data-pfedit'))); }); });
-    $$('#content [data-pfdel]').forEach(function (b) { b.addEventListener('click', function () {
-      var p = getPerfil(b.getAttribute('data-pfdel')); if (!p) return;
-      if (perfilCount(p.key) > 0) { toast('No puedes eliminar un perfil con personas asignadas. Reasígnalas primero.'); return; }
-      db.perfiles = db.perfiles.filter(function (x) { return x.key !== p.key; });
-      saveDB(db); rPerfiles(); toast('Perfil "' + p.label + '" eliminado.');
-    }); });
+    $('#content').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Cargando perfiles...</div>';
+    /* Cargar desde API */
+    window.SV_API.getPerfiles().then(function (perfiles) {
+      if (perfiles.error) { $('#content').innerHTML = '<div class="card" style="padding:20px;color:red">Error cargando perfiles: ' + esc(perfiles.error) + '</div>'; return; }
+      var html = '<div class="card" style="margin-bottom:16px"><div class="toolrow" style="margin:0"><div><h3 style="margin:0">Perfiles del sistema</h3><div class="note" style="margin:4px 0 0;max-width:640px">Define los tipos de perfil y qué permisos base hereda cada uno. Los perfiles marcados como <b>del sistema</b> no se pueden eliminar. Un perfil nuevo hereda todos los permisos del perfil base que elijas; luego se afinan.</div></div><span class="sp"></span><button class="btn-g" id="pfNew"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Nuevo perfil</button></div></div>';
+      html += '<div class="card" style="padding:6px 16px"><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Perfil</th><th>Hereda de</th><th>Personas</th><th>Descripción</th><th></th></tr></thead><tbody>' +
+        perfiles.map(function (p) {
+          var baseP = p.base_key ? perfiles.find(function (x) { return x.key === p.base_key; }) : null;
+          var base = baseP ? baseP.label : (p.base_key || '\u2014');
+          return '<tr><td><b style="color:var(--navy)">' + esc(p.label) + '</b>' + (p.sistema ? ' <span class="chip n" style="font-size:10px">Sistema</span>' : ' <span class="chip b" style="font-size:10px">Personalizado</span>') + '</td>' +
+            '<td style="font-size:13px;color:var(--muted)">' + esc(base) + '</td>' +
+            '<td>' + perfilCount(p.key) + '</td>' +
+            '<td style="font-size:12.5px;color:#33415C;max-width:320px">' + esc(p.descripcion || '') + '</td>' +
+            '<td><div style="display:flex;gap:6px;justify-content:flex-end"><button class="btn-s" data-pfedit="' + esc(p.key) + '" style="font-size:12.5px;padding:6px 11px">Editar</button>' +
+            (p.sistema ? '' : '<button class="btn-s btn-danger" data-pfdel="' + esc(p.key) + '" style="font-size:12.5px;padding:6px 11px">Eliminar</button>') + '</div></td></tr>';
+        }).join('') + '</tbody></table></div></div>';
+      $('#content').innerHTML = html;
+      $('#pfNew').addEventListener('click', function () { perfilForm(null, perfiles); });
+      $$('#content [data-pfedit]').forEach(function (b) { b.addEventListener('click', function () {
+        var p = perfiles.find(function (x) { return x.key === b.getAttribute('data-pfedit'); });
+        perfilForm(p, perfiles);
+      }); });
+      $$('#content [data-pfdel]').forEach(function (b) { b.addEventListener('click', function () {
+        var pk = b.getAttribute('data-pfdel');
+        var p = perfiles.find(function (x) { return x.key === pk; });
+        if (!p) return;
+        if (perfilCount(p.key) > 0) { toast('No puedes eliminar un perfil con personas asignadas. Reas\u00edgnalas primero.'); return; }
+        window.SV_API.deletePerfil(pk).then(function (res) {
+          if (res.error) { toast(res.error); return; }
+          db.perfiles = db.perfiles.filter(function (x) { return x.key !== pk; });
+          saveDB(db); rPerfiles(); toast('Perfil "' + p.label + '" eliminado.');
+        });
+      }); });
+    });
   }
-  function perfilForm(p) {
+  function perfilForm(p, apiPerfiles) {
     var edit = !!p; p = p || {};
-    var bases = db.perfiles.filter(function (x) { return x.key !== p.key; });
-    var roleRef = p.key || p.base || 'interno';
-    var curMenus = p.menus || legacyMenuSet(roleRef);
-    var curPerms = p.permisos || {};
-    var menuItems = NAV.filter(function (n) { return n.id && n.t && ['inicio', 'perfil'].indexOf(n.id) < 0; });
-    var GRP = { personal: 'Tu espacio', gestion: 'Seguimiento del equipo', config: 'Configuración', app: 'Aplicativos externos' };
-    var menusHtml = ['personal', 'gestion', 'config', 'app'].map(function (gk) {
-      var items = menuItems.filter(function (n) { return (n.g || 'app') === gk; });
-      if (!items.length) return '';
-      return '<div style="font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted2);margin:10px 0 2px">' + GRP[gk] + '</div>' + items.map(function (n) {
-        return '<label style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #F2F6FB;cursor:pointer"><input type="checkbox" data-pmmenu="' + n.id + '"' + (curMenus.indexOf(n.id) > -1 ? ' checked' : '') + ' style="accent-color:#00CE7C;width:17px;height:17px;flex:0 0 auto"><span style="flex:1;font-size:13.5px;color:var(--navy);font-weight:600">' + esc(n.t) + '</span></label>';
+    var bases = (apiPerfiles || []).filter(function (x) { return x.key !== p.key; });
+    Promise.all([
+      window.SV_API.getPantallas(),
+      edit ? window.SV_API.getPantallasPerfil(p.key) : Promise.resolve([]),
+      edit ? window.SV_API.getPermisosPerfil(p.key) : Promise.resolve([])
+    ]).then(function (results) {
+      var allScreens = results[0].error ? [] : results[0];
+      var curMenuIds = results[1].error ? [] : results[1];
+      var curPermKeys = results[2].error ? [] : results[2];
+      var menuItems = allScreens.filter(function (s) { return s.id !== 'inicio' && s.id !== 'perfil' && !s.padre_id; });
+      var GRP = { personal: 'Tu espacio', gestion: 'Seguimiento del equipo', config: 'Configuraci\u00f3n' };
+      var menusHtml = ['personal', 'gestion', 'config'].map(function (gk) {
+        var items = menuItems.filter(function (s) { return s.grupo === gk; });
+        if (!items.length) return '';
+        return '<div style="font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted2);margin:10px 0 2px">' + GRP[gk] + '</div>' + items.map(function (s) {
+          var checked = curMenuIds.indexOf(s.id) > -1;
+          return '<label style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #F2F6FB;cursor:pointer"><input type="checkbox" data-pmmenu="' + s.id + '"' + (checked ? ' checked' : '') + ' style="accent-color:#00CE7C;width:17px;height:17px;flex:0 0 auto"><span style="flex:1;font-size:13.5px;color:var(--navy);font-weight:600">' + esc(s.titulo) + '</span></label>';
+        }).join('');
       }).join('');
-    }).join('');
-    var permsHtml = ['Activos y procura', 'Almacén y activos', 'Otros módulos'].map(function (g) {
-      var items = PERMISOS.filter(function (x) { return x.grupo === g; });
-      if (!items.length) return '';
-      return '<div style="font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted2);margin:10px 0 2px">' + esc(g) + '</div>' + items.map(function (x) {
-        return '<label style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #F2F6FB;cursor:pointer"><input type="checkbox" data-pmperm="' + x.key + '"' + (curPerms[x.key] ? ' checked' : '') + ' style="accent-color:#00CE7C;width:17px;height:17px;margin:2px 0 0;flex:0 0 auto"><span style="flex:1"><span style="font-weight:700;color:var(--navy);font-size:13.5px">' + esc(x.label) + '</span><span style="display:block;font-size:12px;color:var(--muted)">' + esc(x.desc) + '</span></span></label>';
+      var permsHtml = ['Activos y procura', 'Almac\u00e9n y activos', 'Otros m\u00f3dulos'].map(function (g) {
+        var items = PERMISOS.filter(function (x) { return x.grupo === g; });
+        if (!items.length) return '';
+        return '<div style="font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted2);margin:10px 0 2px">' + esc(g) + '</div>' + items.map(function (x) {
+          var checked = curPermKeys.indexOf(x.key) > -1;
+          return '<label style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #F2F6FB;cursor:pointer"><input type="checkbox" data-pmperm="' + x.key + '"' + (checked ? ' checked' : '') + ' style="accent-color:#00CE7C;width:17px;height:17px;margin:2px 0 0;flex:0 0 auto"><span style="flex:1"><span style="font-weight:700;color:var(--navy);font-size:13.5px">' + esc(x.label) + '</span><span style="display:block;font-size:12px;color:var(--muted)">' + esc(x.desc) + '</span></span></label>';
+        }).join('');
       }).join('');
-    }).join('');
-    modal('<button class="mod-x">✕</button><h3>' + (edit ? 'Editar perfil' : 'Nuevo perfil') + '</h3>' +
-      '<div class="fld"><label>Nombre del perfil *</label><input id="pfLabel" type="text" value="' + esc(p.label || '') + '" placeholder="Ej: Analista Senior"></div>' +
-      '<div class="fld"><label>Hereda permisos de</label><select id="pfBase"' + (edit && p.sistema ? ' disabled' : '') + '><option value="">— Sin herencia (permisos propios) —</option>' +
-        bases.map(function (x) { return '<option value="' + esc(x.key) + '"' + (p.base === x.key ? ' selected' : '') + '>' + esc(x.label) + '</option>'; }).join('') + '</select>' +
-        '<div class="note" style="margin:4px 0 0">Punto de partida: al elegir una base, marca abajo lo que este perfil ve y puede hacer.</div></div>' +
-      '<div class="fld"><label>Descripción</label><textarea id="pfDesc" style="min-height:60px" placeholder="Qué hace este perfil y qué puede ver">' + esc(p.desc || '') + '</textarea></div>' +
-      '<div style="font-size:11px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--muted2);margin:16px 0 2px">Menús que ve este perfil</div>' +
-      '<div class="note" style="margin:0 0 4px">Marca a qué secciones del portal tiene acceso. Inicio y Mi perfil siempre están disponibles.</div>' + menusHtml +
-      '<div style="font-size:11px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--muted2);margin:16px 0 2px">Permisos y aprobaciones</div>' +
-      '<div class="note" style="margin:0 0 4px">Qué puede hacer y aprobar dentro de los módulos. ' + (edit && p.key === 'admin' ? '<b>El Administrador siempre tiene acceso total.</b>' : 'Estos permisos aplican a todas las personas con este perfil.') + '</div>' + permsHtml +
-      '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="pfOk">' + (edit ? 'Guardar cambios' : 'Crear perfil') + '</button></div>', 'wide');
-    $('#pfOk').addEventListener('click', function () {
-      var label = $('#pfLabel').value.trim(); if (!label) { toast('Escribe el nombre del perfil.'); return; }
-      var base = $('#pfBase').value || null;
-      var desc = $('#pfDesc').value.trim();
-      var menus = $$('#modalHost [data-pmmenu]').filter(function (cb) { return cb.checked; }).map(function (cb) { return cb.getAttribute('data-pmmenu'); });
-      var permisos = {}; $$('#modalHost [data-pmperm]').forEach(function (cb) { if (cb.checked) permisos[cb.getAttribute('data-pmperm')] = true; });
-      if (edit) { p.label = label; if (!p.sistema) p.base = base; p.desc = desc; p.menus = menus; p.permisos = permisos; }
-      else {
-        var key = label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '').slice(0, 20) || ('perfil' + Date.now());
-        if (getPerfil(key)) key = key + (db.perfiles.length + 1);
-        db.perfiles.push({ key: key, label: label, desc: desc, base: base, sistema: false, menus: menus, permisos: permisos });
-      }
-      saveDB(db); closeModal(); if (me) { $('#meRol').textContent = roleLabelOf(me.role); $('#pillRol').textContent = roleLabelOf(me.role); } rPerfiles(); toast(edit ? 'Perfil actualizado.' : 'Perfil creado.');
+      modal('<button class="mod-x">\u2715</button><h3>' + (edit ? 'Editar perfil' : 'Nuevo perfil') + '</h3>' +
+        '<div class="fld"><label>Nombre del perfil *</label><input id="pfLabel" type="text" value="' + esc(p.label || '') + '" placeholder="Ej: Analista Senior"></div>' +
+        '<div class="fld"><label>Hereda permisos de</label><select id="pfBase"' + (edit && p.sistema ? ' disabled' : '') + '><option value="">\u2014 Sin herencia (permisos propios) \u2014</option>' +
+          bases.map(function (x) { return '<option value="' + esc(x.key) + '"' + (p.base_key === x.key ? ' selected' : '') + '>' + esc(x.label) + '</option>'; }).join('') + '</select>' +
+          '<div class="note" style="margin:4px 0 0">Punto de partida: al elegir una base, marca abajo lo que este perfil ve y puede hacer.</div></div>' +
+        '<div class="fld"><label>Descripci\u00f3n</label><textarea id="pfDesc" style="min-height:60px" placeholder="Qu\u00e9 hace este perfil y qu\u00e9 puede ver">' + esc(p.descripcion || '') + '</textarea></div>' +
+        '<div style="font-size:11px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--muted2);margin:16px 0 2px">Men\u00fas que ve este perfil</div>' +
+        '<div class="note" style="margin:0 0 4px">Marca a qu\u00e9 secciones del portal tiene acceso. Inicio y Mi perfil siempre est\u00e1n disponibles.</div>' + menusHtml +
+        '<div style="font-size:11px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--muted2);margin:16px 0 2px">Permisos y aprobaciones</div>' +
+        '<div class="note" style="margin:0 0 4px">Qu\u00e9 puede hacer y aprobar dentro de los m\u00f3dulos. ' + (edit && p.key === 'admin' ? '<b>El Administrador siempre tiene acceso total.</b>' : 'Estos permisos aplican a todas las personas con este perfil.') + '</div>' + permsHtml +
+        '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="pfOk">' + (edit ? 'Guardar cambios' : 'Crear perfil') + '</button></div>', 'wide');
+      $('#pfOk').addEventListener('click', function () {
+        var label = $('#pfLabel').value.trim(); if (!label) { toast('Escribe el nombre del perfil.'); return; }
+        var baseKey = $('#pfBase').value || null;
+        var desc = $('#pfDesc').value.trim();
+        var menus = $$('#modalHost [data-pmmenu]').filter(function (cb) { return cb.checked; }).map(function (cb) { return cb.getAttribute('data-pmmenu'); });
+        var expanded = menus.slice();
+        menus.forEach(function (mid) {
+          allScreens.filter(function (s) { return s.padre_id === mid; }).forEach(function (child) {
+            if (expanded.indexOf(child.id) < 0) expanded.push(child.id);
+          });
+        });
+        if (expanded.indexOf('inicio') < 0) expanded.push('inicio');
+        if (expanded.indexOf('perfil') < 0) expanded.push('perfil');
+        var permKeys = $$('#modalHost [data-pmperm]').filter(function (cb) { return cb.checked; }).map(function (cb) { return cb.getAttribute('data-pmperm'); });
+        if (edit) {
+          Promise.all([
+            window.SV_API.updatePerfil(p.key, { label: label, base_key: baseKey, descripcion: desc }),
+            window.SV_API.setPantallasPerfil(p.key, expanded),
+            window.SV_API.setPermisosPerfil(p.key, permKeys)
+          ]).then(function (res) {
+            if (res[0].error) { toast(res[0].error); return; }
+            var lp = getPerfil(p.key);
+            if (lp) { lp.label = label; if (!lp.sistema) lp.base = baseKey; lp.desc = desc; lp.menus = expanded; saveDB(db); }
+            closeModal(); if (me) { $('#meRol').textContent = roleLabelOf(me.role); $('#pillRol').textContent = roleLabelOf(me.role); }
+            rPerfiles(); toast('Perfil actualizado.');
+          });
+        } else {
+          var key = label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '').slice(0, 20) || ('perfil' + Date.now());
+          window.SV_API.createPerfil({ key: key, label: label, descripcion: desc, base_key: baseKey }).then(function (res) {
+            if (res.error) { toast(res.error); return; }
+            return Promise.all([
+              window.SV_API.setPantallasPerfil(key, expanded),
+              window.SV_API.setPermisosPerfil(key, permKeys)
+            ]).then(function () {
+              db.perfiles.push({ key: key, label: label, desc: desc, base: baseKey, sistema: false, menus: expanded, permisos: {} });
+              permKeys.forEach(function (pk) { db.perfiles[db.perfiles.length - 1].permisos[pk] = true; });
+              saveDB(db);
+              closeModal(); rPerfiles(); toast('Perfil creado.');
+            });
+          });
+        }
+      });
     });
   }
 

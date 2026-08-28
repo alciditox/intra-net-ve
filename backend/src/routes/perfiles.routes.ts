@@ -102,4 +102,37 @@ router.post('/', authMiddleware, adminOnly, async (req: AuthenticatedRequest, re
   }
 });
 
+// DELETE /api/perfiles/:key — eliminar perfil (solo admin, no sistema)
+router.delete('/:key', authMiddleware, adminOnly, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    // Check if it's a system profile
+    const [rows] = await pool.execute<RowDataPacket[]>(
+      'SELECT sistema FROM perfiles WHERE `key` = ?',
+      [req.params.key]
+    );
+    if (rows.length === 0) {
+      res.status(404).json({ error: 'Perfil no encontrado' });
+      return;
+    }
+    if (rows[0].sistema) {
+      res.status(400).json({ error: 'No se puede eliminar un perfil del sistema' });
+      return;
+    }
+    // Check if any users are assigned
+    const [users] = await pool.execute<RowDataPacket[]>(
+      'SELECT 1 FROM usuarios WHERE perfil_key = ? AND activo = 1 LIMIT 1',
+      [req.params.key]
+    );
+    if (users.length > 0) {
+      res.status(400).json({ error: 'No puedes eliminar un perfil con personas asignadas' });
+      return;
+    }
+    await pool.execute('DELETE FROM perfiles WHERE `key` = ?', [req.params.key]);
+    res.json({ message: 'Perfil eliminado' });
+  } catch (err) {
+    console.error('Perfil delete error:', err);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 export default router;
