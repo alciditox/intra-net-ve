@@ -118,6 +118,7 @@ async function seed() {
     { id: 'adminsomos', g: 'personal', t: 'Somos VEPAGOS', orden: 2, padre: 'adminmenu', ico: null },
     { id: 'adminenc', g: 'personal', t: 'Encuestas', orden: 3, padre: 'adminmenu', ico: null },
     { id: 'admincom', g: 'personal', t: 'Comunicaciones', orden: 4, padre: 'adminmenu', ico: null },
+    { id: 'admininducciones', g: 'personal', t: 'Inducciones', orden: 5, padre: 'adminmenu', ico: null },
   ];
 
   // Insert parent items first (no padre), then children
@@ -439,6 +440,22 @@ async function seed() {
     console.log(`   ✅ ${metasData.historico.length} dashboards históricos cargados`);
   }
 
+  // 12. Cargar inducciones
+  console.log('🎓 Cargando rutas de inducción...');
+  const [existingInd] = await conn.execute('SELECT 1 FROM inducciones_rutas LIMIT 1') as any;
+  if (existingInd.length === 0) {
+    const indData = JSON.parse(fs.readFileSync(path.join(DATOS_DIR, 'inducciones.json'), 'utf-8'));
+    for (const [perfilKey, ruta] of Object.entries(indData.rutas)) {
+      const r = ruta as any;
+      await conn.execute(
+        'INSERT IGNORE INTO inducciones_rutas (perfil_key, titulo, modulos) VALUES (?, ?, ?)',
+        [perfilKey, r.titulo, JSON.stringify(r.modulos)]
+      );
+    }
+    console.log(`   ✅ ${Object.keys(indData.rutas).length} rutas de inducción cargadas`);
+  } else {
+    console.log('   ⏭️  inducciones_rutas ya tiene datos, no se sobrescribe');
+  }
   console.log('\n🎉 ¡Seed completado exitosamente!\n');
   console.log('   Base de datos: intranet_vepagos');
   console.log('   phpMyAdmin:    http://localhost:8080/phpmyadmin\n');

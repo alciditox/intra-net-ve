@@ -409,3 +409,17 @@ CREATE TABLE IF NOT EXISTS metas_historico (
   filas     JSON         NOT NULL,
   orden     SMALLINT     NOT NULL DEFAULT 0
 ) ENGINE=InnoDB;
+
+-- ---------- Inducciones / Onboarding ----------
+
+CREATE TABLE IF NOT EXISTS inducciones_rutas (
+  id          BIGINT       AUTO_INCREMENT PRIMARY KEY,
+  perfil_key  VARCHAR(30)  NOT NULL,
+  titulo      VARCHAR(120) NOT NULL,
+  modulos     JSON         NOT NULL COMMENT 'Array de módulos con lecciones y quiz',
+  activa      TINYINT(1)   NOT NULL DEFAULT 1,
+  created_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+  updated_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_perfil (perfil_key),
+  FOREIGN KEY (perfil_key) REFERENCES perfiles(`key`) ON DELETE CASCADE
+) ENGINE=InnoDB;

@@ -811,7 +811,8 @@
       { id: 'adminfrec', t: 'Accesos frecuentes' },
       { id: 'adminsomos', t: 'Somos VEPAGOS' },
       { id: 'adminenc', t: 'Encuestas' },
-      { id: 'admincom', t: 'Comunicaciones' }
+      { id: 'admincom', t: 'Comunicaciones' },
+      { id: 'admininducciones', t: 'Inducciones' }
     ] },
     { id: 'metas', g: 'personal', t: 'Metas', roles: ['admin', 'gerente'], ico: '<circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1"></circle>', sub: [
       { id: 'metas2026', t: 'Metas 2026' },
@@ -1140,8 +1141,8 @@
     $$('#sbNav a').forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-go') === id); });
     var item = null;
     NAV.forEach(function (n) { if (n.id === id) item = n; if (n.sub) n.sub.forEach(function (c) { if (c.id === id) item = c; }); });
-    $('#pageTitle').textContent = item ? (id === 'adminfrec' || id === 'adminsomos' || id === 'adminenc' || id === 'admincom' ? 'Administración · ' + item.t : (item.t === 'Metas 2026' || item.t === 'Visión' || item.t === 'Histórico' ? 'Metas · ' + item.t : ((id === 'afpanel' || id === 'afactivos' || id === 'aftech' || id === 'afalmacen' || id === 'afmercadeo' || id === 'afprocura') ? 'Activos y procura · ' + item.t : ((id === 'ventasfv' || id === 'ventasbancos') ? 'Ventas · ' + item.t : navLabel(item))))) : '';
-    var R = { inicio: rInicio, adminmenu: rAdminFrec, adminfrec: rAdminFrec, adminsomos: rAdminSomos, adminenc: rEncuestas, admincom: rAdminCom, metas: rMetas, metas2026: rMetas, metasvision: rMetas, metashist: rMetas, somos: rSomos, cultura: rCultura, docs: rDocs, solicitudes: rSolicitudes, solequipo: rSolEquipo, claves: rClaves, activos: rAfPanel, afpanel: rAfPanel, afactivos: rAfActivos, aftech: rAfTech, afalmacen: rAfAlmacen, afmercadeo: rAfMercadeo, afprocura: rAfProcura, ventasmenu: rEquipo, ventasfv: rEquipo, ventasbancos: rBancos, org: rOrg, directorio: rDirectorio, equipo: rEquipo, onboarding: rOnboarding, induccionequipo: rOnboarding, pendientes: rPendientes, candidatos: rCandidatos, empleados: rEmpleados, asistencia: rAsistencia, encuestas: rEncuestas, contratos: rContratos, marketing: rMarketing, perfil: rPerfil, perfiles: rPerfiles, requerimientos: rRequerimientos, accesos: rAccesos, recursos: rRecursos };
+    $('#pageTitle').textContent = item ? (id === 'adminfrec' || id === 'adminsomos' || id === 'adminenc' || id === 'admincom' || id === 'admininducciones' ? 'Administración · ' + item.t : (item.t === 'Metas 2026' || item.t === 'Visión' || item.t === 'Histórico' ? 'Metas · ' + item.t : ((id === 'afpanel' || id === 'afactivos' || id === 'aftech' || id === 'afalmacen' || id === 'afmercadeo' || id === 'afprocura') ? 'Activos y procura · ' + item.t : ((id === 'ventasfv' || id === 'ventasbancos') ? 'Ventas · ' + item.t : navLabel(item))))) : '';
+    var R = { inicio: rInicio, adminmenu: rAdminFrec, adminfrec: rAdminFrec, adminsomos: rAdminSomos, adminenc: rEncuestas, admincom: rAdminCom, admininducciones: rAdminInducciones, metas: rMetas, metas2026: rMetas, metasvision: rMetas, metashist: rMetas, somos: rSomos, cultura: rCultura, docs: rDocs, solicitudes: rSolicitudes, solequipo: rSolEquipo, claves: rClaves, activos: rAfPanel, afpanel: rAfPanel, afactivos: rAfActivos, aftech: rAfTech, afalmacen: rAfAlmacen, afmercadeo: rAfMercadeo, afprocura: rAfProcura, ventasmenu: rEquipo, ventasfv: rEquipo, ventasbancos: rBancos, org: rOrg, directorio: rDirectorio, equipo: rEquipo, onboarding: rOnboarding, induccionequipo: rOnboarding, pendientes: rPendientes, candidatos: rCandidatos, empleados: rEmpleados, asistencia: rAsistencia, encuestas: rEncuestas, contratos: rContratos, marketing: rMarketing, perfil: rPerfil, perfiles: rPerfiles, requerimientos: rRequerimientos, accesos: rAccesos, recursos: rRecursos };
     (R[id] || rInicio)();
     window.scrollTo(0, 0);
   }
@@ -3920,6 +3921,197 @@
     draw();
   }
   var ENC_TIPOS = { escala: 'Escala 1–5', opcion: 'Opción múltiple', texto: 'Respuesta abierta' };
+  /* ---------- ADMINISTRACIÓN · INDUCCIONES ---------- */
+  function rAdminInducciones() {
+    resetContent();
+    $('#content').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Cargando inducciones...</div>';
+    Promise.all([window.SV_API.getInducciones(), window.SV_API.getPerfiles()]).then(function (res) {
+      var rutas = res[0].error ? [] : res[0];
+      var perfiles = res[1].error ? [] : res[1];
+      var totalMods = rutas.reduce(function (s, r) { var m = typeof r.modulos === 'string' ? JSON.parse(r.modulos) : (r.modulos || []); return s + m.length; }, 0);
+      var html = '<div class="toolrow" style="margin-bottom:16px">' +
+        '<div style="font-size:14px;color:var(--muted);max-width:620px;line-height:1.55">Crea y gestiona las <b>rutas de inducción</b> por perfil. Cada ruta tiene módulos con lecciones y quiz que los colaboradores completan al ingresar.</div>' +
+        '<span class="sp"></span><button class="btn-g" id="btnNewInd"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Nueva ruta</button></div>';
+      html += '<div class="dash-kpis" style="margin-bottom:16px">' +
+        '<div class="dash-kpi" style="cursor:default"><span class="dash-kpi-ic" style="background:#2A6FDB18;color:#2A6FDB"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></span><div><div class="dash-kpi-n">' + rutas.length + '</div><div class="dash-kpi-l">Rutas creadas</div></div></div>' +
+        '<div class="dash-kpi" style="cursor:default"><span class="dash-kpi-ic" style="background:#00B87118;color:#00B871"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="M22 4L12 14.01l-3-3"></path></svg></span><div><div class="dash-kpi-n">' + totalMods + '</div><div class="dash-kpi-l">Módulos totales</div></div></div>' +
+        '<div class="dash-kpi" style="cursor:default"><span class="dash-kpi-ic" style="background:#8A5CD118;color:#8A5CD1"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span><div><div class="dash-kpi-n">' + rutas.filter(function (r) { return r.activa; }).length + '</div><div class="dash-kpi-l">Perfiles con inducción</div></div></div>' +
+      '</div>';
+      html += '<h3 style="margin:2px 0 10px;font-size:15px;color:var(--navy)">Rutas de inducción</h3><div class="card">' +
+        (rutas.length ? rutas.map(function (r) {
+          var mods = typeof r.modulos === 'string' ? JSON.parse(r.modulos) : (r.modulos || []);
+          var pLabel = r.perfil_label || r.perfil_key;
+          return '<div class="docrow" data-indedit="' + r.id + '" style="cursor:pointer">' +
+            '<div class="docic" style="background:#EAF1FD;color:#2A6FDB"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></div>' +
+            '<div style="flex:1;min-width:0"><div class="dn">' + esc(r.titulo) + (r.activa ? ' <span class="chip g">Activa</span>' : ' <span class="chip n">Inactiva</span>') + '</div>' +
+            '<div class="dm">' + mods.length + ' módulos · Perfil: ' + esc(pLabel) + ' · Actualizada ' + fechaCorta(r.updated_at) + '</div></div>' +
+            '<span class="sp"></span><button class="btn-s" data-indedit="' + r.id + '">Editar</button>' +
+            '<button class="btn-s btn-danger" data-inddel="' + r.id + '" style="margin-left:6px">Eliminar</button></div>';
+        }).join('') : '<div class="empty">Aún no has creado rutas de inducción. Usa "Nueva ruta".</div>') + '</div>';
+      $('#content').innerHTML = html;
+      $('#btnNewInd').addEventListener('click', function () { induccionForm(null, perfiles); });
+      $$('#content [data-indedit]').forEach(function (b) { b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var rid = b.getAttribute('data-indedit');
+        var r = rutas.find(function (x) { return String(x.id) === rid; });
+        if (r) induccionForm(r, perfiles);
+      }); });
+      $$('#content [data-inddel]').forEach(function (b) { b.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var rid = b.getAttribute('data-inddel');
+        if (!confirm('¿Eliminar esta ruta de inducción?')) return;
+        window.SV_API.deleteInduccion(rid).then(function (res) {
+          if (res.error) { toast(res.error); return; }
+          rAdminInducciones(); toast('Ruta eliminada.');
+        });
+      }); });
+    });
+  }
+  function induccionForm(ruta, perfiles) {
+    var edit = !!ruta;
+    var r = ruta ? JSON.parse(JSON.stringify(ruta)) : { perfil_key: '', titulo: '', modulos: [], activa: true };
+    r.modulos = typeof r.modulos === 'string' ? JSON.parse(r.modulos) : (r.modulos || []);
+    function renderModal() {
+      var pfOpts = perfiles.map(function (p) { return '<option value="' + esc(p.key) + '"' + (r.perfil_key === p.key ? ' selected' : '') + '>' + esc(p.label) + '</option>'; }).join('');
+      var modsHtml = r.modulos.map(function (m, i) {
+        var lessCount = (m.lesson || []).length;
+        var quizCount = (m.quiz || []).length;
+        return '<div class="card" style="padding:14px 16px;margin-bottom:10px;border-left:4px solid ' + (m.color || '#2A6FDB') + '">' +
+          '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">' +
+            '<span style="font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted2)">Módulo ' + (i + 1) + '</span>' +
+            '<span class="sp"></span>' +
+            '<button class="btn-s" data-editlesson="' + i + '" style="font-size:11.5px;padding:4px 10px">Lecciones (' + lessCount + ')</button>' +
+            '<button class="btn-s" data-editquiz="' + i + '" style="font-size:11.5px;padding:4px 10px">Quiz (' + quizCount + ')</button>' +
+            (r.modulos.length > 1 ? '<button class="btn-s btn-danger" data-delmod="' + i + '" style="font-size:11.5px;padding:4px 8px">&times;</button>' : '') +
+          '</div>' +
+          '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">' +
+            '<div class="fld" style="margin:0"><label style="font-size:12px">Título</label><input data-modt="' + i + '" value="' + esc(m.t || '') + '" style="font-size:13px;padding:7px 10px"></div>' +
+            '<div class="fld" style="margin:0"><label style="font-size:12px">Color</label><div style="display:flex;gap:6px;align-items:center"><input type="color" data-modc="' + i + '" value="' + (m.color || '#2A6FDB') + '" style="width:36px;height:32px;padding:2px;border:1px solid #E3EAF3;border-radius:6px;cursor:pointer"><input data-modc2="' + i + '" value="' + (m.color || '#2A6FDB') + '" style="font-size:12px;padding:7px 10px;flex:1"></div></div>' +
+          '</div>' +
+          '<div class="fld" style="margin:6px 0 0"><label style="font-size:12px">Descripción</label><input data-modd="' + i + '" value="' + esc(m.d || '') + '" style="font-size:13px;padding:7px 10px"></div>' +
+        '</div>';
+      }).join('');
+      modal('<button class="mod-x">\u2715</button><h3>' + (edit ? 'Editar ruta de inducción' : 'Nueva ruta de inducción') + '</h3>' +
+        '<div class="fld"><label>Título de la ruta *</label><input id="indTitulo" value="' + esc(r.titulo) + '" placeholder="Ej: Inducción — Equipo VEPAGOS"></div>' +
+        '<div class="fld"><label>Perfil destino *</label><select id="indPerfil"' + (edit ? ' disabled' : '') + '><option value="">— Selecciona —</option>' + pfOpts + '</select></div>' +
+        '<div style="display:flex;align-items:center;gap:10px;margin:12px 0 6px"><div style="font-size:11px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--muted2)">Módulos (' + r.modulos.length + ')</div><span class="sp"></span><button class="btn-s" id="indAddMod" style="font-size:12px;padding:5px 12px">+ Agregar módulo</button></div>' +
+        modsHtml +
+        '<div class="mod-actions" style="margin-top:16px"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="indOk">' + (edit ? 'Guardar cambios' : 'Crear ruta') + '</button></div>', 'wide');
+      /* Eventos */
+      $$('#modalHost [data-modt]').forEach(function (inp) { inp.addEventListener('input', function () { r.modulos[+inp.getAttribute('data-modt')].t = inp.value; }); });
+      $$('#modalHost [data-modd]').forEach(function (inp) { inp.addEventListener('input', function () { r.modulos[+inp.getAttribute('data-modd')].d = inp.value; }); });
+      $$('#modalHost [data-modc]').forEach(function (inp) { inp.addEventListener('input', function () {
+        var i = +inp.getAttribute('data-modc'); r.modulos[i].color = inp.value; r.modulos[i].bg = hexToBg(inp.value);
+        var c2 = document.querySelector('[data-modc2="' + i + '"]'); if (c2) c2.value = inp.value;
+      }); });
+      $$('#modalHost [data-modc2]').forEach(function (inp) { inp.addEventListener('change', function () {
+        var i = +inp.getAttribute('data-modc2'); r.modulos[i].color = inp.value; r.modulos[i].bg = hexToBg(inp.value);
+        var cp = document.querySelector('[data-modc="' + i + '"]'); if (cp) cp.value = inp.value;
+      }); });
+      $('#indAddMod').addEventListener('click', function () {
+        r.modulos.push({ id: 'm' + Date.now(), t: '', d: '', color: '#2A6FDB', bg: 'rgba(42,111,219,.12)', ico: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>', lesson: [], quiz: [] });
+        collectFormState(); renderModal();
+      });
+      $$('#modalHost [data-delmod]').forEach(function (b) { b.addEventListener('click', function () {
+        collectFormState(); r.modulos.splice(+b.getAttribute('data-delmod'), 1); renderModal();
+      }); });
+      $$('#modalHost [data-editlesson]').forEach(function (b) { b.addEventListener('click', function () {
+        collectFormState(); editLessons(+b.getAttribute('data-editlesson'));
+      }); });
+      $$('#modalHost [data-editquiz]').forEach(function (b) { b.addEventListener('click', function () {
+        collectFormState(); editQuiz(+b.getAttribute('data-editquiz'));
+      }); });
+      $('#indOk').addEventListener('click', doSave);
+    }
+    function hexToBg(hex) { var r2 = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16); return 'rgba(' + r2 + ',' + g + ',' + b + ',.12)'; }
+    function collectFormState() {
+      var t = $('#indTitulo'); if (t) r.titulo = t.value.trim();
+      var p = $('#indPerfil'); if (p) r.perfil_key = p.value;
+    }
+    function doSave() {
+      collectFormState();
+      if (!r.titulo) { toast('Escribe el título de la ruta.'); return; }
+      if (!r.perfil_key) { toast('Selecciona un perfil destino.'); return; }
+      r.modulos.forEach(function (m) { if (!m.id) m.id = 'm' + Date.now() + Math.random().toString(36).slice(2, 6); });
+      var payload = { titulo: r.titulo, perfil_key: r.perfil_key, modulos: r.modulos, activa: r.activa !== false };
+      var promise = edit ? window.SV_API.updateInduccion(ruta.id, payload) : window.SV_API.createInduccion(payload);
+      promise.then(function (res) {
+        if (res.error) { toast(res.error); return; }
+        closeModal(); rAdminInducciones(); toast(edit ? 'Ruta actualizada.' : 'Ruta creada.');
+      });
+    }
+    /* Editor de lecciones */
+    function editLessons(modIdx) {
+      var mod = r.modulos[modIdx];
+      mod.lesson = mod.lesson || [];
+      var html = '<button class="mod-x">\u2715</button><h3>Lecciones — ' + esc(mod.t || 'Módulo ' + (modIdx + 1)) + '</h3>' +
+        '<div class="note" style="margin:0 0 12px">Cada lección es una página de contenido con título, cuerpo (HTML permitido) y un apunte clave opcional.</div>';
+      mod.lesson.forEach(function (l, li) {
+        html += '<div class="card" style="padding:12px 16px;margin-bottom:8px">' +
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted2)">Página ' + (li + 1) + '</span><span class="sp"></span>' +
+          '<button class="btn-s btn-danger" data-dellesson="' + li + '" style="font-size:11px;padding:3px 8px">&times;</button></div>' +
+          '<div class="fld" style="margin:0 0 6px"><label style="font-size:12px">Título</label><input data-lh="' + li + '" value="' + esc(l.h || '') + '" style="font-size:13px;padding:7px 10px"></div>' +
+          '<div class="fld" style="margin:0 0 6px"><label style="font-size:12px">Contenido (HTML)</label><textarea data-lb="' + li + '" style="min-height:80px;font-size:12.5px;padding:8px 10px;font-family:monospace">' + esc(l.b || '') + '</textarea></div>' +
+          '<div class="fld" style="margin:0"><label style="font-size:12px">Apunte clave (opcional)</label><input data-lk="' + li + '" value="' + esc(l.key || '') + '" style="font-size:13px;padding:7px 10px"></div>' +
+        '</div>';
+      });
+      html += '<div style="margin:8px 0"><button class="btn-s" id="lAddLesson" style="font-size:12px;padding:6px 14px">+ Agregar lección</button></div>' +
+        '<div class="mod-actions"><button class="btn-s" id="lBack">Volver</button></div>';
+      modal(html, 'wide');
+      $$('#modalHost [data-lh]').forEach(function (inp) { inp.addEventListener('input', function () { mod.lesson[+inp.getAttribute('data-lh')].h = inp.value; }); });
+      $$('#modalHost [data-lb]').forEach(function (inp) { inp.addEventListener('input', function () { mod.lesson[+inp.getAttribute('data-lb')].b = inp.value; }); });
+      $$('#modalHost [data-lk]').forEach(function (inp) { inp.addEventListener('input', function () { mod.lesson[+inp.getAttribute('data-lk')].key = inp.value; }); });
+      $$('#modalHost [data-dellesson]').forEach(function (b) { b.addEventListener('click', function () { mod.lesson.splice(+b.getAttribute('data-dellesson'), 1); editLessons(modIdx); }); });
+      $('#lAddLesson').addEventListener('click', function () { mod.lesson.push({ h: '', b: '', key: '' }); editLessons(modIdx); });
+      $('#lBack').addEventListener('click', function () { renderModal(); });
+    }
+    /* Editor de quiz */
+    function editQuiz(modIdx) {
+      var mod = r.modulos[modIdx];
+      mod.quiz = mod.quiz || [];
+      var html = '<button class="mod-x">\u2715</button><h3>Quiz — ' + esc(mod.t || 'Módulo ' + (modIdx + 1)) + '</h3>' +
+        '<div class="note" style="margin:0 0 12px">Cada pregunta tiene opciones de respuesta. Marca la correcta con el radio.</div>';
+      mod.quiz.forEach(function (q, qi) {
+        html += '<div class="card" style="padding:12px 16px;margin-bottom:8px">' +
+          '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted2)">Pregunta ' + (qi + 1) + '</span><span class="sp"></span>' +
+          '<button class="btn-s btn-danger" data-delquiz="' + qi + '" style="font-size:11px;padding:3px 8px">&times;</button></div>' +
+          '<div class="fld" style="margin:0 0 8px"><label style="font-size:12px">Pregunta</label><input data-qq="' + qi + '" value="' + esc(q.q || '') + '" style="font-size:13px;padding:7px 10px"></div>' +
+          '<div style="font-size:11.5px;font-weight:700;color:var(--muted2);margin-bottom:4px">Opciones (marca la correcta)</div>';
+        (q.opts || []).forEach(function (opt, oi) {
+          html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">' +
+            '<input type="radio" name="qa' + qi + '" data-qans="' + qi + '-' + oi + '"' + (q.a === oi ? ' checked' : '') + ' style="accent-color:#00CE7C;width:17px;height:17px">' +
+            '<input data-qopt="' + qi + '-' + oi + '" value="' + esc(opt) + '" style="flex:1;font-size:13px;padding:6px 10px">' +
+            (q.opts.length > 2 ? '<button class="btn-s btn-danger" data-delopt="' + qi + '-' + oi + '" style="font-size:11px;padding:3px 8px">&times;</button>' : '') +
+          '</div>';
+        });
+        html += '<button class="btn-s" data-addopt="' + qi + '" style="font-size:11.5px;padding:4px 12px;margin-top:4px">+ Opción</button></div>';
+      });
+      html += '<div style="margin:8px 0"><button class="btn-s" id="qAddQ" style="font-size:12px;padding:6px 14px">+ Agregar pregunta</button></div>' +
+        '<div class="mod-actions"><button class="btn-s" id="qBack">Volver</button></div>';
+      modal(html, 'wide');
+      function collectQuiz() {
+        mod.quiz.forEach(function (q, qi) {
+          var qIn = document.querySelector('[data-qq="' + qi + '"]'); if (qIn) q.q = qIn.value;
+          (q.opts || []).forEach(function (_, oi) {
+            var oIn = document.querySelector('[data-qopt="' + qi + '-' + oi + '"]'); if (oIn) q.opts[oi] = oIn.value;
+          });
+          var radios = document.querySelectorAll('[name="qa' + qi + '"]');
+          radios.forEach(function (rd, ri) { if (rd.checked) q.a = ri; });
+        });
+      }
+      $$('#modalHost [data-delquiz]').forEach(function (b) { b.addEventListener('click', function () { collectQuiz(); mod.quiz.splice(+b.getAttribute('data-delquiz'), 1); editQuiz(modIdx); }); });
+      $$('#modalHost [data-addopt]').forEach(function (b) { b.addEventListener('click', function () { collectQuiz(); var qi = +b.getAttribute('data-addopt'); mod.quiz[qi].opts.push(''); editQuiz(modIdx); }); });
+      $$('#modalHost [data-delopt]').forEach(function (b) { b.addEventListener('click', function () {
+        collectQuiz(); var parts = b.getAttribute('data-delopt').split('-'); var qi = +parts[0], oi = +parts[1];
+        mod.quiz[qi].opts.splice(oi, 1); if (mod.quiz[qi].a >= mod.quiz[qi].opts.length) mod.quiz[qi].a = 0;
+        editQuiz(modIdx);
+      }); });
+      $('#qAddQ').addEventListener('click', function () { collectQuiz(); mod.quiz.push({ q: '', opts: ['', '', ''], a: 0 }); editQuiz(modIdx); });
+      $('#qBack').addEventListener('click', function () { collectQuiz(); renderModal(); });
+    }
+    renderModal();
+  }
+
   function encAudiencia() { return db.users.filter(function (u) { return u.activo && u.role !== 'candidato' && perfilVisible(u); }); }
   function rEncuestas() {
     resetContent();

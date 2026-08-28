@@ -134,6 +134,31 @@ window.SV_API = (function () {
     return await request('POST', '/permisos/revoke', { usuario_id: userId, clave: clave });
   }
 
+  // ===== INDUCCIONES =====
+  async function getInducciones() {
+    return await request('GET', '/inducciones');
+  }
+
+  async function getInduccion(id) {
+    return await request('GET', '/inducciones/' + id);
+  }
+
+  async function getInduccionPerfil(key) {
+    return await request('GET', '/inducciones/perfil/' + key);
+  }
+
+  async function createInduccion(data) {
+    return await request('POST', '/inducciones', data);
+  }
+
+  async function updateInduccion(id, data) {
+    return await request('PUT', '/inducciones/' + id, data);
+  }
+
+  async function deleteInduccion(id) {
+    return await request('DELETE', '/inducciones/' + id);
+  }
+
   return {
     login: login,
     logout: logout,
@@ -156,6 +181,12 @@ window.SV_API = (function () {
     getPermisosUsuario: getPermisosUsuario,
     grantPermiso: grantPermiso,
     revokePermiso: revokePermiso,
+    getInducciones: getInducciones,
+    getInduccion: getInduccion,
+    getInduccionPerfil: getInduccionPerfil,
+    createInduccion: createInduccion,
+    updateInduccion: updateInduccion,
+    deleteInduccion: deleteInduccion,
     getToken: getToken,
     clearToken: clearToken,
   };
