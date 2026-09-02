@@ -414,12 +414,21 @@ CREATE TABLE IF NOT EXISTS metas_historico (
 
 CREATE TABLE IF NOT EXISTS inducciones_rutas (
   id          BIGINT       AUTO_INCREMENT PRIMARY KEY,
-  perfil_key  VARCHAR(30)  NOT NULL,
+  perfil_key  VARCHAR(30)  NOT NULL COMMENT 'Clave de perfil o _todos para todos',
   titulo      VARCHAR(120) NOT NULL,
   modulos     JSON         NOT NULL COMMENT 'Array de módulos con lecciones y quiz',
   activa      TINYINT(1)   NOT NULL DEFAULT 1,
   created_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
-  updated_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  UNIQUE KEY uq_perfil (perfil_key),
-  FOREIGN KEY (perfil_key) REFERENCES perfiles(`key`) ON DELETE CASCADE
+  updated_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE IF NOT EXISTS inducciones_progreso (
+  id            BIGINT       AUTO_INCREMENT PRIMARY KEY,
+  usuario_id    BIGINT       NOT NULL,
+  modulo_id     VARCHAR(60)  NOT NULL,
+  aprobado      TINYINT(1)   NOT NULL DEFAULT 1,
+  puntaje_pct   INT          DEFAULT 100,
+  completado_el TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uq_usuario_mod (usuario_id, modulo_id),
+  FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;

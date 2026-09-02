@@ -25,19 +25,74 @@ router.get('/', authMiddleware, async (req: AuthenticatedRequest, res: Response)
 // GET /api/inducciones/perfil/:key — ruta de inducción para un perfil específico
 router.get('/perfil/:key', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   try {
+    // First try specific profile, then fallback to '_todos' (universal)
     const [rows] = await pool.execute<RowDataPacket[]>(
-      'SELECT * FROM inducciones_rutas WHERE perfil_key = ? AND activa = 1',
-      [req.params.key]
+      'SELECT * FROM inducciones_rutas WHERE perfil_key IN (?, ?) AND activa = 1 ORDER BY FIELD(perfil_key, ?, ?)',
+      [req.params.key, '_todos', req.params.key, '_todos']
     );
     if (rows.length === 0) {
-      res.json(null);
+      res.json([]);
       return;
     }
-    const ruta = rows[0];
-    ruta.modulos = typeof ruta.modulos === 'string' ? JSON.parse(ruta.modulos) : ruta.modulos;
-    res.json(ruta);
+    // Return all matching routes as an array, parse JSON modules for each
+    const rutas = rows.map((r: any) => {
+      r.modulos = typeof r.modulos === 'string' ? JSON.parse(r.modulos) : r.modulos;
+      return r;
+    });
+    res.json(rutas);
   } catch (err) {
     console.error('Inducciones perfil error:', err);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// GET /api/inducciones/progreso/mio — progreso del usuario autenticado en BD
+router.get('/progreso/mio', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const [rows] = await pool.execute<RowDataPacket[]>(
+      'SELECT modulo_id, aprobado, puntaje_pct, completado_el FROM inducciones_progreso WHERE usuario_id = ?',
+      [req.user!.id]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching my induction progress:', err);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// GET /api/inducciones/progreso/todos — todos los progresos (para HR/Admin/Entrenador)
+router.get('/progreso/todos', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const [rows] = await pool.execute<RowDataPacket[]>(
+      `SELECT ip.*, u.nombre as usuario_nombre, u.cargo, u.perfil_key
+       FROM inducciones_progreso ip
+       JOIN usuarios u ON ip.usuario_id = u.id`
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error('Error fetching all induction progress:', err);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// POST /api/inducciones/progreso — registrar módulo completado/aprobado en BD
+router.post('/progreso', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { modulo_id, puntaje_pct } = req.body;
+    if (!modulo_id) {
+      res.status(400).json({ error: 'modulo_id es requerido' });
+      return;
+    }
+    const pct = typeof puntaje_pct === 'number' ? puntaje_pct : 100;
+    await pool.execute(
+      `INSERT INTO inducciones_progreso (usuario_id, modulo_id, aprobado, puntaje_pct)
+       VALUES (?, ?, 1, ?)
+       ON DUPLICATE KEY UPDATE aprobado = 1, puntaje_pct = VALUES(puntaje_pct), completado_el = CURRENT_TIMESTAMP`,
+      [req.user!.id, modulo_id, pct]
+    );
+    res.status(200).json({ success: true, message: 'Módulo registrado como aprobado' });
+  } catch (err) {
+    console.error('Error saving induction progress:', err);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -80,10 +135,6 @@ router.post('/', authMiddleware, adminOnly, async (req: AuthenticatedRequest, re
     );
     res.status(201).json({ id: result.insertId, message: 'Ruta de inducción creada' });
   } catch (err: any) {
-    if (err.code === 'ER_DUP_ENTRY') {
-      res.status(409).json({ error: 'Ya existe una ruta para ese perfil' });
-      return;
-    }
     console.error('Inducciones create error:', err);
     res.status(500).json({ error: 'Error interno del servidor' });
   }
@@ -110,10 +161,6 @@ router.put('/:id', authMiddleware, adminOnly, async (req: AuthenticatedRequest, 
     await pool.execute(`UPDATE inducciones_rutas SET ${fields.join(', ')} WHERE id = ?`, values);
     res.json({ message: 'Ruta actualizada' });
   } catch (err: any) {
-    if (err.code === 'ER_DUP_ENTRY') {
-      res.status(409).json({ error: 'Ya existe una ruta para ese perfil' });
-      return;
-    }
     console.error('Inducciones update error:', err);
     res.status(500).json({ error: 'Error interno del servidor' });
   }

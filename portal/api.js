@@ -155,8 +155,16 @@ window.SV_API = (function () {
     return await request('PUT', '/inducciones/' + id, data);
   }
 
-  async function deleteInduccion(id) {
-    return await request('DELETE', '/inducciones/' + id);
+  async function getMiProgresoInduccion() {
+    return await request('GET', '/inducciones/progreso/mio');
+  }
+
+  async function getTodosProgresosInduccion() {
+    return await request('GET', '/inducciones/progreso/todos');
+  }
+
+  async function completarModuloInduccion(moduloId, puntajePct) {
+    return await request('POST', '/inducciones/progreso', { modulo_id: moduloId, puntaje_pct: puntajePct || 100 });
   }
 
   return {
@@ -187,6 +195,9 @@ window.SV_API = (function () {
     createInduccion: createInduccion,
     updateInduccion: updateInduccion,
     deleteInduccion: deleteInduccion,
+    getMiProgresoInduccion: getMiProgresoInduccion,
+    getTodosProgresosInduccion: getTodosProgresosInduccion,
+    completarModuloInduccion: completarModuloInduccion,
     getToken: getToken,
     clearToken: clearToken,
   };

@@ -730,6 +730,12 @@
     var done = mods.filter(function (m) { return p[m.id]; }).length;
     return { done: done, total: mods.length, pct: mods.length ? Math.round(done / mods.length * 100) : 0 };
   }
+  function progressOfPlan(plan, uid) {
+    var mods = plan.modulos || [];
+    var p = db.progreso[uid] || {};
+    var done = mods.filter(function (m) { return p[m.id]; }).length;
+    return { done: done, total: mods.length, pct: mods.length ? Math.round(done / mods.length * 100) : 0 };
+  }
   function avatarHtml(u, size, fs) {
     size = size || 40; fs = fs || 14;
     if (u.foto) return '<img class="avatar" src="' + u.foto + '" alt="" style="width:' + size + 'px;height:' + size + 'px;object-fit:cover;border-radius:50%;flex:0 0 auto">';
@@ -770,10 +776,14 @@
     return (d.textContent || '').replace(/\n{3,}/g, '\n\n').replace(/[ \t]+\n/g, '\n').trim();
   }
   function lessonDownload(m) {
-    var L = ['VEPAGOS · INDUCCIÓN', m.t, '========================================', ''];
-    m.lesson.forEach(function (s, i) {
-      L.push((i + 1) + '. ' + s.h.toUpperCase());
-      L.push(stripHtml(s.b));
+    var title = m.t || m.titulo || 'Inducción';
+    var L = ['VEPAGOS · INDUCCIÓN', title, '========================================', ''];
+    var steps = (m.lesson && Array.isArray(m.lesson) && m.lesson.length > 0) ? m.lesson : [
+      { h: title, b: m.d || m.descripcion || 'Material de inducción correspondiente al módulo.', key: 'Revisa y aplica los lineamientos de tu área.' }
+    ];
+    steps.forEach(function (s, i) {
+      L.push((i + 1) + '. ' + (s.h || '').toUpperCase());
+      L.push(stripHtml(s.b || ''));
       if (s.dd) s.dd.forEach(function (d) { L.push((d.ok ? '  ✓ Así sí: ' : '  ✕ Así no: ') + stripHtml(d.t)); });
       if (s.key) L.push('  ★ Para que se te grabe: ' + stripHtml(s.key));
       L.push('');
@@ -784,7 +794,7 @@
     var blob = new Blob([L.join('\n')], { type: 'text/plain;charset=utf-8' });
     var a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'Induccion - ' + m.t.replace(/[^\wáéíóúñÁÉÍÓÚÑ\- ]/g, '') + '.txt';
+    a.download = 'Induccion - ' + title.replace(/[^\wáéíóúñÁÉÍÓÚÑ\- ]/g, '') + '.txt';
     document.body.appendChild(a); a.click(); a.remove();
     toast('Resumen descargado.');
   }
@@ -1721,7 +1731,7 @@
       }).join('') : '<div class="empty" style="padding:18px 0">Nadie cumple años este mes.</div>') +
       '</div></div>';
     var MEGA = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"></path><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"></path></svg>';
-    var _coms = (db.comunicaciones || []).slice().sort(function (a, b) { return (a.fecha < b.fecha ? 1 : -1) || (b.id - a.id); });
+    var _coms = (db.comunicaciones || []).filter(canSeeCom).sort(function (a, b) { return (a.fecha < b.fecha ? 1 : -1) || (b.id - a.id); });
     var _nn = comNoLeidas().length;
     var anunciosCard = '<div class="card" style="padding:0;overflow:hidden">' +
       '<div style="display:flex;align-items:center;gap:9px;padding:16px 18px;background:linear-gradient(120deg,#E7FAF1,#D6F5E6);border-bottom:1px solid #C7EED9">' +
@@ -2356,7 +2366,11 @@
         r.desde && r.desde <= fecha && (r.hasta || r.desde) >= fecha;
     });
   }
-  function comNoLeidas() { return (db.comunicaciones || []).filter(function (c) { return (c.leidoPor || []).indexOf(me.id) === -1; }); }
+  function canSeeCom(c) {
+    if (!c.perfilDestino || c.perfilDestino === '_todos') return true;
+    return c.perfilDestino === me.role;
+  }
+  function comNoLeidas() { return (db.comunicaciones || []).filter(function (c) { return canSeeCom(c) && (c.leidoPor || []).indexOf(me.id) === -1; }); }
   var CADENCIAS = { unica: { t: 'Única vez', meses: 0 }, mensual: { t: 'Mensual', meses: 1 }, trimestral: { t: 'Trimestral', meses: 3 }, semestral: { t: 'Semestral', meses: 6 }, anual: { t: 'Anual', meses: 12 }, onboarding: { t: 'Al completar onboarding', meses: 0 } };
   function cadLabel(c) { return (CADENCIAS[c] || CADENCIAS.unica).t; }
   function audLabel(a) {
@@ -2601,7 +2615,7 @@
     }
 
     // --- Comunicaciones internas ---
-    var coms = (db.comunicaciones || []).filter(function (c) { return !comExpirada(c); }).sort(function (a, b) { return (a.fecha < b.fecha ? 1 : -1) || (b.id - a.id); });
+    var coms = (db.comunicaciones || []).filter(function (c) { return !comExpirada(c) && canSeeCom(c); }).sort(function (a, b) { return (a.fecha < b.fecha ? 1 : -1) || (b.id - a.id); });
     var noLeidas = comNoLeidas().length;
     html += '<div class="card">' +
       '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px">' +
@@ -3940,7 +3954,7 @@
       html += '<h3 style="margin:2px 0 10px;font-size:15px;color:var(--navy)">Rutas de inducción</h3><div class="card">' +
         (rutas.length ? rutas.map(function (r) {
           var mods = typeof r.modulos === 'string' ? JSON.parse(r.modulos) : (r.modulos || []);
-          var pLabel = r.perfil_label || r.perfil_key;
+          var pLabel = r.perfil_key === '_todos' ? 'Todos los perfiles' : (r.perfil_label || r.perfil_key);
           return '<div class="docrow" data-indedit="' + r.id + '" style="cursor:pointer">' +
             '<div class="docic" style="background:#EAF1FD;color:#2A6FDB"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></div>' +
             '<div style="flex:1;min-width:0"><div class="dn">' + esc(r.titulo) + (r.activa ? ' <span class="chip g">Activa</span>' : ' <span class="chip n">Inactiva</span>') + '</div>' +
@@ -3993,7 +4007,7 @@
       }).join('');
       modal('<button class="mod-x">\u2715</button><h3>' + (edit ? 'Editar ruta de inducción' : 'Nueva ruta de inducción') + '</h3>' +
         '<div class="fld"><label>Título de la ruta *</label><input id="indTitulo" value="' + esc(r.titulo) + '" placeholder="Ej: Inducción — Equipo VEPAGOS"></div>' +
-        '<div class="fld"><label>Perfil destino *</label><select id="indPerfil"' + (edit ? ' disabled' : '') + '><option value="">— Selecciona —</option>' + pfOpts + '</select></div>' +
+        '<div class="fld"><label>Perfil destino *</label><select id="indPerfil"><option value="">— Selecciona —</option><option value="_todos"' + (r.perfil_key === '_todos' ? ' selected' : '') + '>✦ Todos los perfiles</option>' + pfOpts + '</select></div>' +
         '<div style="display:flex;align-items:center;gap:10px;margin:12px 0 6px"><div style="font-size:11px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--muted2)">Módulos (' + r.modulos.length + ')</div><span class="sp"></span><button class="btn-s" id="indAddMod" style="font-size:12px;padding:5px 12px">+ Agregar módulo</button></div>' +
         modsHtml +
         '<div class="mod-actions" style="margin-top:16px"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="indOk">' + (edit ? 'Guardar cambios' : 'Crear ruta') + '</button></div>', 'wide');
@@ -4952,58 +4966,103 @@
   /* ---------- ONBOARDING ---------- */
   function rOnboarding() {
     resetContent();
-    var key = myOnboardingKey();
-    var plan = ONB[key];
-    var p = db.progreso[me.id] || {};
-    var pr = progressOf(me.id, key);
-    var rich = !!(plan.modulos[0] && plan.modulos[0].lesson);
     var showTeamPage = (current === 'induccionequipo');
+    // Carga rutas y progreso del usuario autenticado directamente desde la base de datos
+    Promise.all([
+      window.SV_API.getInduccionPerfil(me.role),
+      window.SV_API.getMiProgresoInduccion()
+    ]).then(function (results) {
+      var apiRutas = results[0];
+      var miProgreso = results[1];
+      if (Array.isArray(miProgreso)) {
+        db.progreso[me.id] = db.progreso[me.id] || {};
+        miProgreso.forEach(function (row) {
+          if (row.aprobado) {
+            db.progreso[me.id][row.modulo_id] = true;
+            db.progreso[me.id][row.modulo_id + '_score'] = row.puntaje_pct;
+            db.progreso[me.id][row.modulo_id + '_date'] = row.completado_el;
+          }
+        });
+        saveDB(db);
+      }
+      var plan;
+      var key = myOnboardingKey();
+      if (apiRutas && !apiRutas.error && Array.isArray(apiRutas) && apiRutas.length > 0) {
+        var allMods = [];
+        var titulos = [];
+        apiRutas.forEach(function(r) {
+          titulos.push(r.titulo);
+          var mods = typeof r.modulos === 'string' ? JSON.parse(r.modulos) : r.modulos;
+          (mods || []).forEach(function(m) {
+            if (!m.id) m.id = 'm_' + Math.random().toString(36).slice(2, 9);
+            allMods.push(m);
+          });
+        });
+        plan = { titulo: titulos.length === 1 ? titulos[0] : 'Inducciones asignadas', modulos: allMods, rutas: apiRutas };
+      } else {
+        plan = ONB[key] || ONB.interno;
+      }
+      if (!plan || !plan.modulos || !plan.modulos.length) {
+        $('#content').innerHTML = '<div class="card" style="padding:30px;text-align:center;color:var(--muted)">No hay ruta de inducción asignada a tu perfil.</div>';
+        return;
+      }
+      _renderOnboarding(plan, key, showTeamPage);
+    }).catch(function () {
+      var key = myOnboardingKey();
+      _renderOnboarding(ONB[key] || ONB.interno, key, showTeamPage);
+    });
+  }
+
+  function _renderOnboarding(plan, key, showTeamPage) {
+    var p = db.progreso[me.id] || {};
+    var pr = progressOfPlan(plan, me.id);
     var html = '';
 
-    if (!showTeamPage && rich) {
+    if (!showTeamPage) {
       var celebra = pr.pct === 100;
+      var totalMods = plan.modulos.length;
       html =
         '<div class="pf-hero" style="margin-bottom:18px">' +
           '<div class="pf-avawrap"><span style="width:60px;height:60px;border-radius:16px;background:rgba(255,255,255,.14);display:flex;align-items:center;justify-content:center;color:#fff"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></span></div>' +
-          '<div class="pf-id"><div style="display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;color:#00E58C;margin-bottom:6px"><span style="width:8px;height:8px;border-radius:50%;background:#00CE7C"></span>Onboarding VEPAGOS</div>' +
+          '<div class="pf-id"><div style="display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;color:#00E58C;margin-bottom:6px"><span style="width:8px;height:8px;border-radius:50%;background:#00CE7C"></span>' + esc(plan.titulo || 'Onboarding VEPAGOS') + '</div>' +
             '<div class="pf-name" style="font-size:clamp(21px,2.5vw,27px)">' + (celebra ? '¡Onboarding completado! 🎉' : 'Bienvenido a bordo, ' + esc(me.nombre.split(' ')[0])) + '</div>' +
-            '<div class="pf-role" style="max-width:600px">' + (celebra ? 'Dominas lo esencial de VEPAGOS. Puedes repasar cualquier módulo cuando quieras.' : 'Completa los ' + plan.modulos.length + ' módulos: lee la Inducción y aprueba su Quiz para avanzar.') + '</div>' +
+            '<div class="pf-role" style="max-width:600px">' + (celebra ? 'Dominas lo esencial de VEPAGOS. Puedes repasar cualquier módulo cuando quieras.' : 'Completa los ' + totalMods + ' módulos: lee la Inducción y aprueba su Quiz para avanzar.') + '</div>' +
             '<div style="display:flex;align-items:center;gap:13px;margin-top:15px;max-width:460px"><div class="progress" style="flex:1;height:10px;background:rgba(255,255,255,.2)"><i style="width:' + pr.pct + '%;background:#00E58C"></i></div><b style="color:#fff;font-size:14px;white-space:nowrap">' + pr.done + '/' + pr.total + '</b></div>' +
           '</div>' +
         '</div>' +
         '<div class="pf-grid" style="margin-top:0">' +
         plan.modulos.map(function (m, i) {
+          var color = m.color || '#2A6FDB';
+          var bg = m.bg || 'rgba(42,111,219,.12)';
+          var ico = m.ico || '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>';
+          var t = m.t || m.titulo || 'Módulo ' + (i + 1);
+          var d = m.d || m.descripcion || '';
           var done = !!p[m.id];
           var seen = !!p[m.id + '_seen'];
           var chip = done ? '<span class="chip g">Completado</span>' : (seen ? '<span class="chip y">En curso</span>' : '<span class="chip n">Pendiente</span>');
+          var hasQuiz = !!(m.quiz && Array.isArray(m.quiz) && m.quiz.length > 0);
+          var quizText = done ? 'Aprobado' : (hasQuiz ? 'Quiz' : 'Completar');
+          var quizIco = done ? '<path d="M20 6L9 17l-5-5"></path>' : (hasQuiz ? '<path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path><circle cx="12" cy="12" r="10"></circle>' : '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="M22 4L12 14.01l-3-3"></path>');
+          
           return '<div class="pf-card" style="padding:0;overflow:hidden;display:flex;flex-direction:column">' +
-            '<div style="height:4px;background:' + m.color + '"></div>' +
+            '<div style="height:4px;background:' + color + '"></div>' +
             '<div style="padding:18px 20px 18px;display:flex;flex-direction:column;flex:1">' +
               '<div style="display:flex;align-items:flex-start;gap:13px">' +
-                '<span style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:' + m.bg + ';color:' + m.color + ';flex:0 0 auto"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + m.ico + '</svg></span>' +
+                '<span style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:' + bg + ';color:' + color + ';flex:0 0 auto"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ico + '</svg></span>' +
                 '<div style="flex:1;min-width:0">' +
                   '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted2)">Módulo ' + (i + 1) + '</span>' + chip + '</div>' +
-                  '<div style="font-weight:800;color:var(--navy);font-size:16px;margin-top:3px">' + m.t + '</div>' +
-                  '<div style="font-size:13.5px;color:var(--muted);line-height:1.55;margin-top:4px">' + m.d + '</div>' +
+                  '<div style="font-weight:800;color:var(--navy);font-size:16px;margin-top:3px">' + esc(t) + '</div>' +
+                  '<div style="font-size:13.5px;color:var(--muted);line-height:1.55;margin-top:4px">' + esc(d) + '</div>' +
                 '</div>' +
               '</div>' +
               '<div style="display:flex;gap:9px;margin-top:auto;padding-top:16px">' +
                 '<button class="btn-s" data-lesson="' + m.id + '" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:13.5px;padding:10px 12px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>Inducción</button>' +
-                '<button data-quiz="' + m.id + '" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:13.5px;padding:10px 12px;border:none;border-radius:10px;font-weight:700;cursor:pointer;color:#fff;background:' + (done ? '#00B871' : m.color) + '"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' + (done ? '<path d="M20 6L9 17l-5-5"></path>' : '<path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path><circle cx="12" cy="12" r="10"></circle>') + '</svg>' + (done ? 'Aprobado' : 'Quiz') + '</button>' +
+                '<button data-quiz="' + m.id + '" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:7px;font-size:13.5px;padding:10px 12px;border:none;border-radius:10px;font-weight:700;cursor:pointer;color:#fff;background:' + (done ? '#00B871' : color) + '"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' + quizIco + '</svg>' + quizText + '</button>' +
               '</div>' +
             '</div>' +
           '</div>';
         }).join('') +
         '</div>';
-    } else if (!showTeamPage) {
-      html =
-        '<div class="card" style="margin-bottom:16px"><h3>' + plan.titulo + '</h3>' +
-        '<div style="display:flex;align-items:center;gap:12px"><div class="progress" style="flex:1"><i style="width:' + pr.pct + '%"></i></div><b style="color:var(--navy)">' + pr.pct + '%</b></div>' +
-        '<div style="margin-top:10px">' + plan.modulos.map(function (m) {
-          var done = !!p[m.id];
-          return '<div class="ob-mod' + (done ? ' done' : '') + '"><button class="ob-chk" data-mod="' + m.id + '" aria-label="Completar">' + (done ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>' : '') + '</button>' +
-            '<div><div class="t">' + m.t + '</div><div class="d">' + m.d + '</div></div></div>';
-        }).join('') + '</div></div>';
     }
 
     var canAct = me.role === 'rrhh' || me.role === 'admin';
@@ -5025,12 +5084,34 @@
     }
     $('#content').innerHTML = html;
 
-    function modById(id) { return plan.modulos.find(function (m) { return m.id === id; }); }
+    function modById(id) {
+      return (plan.modulos || []).find(function (m) { return String(m.id) === String(id); });
+    }
 
     function lessonModal(m) {
+      if (!m) return;
+      var color = m.color || '#2A6FDB';
+      var bg = m.bg || 'rgba(42,111,219,.12)';
+      var ico = m.ico || '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>';
+      var t = m.t || m.titulo || 'Inducción';
+      var steps = (m.lesson && Array.isArray(m.lesson) && m.lesson.length > 0) ? m.lesson : [
+        {
+          h: t,
+          b: m.d || m.descripcion || 'Revisa con tu tutor o líder de área las directrices y materiales de este módulo de inducción.',
+          key: 'Aprende y pon en práctica estos conocimientos en tus funciones diarias.'
+        }
+      ];
+      var hasQuiz = !!(m.quiz && Array.isArray(m.quiz) && m.quiz.length > 0);
+
       db.progreso[me.id] = db.progreso[me.id] || {};
-      db.progreso[me.id][m.id + '_seen'] = true; saveDB(db);
-      var steps = m.lesson, total = steps.length, idx = 0;
+      db.progreso[me.id][m.id + '_seen'] = true;
+      if (!hasQuiz) {
+        db.progreso[me.id][m.id] = true;
+        window.SV_API.completarModuloInduccion(m.id, 100);
+      }
+      saveDB(db);
+
+      var total = steps.length, idx = 0;
 
       function sectionHtml(s, i) {
         var extra = '';
@@ -5039,32 +5120,33 @@
             var ok = d.ok, cl = ok ? '#00874f' : '#D9463E', bgc = ok ? 'rgba(0,206,124,.09)' : 'rgba(217,70,62,.08)', bd = ok ? 'rgba(0,206,124,.28)' : 'rgba(217,70,62,.26)';
             return '<div style="border:1px solid ' + bd + ';background:' + bgc + ';border-radius:12px;padding:12px 14px">' +
               '<div style="display:flex;align-items:center;gap:6px;font-weight:800;font-size:12px;letter-spacing:.3px;color:' + cl + ';margin-bottom:5px">' + (ok ? '✓ ASÍ SÍ' : '✕ ASÍ NO') + '</div>' +
-              '<div style="font-size:13.5px;color:#33415C;line-height:1.55">' + d.t + '</div></div>';
+              '<div style="font-size:13.5px;color:#33415C;line-height:1.55">' + esc(d.t) + '</div></div>';
           }).join('') + '</div>';
         }
         if (s.key) {
-          extra += '<div style="display:flex;gap:12px;align-items:flex-start;margin-top:18px;border-radius:14px;padding:15px 16px;background:' + m.bg + ';border:1px solid ' + m.color + '33">' +
-            '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="' + m.color + '" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;margin-top:1px"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2h6c0-.8.4-1.5 1-2A7 7 0 0 0 12 2z"></path></svg>' +
-            '<div><div style="font-size:10.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:' + m.color + ';margin-bottom:3px">Para que se te grabe</div>' +
-            '<div style="font-size:14.5px;color:var(--navy);font-weight:700;line-height:1.5">' + s.key + '</div></div></div>';
+          extra += '<div style="display:flex;gap:12px;align-items:flex-start;margin-top:18px;border-radius:14px;padding:15px 16px;background:' + bg + ';border:1px solid ' + color + '33">' +
+            '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;margin-top:1px"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.2 1 2h6c0-.8.4-1.5 1-2A7 7 0 0 0 12 2z"></path></svg>' +
+            '<div><div style="font-size:10.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:' + color + ';margin-bottom:3px">Para que se te grabe</div>' +
+            '<div style="font-size:14.5px;color:var(--navy);font-weight:700;line-height:1.5">' + esc(s.key) + '</div></div></div>';
         }
-        return '<div style="font-size:11px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;color:' + m.color + ';margin-bottom:7px">Punto ' + (i + 1) + ' de ' + total + '</div>' +
-          '<h3 style="font-size:22px;font-weight:800;color:var(--navy);margin:0 0 13px;letter-spacing:-.4px;line-height:1.22">' + s.h + '</h3>' +
-          '<div style="font-size:15px;color:#3A4A63;line-height:1.75">' + s.b + '</div>' + extra;
+        return '<div style="font-size:11px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;color:' + color + ';margin-bottom:7px">Punto ' + (i + 1) + ' de ' + total + '</div>' +
+          '<h3 style="font-size:22px;font-weight:800;color:var(--navy);margin:0 0 13px;letter-spacing:-.4px;line-height:1.22">' + esc(s.h) + '</h3>' +
+          '<div style="font-size:15px;color:#3A4A63;line-height:1.75">' + (s.b || '') + '</div>' + extra;
       }
+
       function header() {
         var segs = '';
-        for (var k = 0; k < total; k++) { segs += '<div style="flex:1;height:5px;border-radius:999px;background:' + (k <= idx ? m.color : '#E3EAF3') + ';transition:background .25s"></div>'; }
-        return '<div class="wiz-hd" style="position:relative;padding:22px 26px 18px;background:' + m.bg + '">' +
+        for (var k = 0; k < total; k++) { segs += '<div style="flex:1;height:5px;border-radius:999px;background:' + (k <= idx ? color : '#E3EAF3') + ';transition:background .25s"></div>'; }
+        return '<div class="wiz-hd" style="position:relative;padding:22px 26px 18px;background:' + bg + '">' +
           '<button class="mod-x" style="position:absolute;top:16px;right:16px;float:none">✕</button>' +
           '<div style="display:flex;align-items:center;gap:13px">' +
-            '<span style="width:44px;height:44px;border-radius:13px;background:#fff;color:' + m.color + ';display:flex;align-items:center;justify-content:center;flex:0 0 auto;box-shadow:0 2px 8px rgba(2,12,38,.08)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + m.ico + '</svg></span>' +
-            '<div style="min-width:0"><div style="font-size:11px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;color:' + m.color + '">Inducción · Paso ' + (idx + 1) + ' de ' + total + '</div><div style="font-size:18px;font-weight:800;color:var(--navy);letter-spacing:-.3px;line-height:1.25;margin-top:1px">' + m.t + '</div></div>' +
+            '<span style="width:44px;height:44px;border-radius:13px;background:#fff;color:' + color + ';display:flex;align-items:center;justify-content:center;flex:0 0 auto;box-shadow:0 2px 8px rgba(2,12,38,.08)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ico + '</svg></span>' +
+            '<div style="min-width:0"><div style="font-size:11px;font-weight:800;letter-spacing:1.3px;text-transform:uppercase;color:' + color + '">Inducción · Paso ' + (idx + 1) + ' de ' + total + '</div><div style="font-size:18px;font-weight:800;color:var(--navy);letter-spacing:-.3px;line-height:1.25;margin-top:1px">' + esc(t) + '</div></div>' +
           '</div>' +
           '<div style="display:flex;gap:5px;margin-top:16px">' + segs + '</div>' +
         '</div>';
       }
-      var done = !!(db.progreso[me.id] || {})[m.id];
+
       function draw() {
         if (idx < total) {
           modal(header() +
@@ -5072,66 +5154,127 @@
             '<div class="wiz-ft" style="display:flex;align-items:center;gap:10px;padding:16px 26px 20px;border-top:1px solid #EEF3F9">' +
               (idx > 0 ? '<button class="btn-s" id="lsPrev">← Anterior</button>' : '<button class="btn-s mod-x">Cerrar</button>') +
               '<span style="flex:1"></span>' +
-              '<button class="btn-g" id="lsNext" style="background:' + m.color + '">' + (idx === total - 1 ? 'Finalizar →' : 'Siguiente →') + '</button>' +
+              '<button class="btn-g" id="lsNext" style="background:' + color + '">' + (idx === total - 1 ? 'Finalizar →' : 'Siguiente →') + '</button>' +
             '</div>', 'wiz');
           var pv = $('#lsPrev'); if (pv) pv.addEventListener('click', function () { idx--; draw(); });
           $('#lsNext').addEventListener('click', function () { idx++; draw(); });
         } else {
-          modal('<div class="wiz-hd" style="position:relative;padding:34px 30px 30px;text-align:center;background:' + m.bg + ';overflow:hidden">' +
+          var done = !!(db.progreso[me.id] || {})[m.id];
+          modal('<div class="wiz-hd" style="position:relative;padding:34px 30px 30px;text-align:center;background:' + bg + ';overflow:hidden">' +
               '<button class="mod-x" style="position:absolute;top:16px;right:16px;float:none;z-index:2">✕</button>' +
-              '<div style="width:74px;height:74px;border-radius:50%;background:#fff;color:' + m.color + ';display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 6px 20px ' + m.color + '33"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></div>' +
-              '<div style="font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:' + m.color + ';margin-bottom:6px">Lección completada</div>' +
+              '<div style="width:74px;height:74px;border-radius:50%;background:#fff;color:' + color + ';display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 6px 20px ' + color + '33"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></div>' +
+              '<div style="font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:' + color + ';margin-bottom:6px">Lección completada</div>' +
               '<div style="font-weight:800;color:var(--navy);font-size:23px;letter-spacing:-.4px;line-height:1.2">¡Bien hecho! 🎉</div>' +
-              '<div class="note" style="margin:9px auto 0;max-width:390px;line-height:1.6">Revisaste los ' + total + ' puntos de <b style="color:var(--navy)">' + m.t + '</b>.' + (done ? ' Ya aprobaste su quiz.' : '') + '</div>' +
+              '<div class="note" style="margin:9px auto 0;max-width:390px;line-height:1.6">Revisaste los ' + total + ' puntos de <b style="color:var(--navy)">' + esc(t) + '</b>.' + (done ? ' Módulo completado con éxito.' : '') + '</div>' +
             '</div>' +
             '<div class="wiz-bd" style="padding:20px 26px 8px">' +
-              (done ? '' : '<div style="display:flex;gap:11px;align-items:center;border-radius:13px;padding:13px 15px;margin-bottom:16px;background:' + m.bg + ';border:1px solid ' + m.color + '33">' +
-                '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="' + m.color + '" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="M22 4L12 14.01l-3-3"></path></svg>' +
-                '<div style="font-size:13.5px;color:#33415C;line-height:1.5">Último paso: <b style="color:var(--navy)">aprueba el quiz</b> para marcar este módulo como completado.</div></div>') +
-              '<button class="btn-g" id="lsQuiz" style="background:' + m.color + ';padding:14px;width:100%;font-size:15px">' + (done ? 'Repetir el quiz' : 'Hacer el quiz →') + '</button>' +
+              (hasQuiz ? (done ? '' : '<div style="display:flex;gap:11px;align-items:center;border-radius:13px;padding:13px 15px;margin-bottom:16px;background:' + bg + ';border:1px solid ' + color + '33">' +
+                '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="M22 4L12 14.01l-3-3"></path></svg>' +
+                '<div style="font-size:13.5px;color:#33415C;line-height:1.5">Último paso: <b style="color:var(--navy)">aprueba el quiz</b> para marcar este módulo como completado.</div></div>') : '') +
+              (hasQuiz ? '<button class="btn-g" id="lsQuiz" style="background:' + color + ';padding:14px;width:100%;font-size:15px">' + (done ? 'Repetir el quiz' : 'Hacer el quiz →') + '</button>' : '<button class="btn-g mod-x" style="background:' + color + ';padding:14px;width:100%;font-size:15px">Entendido / Completado</button>') +
               '<div style="display:flex;gap:9px;margin-top:9px">' +
                 '<button class="btn-s" id="lsDl" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px;font-size:13.5px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5M12 15V3"></path></svg>Resumen</button>' +
                 '<button class="btn-s" id="lsRestart" style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px;font-size:13.5px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v6h6"></path><path d="M3.5 8a9 9 0 1 0 2.3-3.3L3 8"></path></svg>Repasar</button>' +
               '</div>' +
             '</div>' +
             '<div style="height:16px"></div>', 'wiz');
-          $('#lsQuiz').addEventListener('click', function () { quizModal(m); });
-          $('#lsDl').addEventListener('click', function () { lessonDownload(m); logHist(me, 'Descargó el resumen de la inducción: ' + m.t); saveDB(db); });
+          var lsq = $('#lsQuiz'); if (lsq) lsq.addEventListener('click', function () { quizModal(m); });
+          $('#lsDl').addEventListener('click', function () { lessonDownload(m); logHist(me, 'Descargó el resumen de la inducción: ' + t); saveDB(db); });
           $('#lsRestart').addEventListener('click', function () { idx = 0; draw(); });
         }
-        $$('.mod-x').forEach(function (x) { x.addEventListener('click', rOnboarding); });
+        $$('.mod-x').forEach(function (x) { x.addEventListener('click', function () { closeModal(); rOnboarding(); }); });
       }
       draw();
     }
 
     function quizModal(m) {
+      if (!m) return;
+      var color = m.color || '#2A6FDB';
+      var bg = m.bg || 'rgba(42,111,219,.12)';
+      var ico = m.ico || '<path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path><circle cx="12" cy="12" r="10"></circle>';
+      var t = m.t || m.titulo || 'Evaluación';
+      var yaAprobado = !!(db.progreso[me.id] || {})[m.id];
+
+      // Si ya está aprobado, no permite volver a llenar el cuestionario
+      if (yaAprobado) {
+        var score = (db.progreso[me.id] || {})[m.id + '_score'] || 100;
+        var head = '<button class="mod-x">✕</button>' +
+          '<div style="display:flex;align-items:center;gap:12px;margin-bottom:2px"><span style="width:40px;height:40px;border-radius:12px;background:rgba(0,206,124,.12);color:#00B871;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></span><div><div style="font-size:11.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:#00874f">Módulo Aprobado</div><h3 style="margin:0">' + esc(t) + '</h3></div></div>';
+        modal(head +
+          '<div style="padding:24px 0 14px;text-align:center">' +
+            '<div style="width:68px;height:68px;border-radius:50%;background:#E7FAF1;color:#00B871;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 4px 14px rgba(0,206,124,.18)"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></div>' +
+            '<div style="font-size:18px;font-weight:800;color:var(--navy);margin-bottom:6px">¡Evaluación Aprobada! 🎉</div>' +
+            '<div style="font-size:13.5px;color:var(--muted);max-width:380px;margin:0 auto;line-height:1.55">Ya has completado satisfactoriamente este módulo de inducción. Tu resultado está registrado en la base de datos (' + score + '%).</div>' +
+          '</div>' +
+          '<div class="mod-actions"><button class="btn-g mod-x" style="background:#00B871;width:100%;padding:12px;font-size:14px">Entendido</button></div>');
+        $$('.mod-x').forEach(function (x) { x.addEventListener('click', function () { closeModal(); rOnboarding(); }); });
+        return;
+      }
+
+      if (!m.quiz || !Array.isArray(m.quiz) || m.quiz.length === 0) {
+        var head = '<button class="mod-x">✕</button>' +
+          '<div style="display:flex;align-items:center;gap:12px;margin-bottom:2px"><span style="width:40px;height:40px;border-radius:12px;background:' + bg + ';color:' + color + ';display:flex;align-items:center;justify-content:center;flex:0 0 auto"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><path d="M22 4L12 14.01l-3-3"></path></svg></span><div><div style="font-size:11.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:' + color + '">Evaluación</div><h3 style="margin:0">' + esc(t) + '</h3></div></div>';
+        modal(head +
+          '<div style="padding:22px 0 12px;text-align:center">' +
+            '<div style="width:60px;height:60px;border-radius:50%;background:' + bg + ';color:' + color + ';display:flex;align-items:center;justify-content:center;margin:0 auto 14px"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg></div>' +
+            '<div style="font-size:16px;color:var(--navy);font-weight:800;margin-bottom:6px">Este módulo no requiere quiz evaluativo</div>' +
+            '<div style="font-size:13.5px;color:var(--muted);max-width:380px;margin:0 auto;line-height:1.5">Al haber revisado la inducción correspondiente, puedes marcar el módulo como completado.</div>' +
+          '</div>' +
+          '<div class="mod-actions"><button class="btn-s mod-x">Cancelar</button><button class="btn-g" id="qAutoOk" style="background:' + color + '">Marcar como completado</button></div>');
+        var aok = $('#qAutoOk');
+        if (aok) aok.addEventListener('click', function () {
+          db.progreso[me.id] = db.progreso[me.id] || {};
+          db.progreso[me.id][m.id] = true;
+          db.progreso[me.id][m.id + '_seen'] = true;
+          logHist(me, 'Completó la inducción: ' + t);
+          saveDB(db);
+          window.SV_API.completarModuloInduccion(m.id, 100);
+          closeModal();
+          rOnboarding();
+          toast('¡Módulo completado y guardado en BD!');
+        });
+        $$('.mod-x').forEach(function (x) { x.addEventListener('click', function () { closeModal(); rOnboarding(); }); });
+        return;
+      }
+
       var sel = {}, submitted = false, PASS = 0.75;
       function draw() {
         var total = m.quiz.length, correct = 0, answered = Object.keys(sel).length;
         m.quiz.forEach(function (q, i) { if (sel[i] === q.a) correct++; });
         var pct = Math.round(correct / total * 100), passed = correct / total >= PASS;
         var head = '<button class="mod-x">✕</button>' +
-          '<div style="display:flex;align-items:center;gap:12px;margin-bottom:2px"><span style="width:40px;height:40px;border-radius:12px;background:' + m.bg + ';color:' + m.color + ';display:flex;align-items:center;justify-content:center;flex:0 0 auto"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><path d="M12 17h.01"></path><circle cx="12" cy="12" r="10"></circle></svg></span><div><div style="font-size:11.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:' + m.color + '">Quiz</div><h3 style="margin:0">' + m.t + '</h3></div></div>';
+          '<div style="display:flex;align-items:center;gap:12px;margin-bottom:2px"><span style="width:40px;height:40px;border-radius:12px;background:' + bg + ';color:' + color + ';display:flex;align-items:center;justify-content:center;flex:0 0 auto"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ico + '</svg></span><div><div style="font-size:11.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:' + color + '">Quiz</div><h3 style="margin:0">' + esc(t) + '</h3></div></div>';
         if (!submitted) {
           var body = m.quiz.map(function (q, i) {
             return '<div style="margin-top:16px"><div style="font-weight:700;color:var(--navy);font-size:14.5px;margin-bottom:9px">' + (i + 1) + '. ' + esc(q.q) + '</div>' +
               q.opts.map(function (o, oi) {
                 var on = sel[i] === oi;
-                return '<button class="qopt" data-q="' + i + '" data-o="' + oi + '" style="display:flex;align-items:center;gap:11px;width:100%;text-align:left;border:1.5px solid ' + (on ? m.color : '#E3EAF3') + ';background:' + (on ? m.bg : '#fff') + ';border-radius:11px;padding:11px 13px;margin-bottom:8px;cursor:pointer;font-size:14px;color:#33415C">' +
-                  '<span style="width:18px;height:18px;border-radius:50%;border:2px solid ' + (on ? m.color : '#C9D5E5') + ';flex:0 0 auto;display:flex;align-items:center;justify-content:center">' + (on ? '<span style="width:9px;height:9px;border-radius:50%;background:' + m.color + '"></span>' : '') + '</span><span>' + esc(o) + '</span></button>';
+                return '<button class="qopt" data-q="' + i + '" data-o="' + oi + '" style="display:flex;align-items:center;gap:11px;width:100%;text-align:left;border:1.5px solid ' + (on ? color : '#E3EAF3') + ';background:' + (on ? bg : '#fff') + ';border-radius:11px;padding:11px 13px;margin-bottom:8px;cursor:pointer;font-size:14px;color:#33415C">' +
+                  '<span style="width:18px;height:18px;border-radius:50%;border:2px solid ' + (on ? color : '#C9D5E5') + ';flex:0 0 auto;display:flex;align-items:center;justify-content:center">' + (on ? '<span style="width:9px;height:9px;border-radius:50%;background:' + color + '"></span>' : '') + '</span><span>' + esc(o) + '</span></button>';
               }).join('') + '</div>';
           }).join('');
           var can = answered === total;
-          modal(head + body + '<div class="mod-actions"><button class="btn-s mod-x">Cancelar</button><button class="btn-g" id="qSubmit" style="background:' + m.color + (can ? '' : ';opacity:.45;cursor:not-allowed') + '">Enviar (' + answered + '/' + total + ')</button></div>');
+          modal(head + body + '<div class="mod-actions"><button class="btn-s mod-x">Cancelar</button><button class="btn-g" id="qSubmit" style="background:' + color + (can ? '' : ';opacity:.45;cursor:not-allowed') + '">Enviar (' + answered + '/' + total + ')</button></div>');
           $$('.qopt').forEach(function (b) { b.addEventListener('click', function () { sel[+b.getAttribute('data-q')] = +b.getAttribute('data-o'); draw(); }); });
           var sb = $('#qSubmit'); if (sb && can) sb.addEventListener('click', function () { submitted = true; draw(); });
-          $$('.mod-x').forEach(function (x) { x.addEventListener('click', rOnboarding); });
+          $$('.mod-x').forEach(function (x) { x.addEventListener('click', function () { closeModal(); rOnboarding(); }); });
         } else {
-          if (passed) { db.progreso[me.id] = db.progreso[me.id] || {}; var yaEstaba = !!db.progreso[me.id][m.id]; db.progreso[me.id][m.id] = true; db.progreso[me.id][m.id + '_seen'] = true; if (!yaEstaba) { logHist(me, 'Finalizó la inducción: ' + m.t + ' (quiz aprobado ' + pct + '%)'); var prAll = progressOf(me.id, myOnboardingKey()); if (prAll.pct === 100) logHist(me, 'Completó toda su inducción'); } saveDB(db); }
+          if (passed) {
+            db.progreso[me.id] = db.progreso[me.id] || {};
+            var yaEstaba = !!db.progreso[me.id][m.id];
+            db.progreso[me.id][m.id] = true;
+            db.progreso[me.id][m.id + '_seen'] = true;
+            db.progreso[me.id][m.id + '_score'] = pct;
+            if (!yaEstaba) {
+              logHist(me, 'Finalizó la inducción: ' + t + ' (quiz aprobado ' + pct + '%)');
+            }
+            saveDB(db);
+            window.SV_API.completarModuloInduccion(m.id, pct);
+          }
           var res = '<div style="text-align:center;padding:12px 0 2px">' +
             '<div style="font-size:46px;font-weight:800;letter-spacing:-1px;color:' + (passed ? '#00874f' : '#D9463E') + ';line-height:1">' + pct + '%</div>' +
             '<div style="font-weight:800;color:var(--navy);font-size:17px;margin-top:6px">' + (passed ? '¡Aprobado! 🎉' : 'Casi… vuelve a intentarlo') + '</div>' +
-            '<div class="note" style="margin-top:4px">Acertaste ' + correct + ' de ' + total + '.' + (passed ? ' Módulo marcado como completado.' : ' Necesitas al menos ' + Math.ceil(total * PASS) + ' correctas.') + '</div></div>';
+            '<div class="note" style="margin-top:4px">Acertaste ' + correct + ' de ' + total + '.' + (passed ? ' Módulo completado y guardado en BD.' : ' Necesitas al menos ' + Math.ceil(total * PASS) + ' correctas para aprobar.') + '</div></div>';
           var review = m.quiz.map(function (q, i) {
             var ok = sel[i] === q.a;
             return '<div style="border:1px solid #EEF3F9;border-radius:11px;padding:11px 13px;margin-top:8px">' +
@@ -5140,9 +5283,9 @@
               (ok ? '' : '<div style="font-size:13px;margin-top:2px;color:#00874f">Correcta: ' + esc(q.opts[q.a]) + '</div>') +
             '</div>';
           }).join('');
-          modal(head + res + review + '<div class="mod-actions">' + (passed ? '' : '<button class="btn-s" id="qRetry">Reintentar</button>') + '<button class="btn-g mod-x" style="background:' + m.color + '">' + (passed ? 'Listo' : 'Cerrar') + '</button></div>');
+          modal(head + res + review + '<div class="mod-actions">' + (passed ? '' : '<button class="btn-s" id="qRetry">Reintentar</button>') + '<button class="btn-g mod-x" style="background:' + color + '">' + (passed ? 'Listo' : 'Cerrar') + '</button></div>');
           var rt = $('#qRetry'); if (rt) rt.addEventListener('click', function () { sel = {}; submitted = false; draw(); });
-          $$('.mod-x').forEach(function (x) { x.addEventListener('click', rOnboarding); });
+          $$('.mod-x').forEach(function (x) { x.addEventListener('click', function () { closeModal(); rOnboarding(); }); });
         }
       }
       draw();
@@ -5177,6 +5320,7 @@
         });
       });
     }
+
     function tramitesModal(u) {
       u.checklist = u.checklist || {};
       var items = [{ key: 'emailCorp', label: 'Email corporativo listo' }, { key: 'firma', label: 'Firma de email configurada' }, { key: 'carnet', label: 'Carnet institucional entregado' }, { key: 'huella', label: 'Huella registrada' }, { key: 'contrato', label: 'Firma de contrato' }, { key: 'documentos', label: 'Entrega de documentos' }];
@@ -5191,6 +5335,7 @@
       });
       document.querySelectorAll('#modalHost .mod-x').forEach(function (x) { x.addEventListener('click', rOnboarding); });
     }
+
     $('#content').addEventListener('click', function (e) {
       var ls = e.target.closest('[data-lesson]');
       if (ls) { lessonModal(modById(ls.getAttribute('data-lesson'))); return; }
@@ -5204,8 +5349,8 @@
       var id = b.getAttribute('data-mod');
       db.progreso[me.id] = db.progreso[me.id] || {};
       db.progreso[me.id][id] = !db.progreso[me.id][id];
-      var mm = (ONB[myOnboardingKey()] || ONB.interno).modulos.find(function (x) { return x.id === id; });
-      logHist(me, (db.progreso[me.id][id] ? 'Completó el módulo de inducción: ' : 'Desmarcó el módulo: ') + (mm ? mm.t : id));
+      var mm = modById(id);
+      logHist(me, (db.progreso[me.id][id] ? 'Completó el módulo de inducción: ' : 'Desmarcó el módulo: ') + (mm ? (mm.t || mm.titulo) : id));
       saveDB(db); rOnboarding();
     });
   }
@@ -7131,38 +7276,48 @@
   /* ---------- ADMINISTRACIÓN · COMUNICACIONES ---------- */
   function rAdminCom() {
     resetContent();
-    var coms = (db.comunicaciones || []).slice().sort(function (a, b) { return (a.fecha < b.fecha ? 1 : -1) || (b.id - a.id); });
-    var totalUsers = db.users.filter(function (u) { return u.role !== 'candidato'; }).length;
-    var html = '<div class="card"><div class="toolrow" style="margin:0 0 14px"><div><h3 style="margin:0">Comunicaciones internas</h3><div class="note" style="margin:4px 0 0">Gestiona los anuncios para el equipo. Configura vigencia o elimina.</div></div><span class="sp"></span><button class="btn-g" id="acAdd"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Nueva comunicación</button></div>' +
-      '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Título</th><th>Publicado por</th><th>Fecha</th><th>Vigencia</th><th>Leídas</th><th></th></tr></thead><tbody>' +
-      (coms.length ? coms.map(function (c) {
-        var exp = comExpirada(c);
-        var vig = !c.vigenciaDias || c.vigenciaDias <= 0 ? 'Permanente' : c.vigenciaDias + ' días' + (exp ? ' (vencida)' : '');
-        var leidas = (c.leidoPor || []).length;
-        return '<tr><td><b style="color:var(--navy)">' + esc(c.titulo) + '</b></td><td>' + esc(c.por) + '</td><td style="white-space:nowrap">' + fechaCorta(c.fecha) + '</td><td style="font-size:13px">' + vig + '</td><td>' + leidas + ' de ' + totalUsers + '</td><td style="white-space:nowrap">' +
-          '<button class="btn-s" data-acv="' + c.id + '" style="font-size:12.5px;padding:6px 11px">Vigencia</button> ' +
-          '<button class="btn-s" data-acd="' + c.id + '" style="font-size:12.5px;padding:6px 11px;color:#E0447B;border-color:#E0447B">Eliminar</button></td></tr>';
-      }).join('') : '<tr><td colspan="6"><div class="empty">No hay comunicaciones registradas.</div></td></tr>') +
-      '</tbody></table></div></div>';
-    $('#content').innerHTML = html;
+    window.SV_API.getPerfiles().then(function (perfiles) {
+      function lbl(pk) {
+        if (!pk || pk === '_todos') return 'Todos los perfiles';
+        var p = perfiles.find(function (x) { return x.key === pk; });
+        return p ? p.label : pk;
+      }
+      var coms = (db.comunicaciones || []).slice().sort(function (a, b) { return (a.fecha < b.fecha ? 1 : -1) || (b.id - a.id); });
+      var totalUsers = db.users.filter(function (u) { return u.role !== 'candidato'; }).length;
+      var html = '<div class="card"><div class="toolrow" style="margin:0 0 14px"><div><h3 style="margin:0">Comunicaciones internas</h3><div class="note" style="margin:4px 0 0">Gestiona los anuncios para el equipo. Configura vigencia o elimina.</div></div><span class="sp"></span><button class="btn-g" id="acAdd"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Nueva comunicación</button></div>' +
+        '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Título</th><th>Público</th><th>Publicado por</th><th>Fecha</th><th>Vigencia</th><th>Leídas</th><th></th></tr></thead><tbody>' +
+        (coms.length ? coms.map(function (c) {
+          var exp = comExpirada(c);
+          var vig = !c.vigenciaDias || c.vigenciaDias <= 0 ? 'Permanente' : c.vigenciaDias + ' días' + (exp ? ' (vencida)' : '');
+          var leidas = (c.leidoPor || []).length;
+          return '<tr><td><b style="color:var(--navy)">' + esc(c.titulo) + '</b></td><td><span class="chip b" style="font-size:11.5px">' + esc(lbl(c.perfilDestino)) + '</span></td><td>' + esc(c.por) + '</td><td style="white-space:nowrap">' + fechaCorta(c.fecha) + '</td><td style="font-size:13px">' + vig + '</td><td>' + leidas + ' de ' + totalUsers + '</td><td style="white-space:nowrap">' +
+            '<button class="btn-s" data-acv="' + c.id + '" style="font-size:12.5px;padding:6px 11px">Vigencia</button> ' +
+            '<button class="btn-s" data-acd="' + c.id + '" style="font-size:12.5px;padding:6px 11px;color:#E0447B;border-color:#E0447B">Eliminar</button></td></tr>';
+        }).join('') : '<tr><td colspan="7"><div class="empty">No hay comunicaciones registradas.</div></td></tr>') +
+        '</tbody></table></div></div>';
+      $('#content').innerHTML = html;
     /* Nueva comunicación */
     $('#acAdd').addEventListener('click', function () {
-      var attach = { nombre: null, data: null };
-      modal('<button class="mod-x">✕</button><h3>Nueva comunicación interna</h3>' +
-        '<p style="color:var(--muted);font-size:14px;margin:4px 0 10px">Publica un anuncio para todo el equipo.</p>' +
-        '<div class="fld"><label>Título</label><input id="coT" type="text" placeholder="Ej: Nuevo horario de la sede"></div>' +
-        '<div class="fld"><label>Contenido</label><textarea id="coB" placeholder="Escribe el anuncio." style="min-height:120px"></textarea></div>' +
-        '<div class="fld"><label>Días de vigencia (0 = permanente)</label><input id="coVig" type="number" min="0" value="0"></div>' +
-        '<div class="fld"><label>Adjunto (opcional)</label><div style="display:flex;align-items:center;gap:10px"><button type="button" class="btn-s" id="coAdjBtn">Adjuntar archivo</button><span id="coAdjName" style="font-size:13px;color:var(--muted)">Ningún archivo</span></div></div>' +
-        '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="coOk">Publicar</button></div>', 'wide');
-      $('#coAdjBtn').addEventListener('click', function () { var inp = document.createElement('input'); inp.type = 'file'; inp.onchange = function () { var f = inp.files[0]; if (!f) return; var rd = new FileReader(); rd.onload = function () { attach.nombre = f.name; attach.data = rd.result; $('#coAdjName').textContent = f.name; }; rd.readAsDataURL(f); }; inp.click(); });
-      $('#coOk').addEventListener('click', function () {
-        var t = $('#coT').value.trim(), b = $('#coB').value.trim();
-        if (t.length < 3) { toast('Escribe un título.'); return; }
-        if (b.length < 10) { toast('Escribe el contenido.'); return; }
-        var vig = Math.max(0, parseInt($('#coVig').value, 10) || 0);
-        db.comunicaciones.push({ id: db.nextComId++, titulo: t, cuerpo: b, por: me.nombre, fecha: reqToday(), adjuntoNombre: attach.nombre, adjunto: attach.data, leidoPor: [me.id], vigenciaDias: vig });
-        saveDB(db); closeModal(); refreshNav(); rAdminCom(); toast('Comunicación publicada.');
+      window.SV_API.getPerfiles().then(function (perfiles) {
+        var pfOpts = perfiles.map(function (p) { return '<option value="' + esc(p.key) + '">' + esc(p.label) + '</option>'; }).join('');
+        var attach = { nombre: null, data: null };
+        modal('<button class="mod-x">✕</button><h3>Nueva comunicación interna</h3>' +
+          '<p style="color:var(--muted);font-size:14px;margin:4px 0 10px">Publica un anuncio para el equipo.</p>' +
+          '<div class="fld"><label>Título</label><input id="coT" type="text" placeholder="Ej: Nuevo horario de la sede"></div>' +
+          '<div class="fld"><label>Público objetivo</label><select id="coPerfil"><option value="_todos">✦ Todos los perfiles</option>' + pfOpts + '</select></div>' +
+          '<div class="fld"><label>Contenido</label><textarea id="coB" placeholder="Escribe el anuncio." style="min-height:120px"></textarea></div>' +
+          '<div class="fld"><label>Días de vigencia (0 = permanente)</label><input id="coVig" type="number" min="0" value="0"></div>' +
+          '<div class="fld"><label>Adjunto (opcional)</label><div style="display:flex;align-items:center;gap:10px"><button type="button" class="btn-s" id="coAdjBtn">Adjuntar archivo</button><span id="coAdjName" style="font-size:13px;color:var(--muted)">Ningún archivo</span></div></div>' +
+          '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="coOk">Publicar</button></div>', 'wide');
+        $('#coAdjBtn').addEventListener('click', function () { var inp = document.createElement('input'); inp.type = 'file'; inp.onchange = function () { var f = inp.files[0]; if (!f) return; var rd = new FileReader(); rd.onload = function () { attach.nombre = f.name; attach.data = rd.result; $('#coAdjName').textContent = f.name; }; rd.readAsDataURL(f); }; inp.click(); });
+        $('#coOk').addEventListener('click', function () {
+          var t = $('#coT').value.trim(), b = $('#coB').value.trim(), pd = $('#coPerfil').value;
+          if (t.length < 3) { toast('Escribe un título.'); return; }
+          if (b.length < 10) { toast('Escribe el contenido.'); return; }
+          var vig = Math.max(0, parseInt($('#coVig').value, 10) || 0);
+          db.comunicaciones.push({ id: db.nextComId++, titulo: t, cuerpo: b, por: me.nombre, fecha: reqToday(), adjuntoNombre: attach.nombre, adjunto: attach.data, leidoPor: [me.id], vigenciaDias: vig, perfilDestino: pd });
+          saveDB(db); closeModal(); refreshNav(); rAdminCom(); toast('Comunicación publicada.');
+        });
       });
     });
     /* Vigencia */
@@ -7188,6 +7343,7 @@
         saveDB(db); closeModal(); refreshNav(); rAdminCom(); toast('Comunicación eliminada.');
       });
     }); });
+    }); // end getPerfiles
   }
 
   /* ---------- CONFIGURACIÓN · REQUERIMIENTOS ---------- */
