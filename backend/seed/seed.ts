@@ -119,6 +119,7 @@ async function seed() {
     { id: 'adminenc', g: 'personal', t: 'Encuestas', orden: 3, padre: 'adminmenu', ico: null },
     { id: 'admincom', g: 'personal', t: 'Comunicaciones', orden: 4, padre: 'adminmenu', ico: null },
     { id: 'admininducciones', g: 'personal', t: 'Inducciones', orden: 5, padre: 'adminmenu', ico: null },
+    { id: 'admindocs', g: 'personal', t: 'Biblioteca', orden: 6, padre: 'adminmenu', ico: null },
   ];
 
   // Insert parent items first (no padre), then children

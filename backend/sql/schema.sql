@@ -71,6 +71,12 @@ CREATE TABLE IF NOT EXISTS perfil_pantallas (
   FOREIGN KEY (pantalla_id) REFERENCES pantallas(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
+-- Registro de pantalla administrativa Biblioteca (admindocs)
+INSERT IGNORE INTO pantallas (id, titulo, grupo, padre_id, icono, href_externo, orden) VALUES
+  ('admindocs', 'Biblioteca', 'personal', 'adminmenu', NULL, NULL, 6);
+INSERT IGNORE INTO perfil_pantallas (perfil_key, pantalla_id) VALUES
+  ('admin', 'admindocs');
+
 -- ---------- Personas ----------
 
 CREATE TABLE IF NOT EXISTS usuarios (

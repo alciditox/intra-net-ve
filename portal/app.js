@@ -822,7 +822,8 @@
       { id: 'adminsomos', t: 'Somos VEPAGOS' },
       { id: 'adminenc', t: 'Encuestas' },
       { id: 'admincom', t: 'Comunicaciones' },
-      { id: 'admininducciones', t: 'Inducciones' }
+      { id: 'admininducciones', t: 'Inducciones' },
+      { id: 'admindocs', t: 'Biblioteca' }
     ] },
     { id: 'metas', g: 'personal', t: 'Metas', roles: ['admin', 'gerente'], ico: '<circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1"></circle>', sub: [
       { id: 'metas2026', t: 'Metas 2026' },
@@ -1151,8 +1152,8 @@
     $$('#sbNav a').forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-go') === id); });
     var item = null;
     NAV.forEach(function (n) { if (n.id === id) item = n; if (n.sub) n.sub.forEach(function (c) { if (c.id === id) item = c; }); });
-    $('#pageTitle').textContent = item ? (id === 'adminfrec' || id === 'adminsomos' || id === 'adminenc' || id === 'admincom' || id === 'admininducciones' ? 'Administración · ' + item.t : (item.t === 'Metas 2026' || item.t === 'Visión' || item.t === 'Histórico' ? 'Metas · ' + item.t : ((id === 'afpanel' || id === 'afactivos' || id === 'aftech' || id === 'afalmacen' || id === 'afmercadeo' || id === 'afprocura') ? 'Activos y procura · ' + item.t : ((id === 'ventasfv' || id === 'ventasbancos') ? 'Ventas · ' + item.t : navLabel(item))))) : '';
-    var R = { inicio: rInicio, adminmenu: rAdminFrec, adminfrec: rAdminFrec, adminsomos: rAdminSomos, adminenc: rEncuestas, admincom: rAdminCom, admininducciones: rAdminInducciones, metas: rMetas, metas2026: rMetas, metasvision: rMetas, metashist: rMetas, somos: rSomos, cultura: rCultura, docs: rDocs, solicitudes: rSolicitudes, solequipo: rSolEquipo, claves: rClaves, activos: rAfPanel, afpanel: rAfPanel, afactivos: rAfActivos, aftech: rAfTech, afalmacen: rAfAlmacen, afmercadeo: rAfMercadeo, afprocura: rAfProcura, ventasmenu: rEquipo, ventasfv: rEquipo, ventasbancos: rBancos, org: rOrg, directorio: rDirectorio, equipo: rEquipo, onboarding: rOnboarding, induccionequipo: rOnboarding, pendientes: rPendientes, candidatos: rCandidatos, empleados: rEmpleados, asistencia: rAsistencia, encuestas: rEncuestas, contratos: rContratos, marketing: rMarketing, perfil: rPerfil, perfiles: rPerfiles, requerimientos: rRequerimientos, accesos: rAccesos, recursos: rRecursos };
+    $('#pageTitle').textContent = item ? (id === 'adminfrec' || id === 'adminsomos' || id === 'adminenc' || id === 'admincom' || id === 'admininducciones' || id === 'admindocs' ? 'Administración · ' + item.t : (item.t === 'Metas 2026' || item.t === 'Visión' || item.t === 'Histórico' ? 'Metas · ' + item.t : ((id === 'afpanel' || id === 'afactivos' || id === 'aftech' || id === 'afalmacen' || id === 'afmercadeo' || id === 'afprocura') ? 'Activos y procura · ' + item.t : ((id === 'ventasfv' || id === 'ventasbancos') ? 'Ventas · ' + item.t : navLabel(item))))) : '';
+    var R = { inicio: rInicio, adminmenu: rAdminFrec, adminfrec: rAdminFrec, adminsomos: rAdminSomos, adminenc: rEncuestas, admincom: rAdminCom, admininducciones: rAdminInducciones, admindocs: rAdminDocs, metas: rMetas, metas2026: rMetas, metasvision: rMetas, metashist: rMetas, somos: rSomos, cultura: rCultura, docs: rDocs, solicitudes: rSolicitudes, solequipo: rSolEquipo, claves: rClaves, activos: rAfPanel, afpanel: rAfPanel, afactivos: rAfActivos, aftech: rAfTech, afalmacen: rAfAlmacen, afmercadeo: rAfMercadeo, afprocura: rAfProcura, ventasmenu: rEquipo, ventasfv: rEquipo, ventasbancos: rBancos, org: rOrg, directorio: rDirectorio, equipo: rEquipo, onboarding: rOnboarding, induccionequipo: rOnboarding, pendientes: rPendientes, candidatos: rCandidatos, empleados: rEmpleados, asistencia: rAsistencia, encuestas: rEncuestas, contratos: rContratos, marketing: rMarketing, perfil: rPerfil, perfiles: rPerfiles, requerimientos: rRequerimientos, accesos: rAccesos, recursos: rRecursos };
     (R[id] || rInicio)();
     window.scrollTo(0, 0);
   }
@@ -2179,112 +2180,288 @@
     return db.docs.filter(function (d) { return cats.indexOf(d.cat) > -1 && visibleDoc(d); }).length;
   }
 
-  /* ---------- BIBLIOTECA ---------- */
+  /* ---------- BIBLIOTECA (CONSULTA GENERAL) ---------- */
   var docCat = 'fichas';
   function rDocs() {
     resetContent();
     var cats = CATS.filter(catAllowed);
     if (!cats.some(function (c) { return c.id === docCat; })) docCat = cats[0].id;
     var cat = cats.find(function (c) { return c.id === docCat; });
-    var docs = db.docs.filter(function (d) { return d.cat === docCat && visibleDoc(d); });
+    var docs = db.docs.filter(function (d) { return (d.cat === docCat || d.categoria_id === docCat) && visibleDoc(d); });
     var esPrompts = docCat === 'prompts';
     $('#content').innerHTML =
       '<div class="doccat">' + cats.map(function (c) { return '<button data-cat="' + c.id + '" class="' + (c.id === docCat ? 'on' : '') + '">' + c.nombre + '</button>'; }).join('') + '</div>' +
       '<div class="card">' +
-        '<div class="toolrow"><div><h3 style="margin:0">' + cat.nombre + '</h3><div class="note" style="margin-top:2px">' + cat.desc + '</div></div><span class="sp"></span>' +
-        (canUploadDocs() ? '<button class="btn-g" id="btnAddDoc"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>' + (esPrompts ? 'Agregar prompt' : 'Agregar documento') + '</button>' : '') + '</div>' +
+        '<div class="toolrow"><div><h3 style="margin:0">' + cat.nombre + '</h3><div class="note" style="margin-top:2px">' + cat.desc + '</div></div><span class="sp"></span></div>' +
         (docs.length ? (esPrompts ? docs.map(promptRow).join('') : docs.map(docRow).join('')) : '<div class="empty">No hay ' + (esPrompts ? 'prompts' : 'documentos') + ' en esta categoría.</div>') +
       '</div>' +
       (esPrompts ? '<div class="note">Copia el prompt y reemplaza los campos entre [corchetes] con tu información antes de usarlo en tu asistente de IA.</div>' : '<div class="note">Los documentos marcados <span class="chip n">demo</span> son marcadores de posición del prototipo. Solo ves los documentos generales y los de tu departamento o equipo' + (me.role === 'admin' ? ' (como administradora ves el 100%)' : '') + '.</div>');
     $('#content').querySelector('.doccat').addEventListener('click', function (e) {
       var b = e.target.closest('[data-cat]'); if (!b) return; docCat = b.getAttribute('data-cat'); rDocs();
     });
-    var add = $('#btnAddDoc');
-    if (add && esPrompts) add.addEventListener('click', function () {
-      modal('<button class="mod-x">✕</button><h3>Agregar prompt</h3><p style="color:var(--muted);font-size:14px;margin:4px 0 8px">Se agregará a "Prompts para IA", visible para todo el equipo.</p>' +
-        '<div class="fld"><label>Título del prompt</label><input id="npTit" type="text" placeholder="Ej: Responder a un cliente indeciso"></div>' +
-        '<div class="fld"><label>Prompt</label><textarea id="npTxt" style="min-height:120px" placeholder="Escribe el prompt. Usa [corchetes] para los campos que se deben completar."></textarea></div>' +
-        '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="npOk">Agregar</button></div>', 'wide');
-      $('#npOk').addEventListener('click', function () {
-        var n = $('#npTit').value.trim(), p = $('#npTxt').value.trim();
-        if (!n || !p) { toast('Escribe el título y el prompt.'); return; }
-        db.docs.push({ id: db.nextDocId++, cat: 'prompts', nombre: n, prompt: p, archivo: null, real: false, fecha: new Date().toISOString().slice(0, 10), por: me.nombre, deptos: null, equipos: null });
-        saveDB(db); closeModal(); rDocs(); toast('Prompt agregado.');
-      });
-    });
-    else if (add) add.addEventListener('click', function () {
-      var areas = []; db.users.forEach(function (u) { if (u.area && areas.indexOf(u.area) === -1) areas.push(u.area); });
-      var equipos = []; db.users.forEach(function (u) { if (u.equipo && equipos.indexOf(u.equipo) === -1) equipos.push(u.equipo); });
-      function cb(a) { return '<label style="display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:#33415C;background:#fff;border:1.5px solid #D9E2EF;border-radius:999px;padding:7px 14px;cursor:pointer;white-space:nowrap;user-select:none;transition:all .15s"><input type="checkbox" value="' + esc(a) + '" style="accent-color:#00CE7C;width:15px;height:15px;margin:0;flex:0 0 auto">' + esc(a) + '</label>'; }
-      modal('<button class="mod-x">✕</button><h3>Agregar documento</h3><p style="color:var(--muted);font-size:14px;margin:4px 0 8px">Se agregará a la categoría "' + cat.nombre + '".</p>' +
-        '<div class="fld"><label>Nombre del documento</label><input id="ndNombre" type="text" placeholder="Ej: Oferta agosto 2026"></div>' +
-        '<div class="fld"><label>Visibilidad</label><select id="ndVis"><option value="">General — toda la empresa</option><option value="p">Personalizada — por departamentos y/o equipos</option></select></div>' +
-        '<div id="ndScope" style="display:none">' +
-          '<div class="fld"><label>Departamentos (elige uno o varios)</label><div id="ndD" style="display:flex;flex-wrap:wrap;gap:8px">' + areas.map(cb).join('') + '</div></div>' +
-          '<div class="fld"><label>Equipos (elige uno o varios)</label><div id="ndE" style="display:flex;flex-wrap:wrap;gap:8px">' + equipos.map(cb).join('') + '</div></div>' +
-        '</div>' +
-        '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="ndOk">Agregar</button></div>');
-      $('#ndVis').addEventListener('change', function () {
-        $('#ndScope').style.display = this.value === 'p' ? '' : 'none';
-      });
-      ['ndD', 'ndE'].forEach(function (id) {
-        $('#' + id).addEventListener('change', function (e) {
-          var l = e.target.closest('label'); if (!l) return;
-          if (e.target.checked) { l.style.borderColor = '#00CE7C'; l.style.background = '#F1FCF7'; l.style.color = '#001F60'; }
-          else { l.style.borderColor = '#D9E2EF'; l.style.background = '#fff'; l.style.color = '#33415C'; }
-        });
-      });
-      $('#ndOk').addEventListener('click', function () {
-        var n = $('#ndNombre').value.trim(); if (!n) return;
-        var deptos = [], equipos2 = [];
-        if ($('#ndVis').value === 'p') {
-          $('#ndD').querySelectorAll('input:checked').forEach(function (i) { deptos.push(i.value); });
-          $('#ndE').querySelectorAll('input:checked').forEach(function (i) { equipos2.push(i.value); });
-          if (!deptos.length && !equipos2.length) { toast('Elige al menos un departamento o equipo, o cambia a visibilidad General.'); return; }
-        }
-        db.docs.push({ id: db.nextDocId++, cat: docCat, nombre: n, archivo: null, real: false, fecha: new Date().toISOString().slice(0, 10), por: me.nombre, deptos: deptos.length ? deptos : null, equipos: equipos2.length ? equipos2 : null });
-        saveDB(db); closeModal(); rDocs(); toast('Documento agregado.');
-      });
-    });
     $('#content').addEventListener('click', function (e) {
       var dl = e.target.closest('[data-dl]');
       if (dl) {
         var d = db.docs.find(function (x) { return x.id === +dl.getAttribute('data-dl'); });
-        if (d.real) { var a = document.createElement('a'); a.href = d.archivo; a.download = ''; document.body.appendChild(a); a.click(); a.remove(); }
-        else demoDownload(d.nombre);
-        logHist(me, 'Descargó el documento: ' + d.nombre);
+        if (d && (d.real || d.es_real)) { var a = document.createElement('a'); a.href = d.archivo || d.archivo_url; a.download = ''; document.body.appendChild(a); a.click(); a.remove(); }
+        else if (d) demoDownload(d.nombre);
+        logHist(me, 'Descargó el documento: ' + (d ? d.nombre : ''));
         saveDB(db);
         return;
       }
       var cp = e.target.closest('[data-copyprompt]');
       if (cp) {
         var pd = db.docs.find(function (x) { return x.id === +cp.getAttribute('data-copyprompt'); });
-        if (pd) { var txt = pd.prompt || ''; function ok() { toast('Prompt copiado. ¡Pégalo en tu asistente de IA!'); } if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt).then(ok, function () { ok(); }); } else { var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (er) {} ta.remove(); ok(); } }
+        if (pd) {
+          var txt = pd.prompt || pd.prompt_texto || '';
+          function ok() { toast('Prompt copiado. ¡Pégalo en tu asistente de IA!'); }
+          if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt).then(ok, function () { ok(); }); }
+          else { var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (er) {} ta.remove(); ok(); }
+        }
         return;
-      }
-      var del = e.target.closest('[data-del]');
-      if (del) {
-        var id = +del.getAttribute('data-del');
-        db.docs = db.docs.filter(function (x) { return x.id !== id; });
-        saveDB(db); rDocs(); toast('Documento eliminado.');
       }
     });
   }
   function promptRow(d) {
     return '<div style="border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px">' +
-      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="width:30px;height:30px;border-radius:9px;background:#EAF1FD;color:#2A6FDB;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5c0 1.5.5 2.5 1.5 3.5S10 12.5 10 14h4c0-1.5.5-2.5 1.5-3.5S17 8.5 17 7a5 5 0 0 0-5-5z"></path><path d="M9 18h6M10 22h4"></path></svg></span><div style="flex:1;min-width:0"><div class="dn">' + esc(d.nombre) + '</div><div class="dm">Por ' + esc(d.por) + ' · ' + esc(d.fecha) + '</div></div>' +
-        '<button class="btn-s" data-copyprompt="' + d.id + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>Copiar</button>' +
-        (canDeleteDocs() ? '<button class="btn-s btn-danger" data-del="' + d.id + '">Eliminar</button>' : '') + '</div>' +
-      '<div style="background:#F8FAFD;border:1px solid #EEF3F9;border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:1.6;color:#33415C;white-space:pre-wrap">' + esc(d.prompt || '') + '</div>' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="width:30px;height:30px;border-radius:9px;background:#EAF1FD;color:#2A6FDB;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5c0 1.5.5 2.5 1.5 3.5S10 12.5 10 14h4c0-1.5.5-2.5 1.5-3.5S17 8.5 17 7a5 5 0 0 0-5-5z"></path><path d="M9 18h6M10 22h4"></path></svg></span><div style="flex:1;min-width:0"><div class="dn">' + esc(d.nombre) + '</div><div class="dm">Por ' + esc(d.por || d.creado_por || 'Capital Humano') + ' · ' + esc(d.fecha || '') + '</div></div>' +
+        '<button class="btn-s" data-copyprompt="' + d.id + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>Copiar</button></div>' +
+      '<div style="background:#F8FAFD;border:1px solid #EEF3F9;border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:1.6;color:#33415C;white-space:pre-wrap">' + esc(d.prompt || d.prompt_texto || '') + '</div>' +
     '</div>';
   }
   function docRow(d) {
     return '<div class="docrow">' +
       '<div class="docic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path></svg></div>' +
-      '<div><div class="dn">' + esc(d.nombre) + (d.real ? '' : ' <span class="chip n">demo</span>') + (d.deptos || []).map(function (x) { return ' <span class="chip y">Depto: ' + esc(x) + '</span>'; }).join('') + (d.equipos || []).map(function (x) { return ' <span class="chip y">Equipo: ' + esc(x) + '</span>'; }).join('') + (!(d.deptos && d.deptos.length) && !(d.equipos && d.equipos.length) ? (d.userId != null ? ' <span class="chip b">Personal</span>' : ' <span class="chip g">General</span>') : '') + '</div><div class="dm">Subido por ' + esc(d.por) + ' · ' + d.fecha + '</div></div>' +
+      '<div><div class="dn">' + esc(d.nombre) + ((d.real || d.es_real) ? '' : ' <span class="chip n">demo</span>') + (d.deptos || []).map(function (x) { return ' <span class="chip y">Depto: ' + esc(x) + '</span>'; }).join('') + (d.equipos || []).map(function (x) { return ' <span class="chip y">Equipo: ' + esc(x) + '</span>'; }).join('') + (!(d.deptos && d.deptos.length) && !(d.equipos && d.equipos.length) ? (d.userId != null ? ' <span class="chip b">Personal</span>' : ' <span class="chip g">General</span>') : '') + '</div><div class="dm">Subido por ' + esc(d.por || d.creado_por || 'Administración') + ' · ' + (d.fecha || '') + '</div></div>' +
       '<span class="sp"></span>' +
       '<button class="btn-s" data-dl="' + d.id + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg>Descargar</button>' +
-      (canDeleteDocs() ? '<button class="btn-s btn-danger" data-del="' + d.id + '">Eliminar</button>' : '') +
+    '</div>';
+  }
+
+  /* ---------- ADMINISTRACIÓN · BIBLIOTECA ---------- */
+  var adminDocCat = 'fichas';
+  function rAdminDocs() {
+    resetContent();
+    $('#content').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Cargando biblioteca...</div>';
+    
+    Promise.all([
+      window.SV_API.getDocumentos(),
+      window.SV_API.getCategoriasDocumento()
+    ]).then(function (res) {
+      var apiDocs = (res[0] && !res[0].error && Array.isArray(res[0])) ? res[0] : null;
+      if (apiDocs && apiDocs.length) {
+        apiDocs.forEach(function (ad) {
+          var exists = db.docs.find(function (x) { return x.id === ad.id; });
+          if (!exists) {
+            db.docs.push({
+              id: ad.id,
+              cat: ad.categoria_id,
+              categoria_id: ad.categoria_id,
+              nombre: ad.nombre,
+              archivo: ad.archivo_url,
+              archivo_url: ad.archivo_url,
+              real: !!ad.es_real,
+              es_real: !!ad.es_real,
+              prompt: ad.prompt_texto,
+              prompt_texto: ad.prompt_texto,
+              fecha: ad.fecha ? String(ad.fecha).slice(0, 10) : new Date().toISOString().slice(0, 10),
+              por: ad.creado_por || 'Administradora VEPAGOS',
+              creado_por: ad.creado_por || 'Administradora VEPAGOS',
+              deptos: ad.departamento ? ad.departamento.split(',').map(function (s) { return s.trim(); }) : null,
+              equipos: ad.equipo ? ad.equipo.split(',').map(function (s) { return s.trim(); }) : null
+            });
+          }
+        });
+        saveDB(db);
+      }
+
+      var cats = CATS;
+      if (!cats.some(function (c) { return c.id === adminDocCat; })) adminDocCat = cats[0].id;
+      var cat = cats.find(function (c) { return c.id === adminDocCat; });
+      var docs = db.docs.filter(function (d) { return (d.cat === adminDocCat || d.categoria_id === adminDocCat); });
+      var esPrompts = adminDocCat === 'prompts';
+      
+      var totalDocs = db.docs.length;
+      var totalPrompts = db.docs.filter(function (d) { return (d.cat === 'prompts' || d.categoria_id === 'prompts'); }).length;
+      var totalReales = db.docs.filter(function (d) { return d.real || d.es_real || d.archivo || d.archivo_url; }).length;
+
+      var html = '<div class="toolrow" style="margin-bottom:16px">' +
+        '<div><div style="font-size:14px;color:var(--muted);max-width:620px;line-height:1.55">Gestiona los <b>documentos y recursos</b> de la biblioteca corporativa. Agrega nuevos materiales o elimina los obsoletos con control total por base de datos.</div></div>' +
+        '<span class="sp"></span>' +
+        '<button class="btn-g" id="btnAdminAddDoc"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>' + (esPrompts ? 'Agregar prompt' : 'Agregar documento') + '</button>' +
+      '</div>';
+
+      html += '<div class="dash-kpis" style="margin-bottom:16px">' +
+        '<div class="dash-kpi" style="cursor:default"><span class="dash-kpi-ic" style="background:#2A6FDB18;color:#2A6FDB"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path></svg></span><div><div class="dash-kpi-n">' + totalDocs + '</div><div class="dash-kpi-l">Documentos totales</div></div></div>' +
+        '<div class="dash-kpi" style="cursor:default"><span class="dash-kpi-ic" style="background:#00B87118;color:#00B871"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg></span><div><div class="dash-kpi-n">' + totalReales + '</div><div class="dash-kpi-l">Archivos reales</div></div></div>' +
+        '<div class="dash-kpi" style="cursor:default"><span class="dash-kpi-ic" style="background:#8A5CD118;color:#8A5CD1"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5c0 1.5.5 2.5 1.5 3.5S10 12.5 10 14h4c0-1.5.5-2.5 1.5-3.5S17 8.5 17 7a5 5 0 0 0-5-5z"></path><path d="M9 18h6M10 22h4"></path></svg></span><div><div class="dash-kpi-n">' + totalPrompts + '</div><div class="dash-kpi-l">Prompts de IA</div></div></div>' +
+        '<div class="dash-kpi" style="cursor:default"><span class="dash-kpi-ic" style="background:#FF7A1A18;color:#FF7A1A"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect></svg></span><div><div class="dash-kpi-n">' + cats.length + '</div><div class="dash-kpi-l">Categorías</div></div></div>' +
+      '</div>';
+
+      html += '<div class="doccat">' + cats.map(function (c) { return '<button data-admincat="' + c.id + '" class="' + (c.id === adminDocCat ? 'on' : '') + '">' + c.nombre + '</button>'; }).join('') + '</div>';
+
+      html += '<div class="card">' +
+        '<div class="toolrow" style="margin-bottom:12px"><div><h3 style="margin:0">' + cat.nombre + '</h3><div class="note" style="margin-top:2px">' + cat.desc + ' · <b style="color:var(--navy)">' + docs.length + ' elementos</b></div></div><span class="sp"></span></div>' +
+        (docs.length ? (esPrompts ? docs.map(adminPromptRow).join('') : docs.map(adminDocRow).join('')) : '<div class="empty">No hay ' + (esPrompts ? 'prompts' : 'documentos') + ' en esta categoría. Agrega uno con el botón superior.</div>') +
+      '</div>';
+
+      $('#content').innerHTML = html;
+
+      $('#content').querySelector('.doccat').addEventListener('click', function (e) {
+        var b = e.target.closest('[data-admincat]'); if (!b) return;
+        adminDocCat = b.getAttribute('data-admincat');
+        rAdminDocs();
+      });
+
+      var addBtn = $('#btnAdminAddDoc');
+      if (addBtn && esPrompts) {
+        addBtn.addEventListener('click', function () {
+          modal('<button class="mod-x">✕</button><h3>Agregar prompt para IA</h3><p style="color:var(--muted);font-size:14px;margin:4px 0 8px">Se guardará en la base de datos y estará disponible para todo el equipo.</p>' +
+            '<div class="fld"><label>Título del prompt *</label><input id="anpTit" type="text" placeholder="Ej: Responder a un cliente indeciso"></div>' +
+            '<div class="fld"><label>Contenido del prompt *</label><textarea id="anpTxt" style="min-height:130px" placeholder="Escribe el texto del prompt. Usa [corchetes] para los campos variables."></textarea></div>' +
+            '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="anpOk">Guardar en base de datos</button></div>', 'wide');
+          $('#anpOk').addEventListener('click', function () {
+            var n = $('#anpTit').value.trim(), p = $('#anpTxt').value.trim();
+            if (!n || !p) { toast('Por favor completa el título y el prompt.'); return; }
+            var fechaHoy = new Date().toISOString().slice(0, 10);
+            window.SV_API.createDocumento({
+              categoria_id: 'prompts',
+              nombre: n,
+              prompt_texto: p,
+              es_real: 0,
+              fecha: fechaHoy,
+              creado_por: me.nombre
+            }).then(function (res) {
+              var newId = (res && res.id) ? res.id : db.nextDocId++;
+              db.docs.push({ id: newId, cat: 'prompts', categoria_id: 'prompts', nombre: n, prompt: p, prompt_texto: p, archivo: null, real: false, es_real: false, fecha: fechaHoy, por: me.nombre, creado_por: me.nombre, deptos: null, equipos: null });
+              saveDB(db); closeModal(); rAdminDocs(); toast('Prompt guardado exitosamente en base de datos.');
+            }).catch(function (err) {
+              var newId = db.nextDocId++;
+              db.docs.push({ id: newId, cat: 'prompts', categoria_id: 'prompts', nombre: n, prompt: p, prompt_texto: p, archivo: null, real: false, es_real: false, fecha: fechaHoy, por: me.nombre, creado_por: me.nombre, deptos: null, equipos: null });
+              saveDB(db); closeModal(); rAdminDocs(); toast('Prompt guardado.');
+            });
+          });
+        });
+      } else if (addBtn) {
+        addBtn.addEventListener('click', function () {
+          var areas = []; db.users.forEach(function (u) { if (u.area && areas.indexOf(u.area) === -1) areas.push(u.area); });
+          var equipos = []; db.users.forEach(function (u) { if (u.equipo && equipos.indexOf(u.equipo) === -1) equipos.push(u.equipo); });
+          function cb(a) { return '<label style="display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:#33415C;background:#fff;border:1.5px solid #D9E2EF;border-radius:999px;padding:7px 14px;cursor:pointer;white-space:nowrap;user-select:none;transition:all .15s"><input type="checkbox" value="' + esc(a) + '" style="accent-color:#00CE7C;width:15px;height:15px;margin:0;flex:0 0 auto">' + esc(a) + '</label>'; }
+          modal('<button class="mod-x">✕</button><h3>Agregar documento</h3><p style="color:var(--muted);font-size:14px;margin:4px 0 8px">Se guardará en la categoría <b>' + esc(cat.nombre) + '</b> en la base de datos.</p>' +
+            '<div class="fld"><label>Nombre del documento *</label><input id="andNombre" type="text" placeholder="Ej: Manual de Políticas 2026"></div>' +
+            '<div class="fld"><label>Ruta o enlace del archivo (opcional)</label><input id="andUrl" type="text" placeholder="Ej: assets/manuales/politicas-2026.pdf"></div>' +
+            '<div class="fld"><label>Visibilidad</label><select id="andVis"><option value="">General — toda la empresa</option><option value="p">Personalizada — por departamentos y/o equipos</option></select></div>' +
+            '<div id="andScope" style="display:none">' +
+              '<div class="fld"><label>Departamentos (elige uno o varios)</label><div id="andD" style="display:flex;flex-wrap:wrap;gap:8px">' + areas.map(cb).join('') + '</div></div>' +
+              '<div class="fld"><label>Equipos (elige uno o varios)</label><div id="andE" style="display:flex;flex-wrap:wrap;gap:8px">' + equipos.map(cb).join('') + '</div></div>' +
+            '</div>' +
+            '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="andOk">Guardar documento</button></div>');
+          
+          $('#andVis').addEventListener('change', function () {
+            $('#andScope').style.display = this.value === 'p' ? '' : 'none';
+          });
+          ['andD', 'andE'].forEach(function (id) {
+            var el = $('#' + id);
+            if (el) el.addEventListener('change', function (e) {
+              var l = e.target.closest('label'); if (!l) return;
+              if (e.target.checked) { l.style.borderColor = '#00CE7C'; l.style.background = '#F1FCF7'; l.style.color = '#001F60'; }
+              else { l.style.borderColor = '#D9E2EF'; l.style.background = '#fff'; l.style.color = '#33415C'; }
+            });
+          });
+          $('#andOk').addEventListener('click', function () {
+            var n = $('#andNombre').value.trim(); if (!n) { toast('El nombre del documento es obligatorio.'); return; }
+            var url = $('#andUrl').value.trim();
+            var deptos = [], equipos2 = [];
+            if ($('#andVis').value === 'p') {
+              $('#andD').querySelectorAll('input:checked').forEach(function (i) { deptos.push(i.value); });
+              $('#andE').querySelectorAll('input:checked').forEach(function (i) { equipos2.push(i.value); });
+              if (!deptos.length && !equipos2.length) { toast('Elige al menos un departamento o equipo, o selecciona visibilidad General.'); return; }
+            }
+            var fechaHoy = new Date().toISOString().slice(0, 10);
+            window.SV_API.createDocumento({
+              categoria_id: adminDocCat,
+              nombre: n,
+              archivo_url: url || null,
+              es_real: url ? 1 : 0,
+              fecha: fechaHoy,
+              creado_por: me.nombre,
+              departamento: deptos.length ? deptos.join(', ') : null,
+              equipo: equipos2.length ? equipos2.join(', ') : null
+            }).then(function (res) {
+              var newId = (res && res.id) ? res.id : db.nextDocId++;
+              db.docs.push({ id: newId, cat: adminDocCat, categoria_id: adminDocCat, nombre: n, archivo: url || null, archivo_url: url || null, real: !!url, es_real: !!url, fecha: fechaHoy, por: me.nombre, creado_por: me.nombre, deptos: deptos.length ? deptos : null, equipos: equipos2.length ? equipos2 : null });
+              saveDB(db); closeModal(); rAdminDocs(); toast('Documento guardado en base de datos.');
+            }).catch(function (err) {
+              var newId = db.nextDocId++;
+              db.docs.push({ id: newId, cat: adminDocCat, categoria_id: adminDocCat, nombre: n, archivo: url || null, archivo_url: url || null, real: !!url, es_real: !!url, fecha: fechaHoy, por: me.nombre, creado_por: me.nombre, deptos: deptos.length ? deptos : null, equipos: equipos2.length ? equipos2 : null });
+              saveDB(db); closeModal(); rAdminDocs(); toast('Documento guardado.');
+            });
+          });
+        });
+      }
+
+      $('#content').addEventListener('click', function (e) {
+        var dl = e.target.closest('[data-dl]');
+        if (dl) {
+          var d = db.docs.find(function (x) { return x.id === +dl.getAttribute('data-dl'); });
+          if (d && (d.real || d.es_real)) { var a = document.createElement('a'); a.href = d.archivo || d.archivo_url; a.download = ''; document.body.appendChild(a); a.click(); a.remove(); }
+          else if (d) demoDownload(d.nombre);
+          logHist(me, 'Descargó el documento: ' + (d ? d.nombre : ''));
+          saveDB(db);
+          return;
+        }
+        var cp = e.target.closest('[data-copyprompt]');
+        if (cp) {
+          var pd = db.docs.find(function (x) { return x.id === +cp.getAttribute('data-copyprompt'); });
+          if (pd) {
+            var txt = pd.prompt || pd.prompt_texto || '';
+            function ok() { toast('Prompt copiado. ¡Pégalo en tu asistente de IA!'); }
+            if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(txt).then(ok, function () { ok(); }); }
+            else { var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); } catch (er) {} ta.remove(); ok(); }
+          }
+          return;
+        }
+        var del = e.target.closest('[data-admindel]');
+        if (del) {
+          var docId = +del.getAttribute('data-admindel');
+          var targetDoc = db.docs.find(function (x) { return x.id === docId; });
+          var docTitle = targetDoc ? targetDoc.nombre : 'este documento';
+          modal('<button class="mod-x">✕</button><h3>Eliminar de la biblioteca</h3>' +
+            '<p style="color:#33415C;font-size:14px;margin:8px 0 16px">¿Estás seguro de que deseas eliminar permanentemente <b>' + esc(docTitle) + '</b> de la base de datos?</p>' +
+            '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-s" id="btnConfirmAdminDel" style="color:#fff;background:#E0447B;border-color:#E0447B">Sí, eliminar</button></div>');
+          $('#btnConfirmAdminDel').addEventListener('click', function () {
+            window.SV_API.deleteDocumento(docId).then(function (res) {
+              db.docs = db.docs.filter(function (x) { return x.id !== docId; });
+              saveDB(db); closeModal(); rAdminDocs(); toast('Documento eliminado de la base de datos.');
+            }).catch(function (err) {
+              db.docs = db.docs.filter(function (x) { return x.id !== docId; });
+              saveDB(db); closeModal(); rAdminDocs(); toast('Documento eliminado.');
+            });
+          });
+        }
+      });
+    });
+  }
+
+  function adminPromptRow(d) {
+    return '<div style="border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:10px">' +
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">' +
+        '<span style="width:30px;height:30px;border-radius:9px;background:#EAF1FD;color:#2A6FDB;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a5 5 0 0 0-5 5c0 1.5.5 2.5 1.5 3.5S10 12.5 10 14h4c0-1.5.5-2.5 1.5-3.5S17 8.5 17 7a5 5 0 0 0-5-5z"></path><path d="M9 18h6M10 22h4"></path></svg></span>' +
+        '<div style="flex:1;min-width:0"><div class="dn">' + esc(d.nombre) + '</div><div class="dm">Por ' + esc(d.por || d.creado_por || 'Capital Humano') + ' · ' + esc(d.fecha || '') + '</div></div>' +
+        '<button class="btn-s" data-copyprompt="' + d.id + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>Copiar</button>' +
+        '<button class="btn-s btn-danger" data-admindel="' + d.id + '" style="margin-left:6px">Eliminar</button>' +
+      '</div>' +
+      '<div style="background:#F8FAFD;border:1px solid #EEF3F9;border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:1.6;color:#33415C;white-space:pre-wrap">' + esc(d.prompt || d.prompt_texto || '') + '</div>' +
+    '</div>';
+  }
+
+  function adminDocRow(d) {
+    return '<div class="docrow">' +
+      '<div class="docic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path></svg></div>' +
+      '<div><div class="dn">' + esc(d.nombre) + ((d.real || d.es_real) ? '' : ' <span class="chip n">demo</span>') + (d.deptos || []).map(function (x) { return ' <span class="chip y">Depto: ' + esc(x) + '</span>'; }).join('') + (d.equipos || []).map(function (x) { return ' <span class="chip y">Equipo: ' + esc(x) + '</span>'; }).join('') + (!(d.deptos && d.deptos.length) && !(d.equipos && d.equipos.length) ? (d.userId != null ? ' <span class="chip b">Personal</span>' : ' <span class="chip g">General</span>') : '') + '</div><div class="dm">Subido por ' + esc(d.por || d.creado_por || 'Administración') + ' · ' + (d.fecha || '') + '</div></div>' +
+      '<span class="sp"></span>' +
+      '<button class="btn-s" data-dl="' + d.id + '"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5"></path><path d="M12 15V3"></path></svg>Descargar</button>' +
+      '<button class="btn-s btn-danger" data-admindel="' + d.id + '" style="margin-left:6px">Eliminar</button>' +
     '</div>';
   }
 

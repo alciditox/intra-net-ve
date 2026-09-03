@@ -21,6 +21,17 @@ router.get('/', authMiddleware, async (req: AuthenticatedRequest, res: Response)
   }
 });
 
+// GET /api/documentos/categorias — listar categorías de documentos
+router.get('/categorias', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const [rows] = await pool.execute('SELECT * FROM categorias_documento ORDER BY orden ASC');
+    res.json(rows);
+  } catch (err) {
+    console.error('Categorias list error:', err);
+    res.status(500).json({ error: 'Error interno' });
+  }
+});
+
 // GET /api/documentos/:id
 router.get('/:id', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   try {

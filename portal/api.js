@@ -155,6 +155,10 @@ window.SV_API = (function () {
     return await request('PUT', '/inducciones/' + id, data);
   }
 
+  async function deleteInduccion(id) {
+    return await request('DELETE', '/inducciones/' + id);
+  }
+
   async function getMiProgresoInduccion() {
     return await request('GET', '/inducciones/progreso/mio');
   }
@@ -165,6 +169,32 @@ window.SV_API = (function () {
 
   async function completarModuloInduccion(moduloId, puntajePct) {
     return await request('POST', '/inducciones/progreso', { modulo_id: moduloId, puntaje_pct: puntajePct || 100 });
+  }
+
+  // ===== DOCUMENTOS =====
+  async function getDocumentos(categoria) {
+    var qs = categoria ? '?categoria=' + encodeURIComponent(categoria) : '';
+    return await request('GET', '/documentos' + qs);
+  }
+
+  async function getDocumento(id) {
+    return await request('GET', '/documentos/' + id);
+  }
+
+  async function getCategoriasDocumento() {
+    return await request('GET', '/documentos/categorias');
+  }
+
+  async function createDocumento(data) {
+    return await request('POST', '/documentos', data);
+  }
+
+  async function updateDocumento(id, data) {
+    return await request('PUT', '/documentos/' + id, data);
+  }
+
+  async function deleteDocumento(id) {
+    return await request('DELETE', '/documentos/' + id);
   }
 
   return {
@@ -198,6 +228,12 @@ window.SV_API = (function () {
     getMiProgresoInduccion: getMiProgresoInduccion,
     getTodosProgresosInduccion: getTodosProgresosInduccion,
     completarModuloInduccion: completarModuloInduccion,
+    getDocumentos: getDocumentos,
+    getDocumento: getDocumento,
+    getCategoriasDocumento: getCategoriasDocumento,
+    createDocumento: createDocumento,
+    updateDocumento: updateDocumento,
+    deleteDocumento: deleteDocumento,
     getToken: getToken,
     clearToken: clearToken,
   };
