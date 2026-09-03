@@ -71,13 +71,15 @@ CREATE TABLE IF NOT EXISTS perfil_pantallas (
   FOREIGN KEY (pantalla_id) REFERENCES pantallas(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- Registro de pantallas administrativas Biblioteca (admindocs) y Cultura organizacional (admincultura)
+-- Registro de pantallas administrativas Biblioteca (admindocs), Cultura organizacional (admincultura) y Emergencias (adminemergencias)
 INSERT IGNORE INTO pantallas (id, titulo, grupo, padre_id, icono, href_externo, orden) VALUES
   ('admindocs', 'Biblioteca', 'personal', 'adminmenu', NULL, NULL, 6),
-  ('admincultura', 'Cultura organizacional', 'personal', 'adminmenu', NULL, NULL, 7);
+  ('admincultura', 'Cultura organizacional', 'personal', 'adminmenu', NULL, NULL, 7),
+  ('adminemergencias', 'Emergencias', 'personal', 'adminmenu', NULL, NULL, 8);
 INSERT IGNORE INTO perfil_pantallas (perfil_key, pantalla_id) VALUES
   ('admin', 'admindocs'),
-  ('admin', 'admincultura');
+  ('admin', 'admincultura'),
+  ('admin', 'adminemergencias');
 
 -- Registro de Gestión de Solicitudes y submenús departamentales
 INSERT IGNORE INTO pantallas (id, titulo, grupo, padre_id, icono, href_externo, orden) VALUES
@@ -115,6 +117,11 @@ CREATE TABLE IF NOT EXISTS usuarios (
   linkedin        VARCHAR(200) NULL,
   ciudad          VARCHAR(60)  NULL,
   cumple          CHAR(5)      NULL COMMENT 'MM-DD',
+  tipo_sangre     VARCHAR(10)  NULL,
+  alergias        VARCHAR(255) NULL,
+  condicion_medica VARCHAR(255) NULL,
+  emerg_nombre    VARCHAR(120) NULL,
+  emerg_telefono  VARCHAR(30)  NULL,
   es_ancla_equipo TINYINT(1)   NOT NULL DEFAULT 0,
   nombre_equipo   VARCHAR(80)  NULL,
   activo          TINYINT(1)   NOT NULL DEFAULT 1,
@@ -124,6 +131,23 @@ CREATE TABLE IF NOT EXISTS usuarios (
   INDEX idx_usuarios_supervisor (supervisor_id),
   INDEX idx_usuarios_perfil (perfil_key),
   INDEX idx_usuarios_activo (activo)
+) ENGINE=InnoDB;
+
+-- ---------- Información de Emergencias Institucional ----------
+
+CREATE TABLE IF NOT EXISTS emergencias_info (
+  id                   INT PRIMARY KEY DEFAULT 1,
+  riesgo_telefono      VARCHAR(50) NOT NULL DEFAULT '911',
+  riesgo_texto         VARCHAR(255) NOT NULL DEFAULT 'Llama de inmediato a los servicios de emergencia',
+  pasos                JSON NOT NULL,
+  aseguradora_empresa  VARCHAR(255) NOT NULL,
+  aseguradora_producto VARCHAR(255) NOT NULL,
+  aseguradora_poliza   VARCHAR(100) NOT NULL,
+  aseguradora_suma     VARCHAR(100) NOT NULL,
+  cobertura_items      JSON NOT NULL,
+  no_cubre_items       JSON NOT NULL,
+  contactos            JSON NOT NULL,
+  updated_at           TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS permisos_usuario (

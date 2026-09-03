@@ -40,7 +40,7 @@ export async function login(email: string, password: string, cedula?: string): P
 
 export async function getUserById(id: number): Promise<Omit<Usuario, 'password_hash'> | null> {
   const [rows] = await pool.execute<RowDataPacket[]>(
-    'SELECT id, nombre, cargo, area, perfil_key, supervisor_id, email, cedula, telefono, linkedin, ciudad, cumple, es_ancla_equipo, nombre_equipo, activo, creado_en FROM usuarios WHERE id = ?',
+    'SELECT id, nombre, cargo, area, perfil_key, supervisor_id, email, cedula, telefono, linkedin, ciudad, cumple, tipo_sangre, alergias, condicion_medica, emerg_nombre, emerg_telefono, es_ancla_equipo, nombre_equipo, activo, creado_en FROM usuarios WHERE id = ?',
     [id]
   );
   if (rows.length === 0) return null;
@@ -49,7 +49,7 @@ export async function getUserById(id: number): Promise<Omit<Usuario, 'password_h
 
 export async function getAllUsers(): Promise<Omit<Usuario, 'password_hash'>[]> {
   const [rows] = await pool.execute<RowDataPacket[]>(
-    'SELECT id, nombre, cargo, area, perfil_key, supervisor_id, email, cedula, telefono, linkedin, ciudad, cumple, es_ancla_equipo, nombre_equipo, activo, creado_en FROM usuarios ORDER BY id'
+    'SELECT id, nombre, cargo, area, perfil_key, supervisor_id, email, cedula, telefono, linkedin, ciudad, cumple, tipo_sangre, alergias, condicion_medica, emerg_nombre, emerg_telefono, es_ancla_equipo, nombre_equipo, activo, creado_en FROM usuarios ORDER BY id'
   );
   return rows as Omit<Usuario, 'password_hash'>[];
 }

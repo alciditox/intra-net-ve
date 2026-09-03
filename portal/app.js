@@ -824,7 +824,8 @@
       { id: 'admincom', t: 'Comunicaciones' },
       { id: 'admininducciones', t: 'Inducciones' },
       { id: 'admindocs', t: 'Biblioteca' },
-      { id: 'admincultura', t: 'Cultura organizacional' }
+      { id: 'admincultura', t: 'Cultura organizacional' },
+      { id: 'adminemergencias', t: 'Emergencias' }
     ] },
     { id: 'metas', g: 'personal', t: 'Metas', roles: ['admin', 'gerente'], ico: '<circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1"></circle>', sub: [
       { id: 'metas2026', t: 'Metas 2026' },
@@ -1171,10 +1172,10 @@
     $$('#sbNav a').forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-go') === id); });
     var item = null;
     NAV.forEach(function (n) { if (n.id === id) item = n; if (n.sub) n.sub.forEach(function (c) { if (c.id === id) item = c; }); });
-    $('#pageTitle').textContent = item ? (id === 'adminfrec' || id === 'adminsomos' || id === 'adminenc' || id === 'admincom' || id === 'admininducciones' || id === 'admindocs' || id === 'admincultura' ? 'Administración · ' + item.t : (item.t === 'Metas 2026' || item.t === 'Visión' || item.t === 'Histórico' ? 'Metas · ' + item.t : ((id === 'afpanel' || id === 'afactivos' || id === 'aftech' || id === 'afalmacen' || id === 'afmercadeo' || id === 'afprocura') ? 'Activos y procura · ' + item.t : ((id === 'ventasfv' || id === 'ventasbancos') ? 'Ventas · ' + item.t : ((id === 'sol_tec' || id === 'sol_th' || id === 'sol_procura' || id === 'sol_servicios' || id === 'sol_nomina') ? 'Gestión solicitudes · ' + item.t : navLabel(item)))))) : '';
+    $('#pageTitle').textContent = item ? (id === 'adminfrec' || id === 'adminsomos' || id === 'adminenc' || id === 'admincom' || id === 'admininducciones' || id === 'admindocs' || id === 'admincultura' || id === 'adminemergencias' ? 'Administración · ' + item.t : (item.t === 'Metas 2026' || item.t === 'Visión' || item.t === 'Histórico' ? 'Metas · ' + item.t : ((id === 'afpanel' || id === 'afactivos' || id === 'aftech' || id === 'afalmacen' || id === 'afmercadeo' || id === 'afprocura') ? 'Activos y procura · ' + item.t : ((id === 'ventasfv' || id === 'ventasbancos') ? 'Ventas · ' + item.t : ((id === 'sol_tec' || id === 'sol_th' || id === 'sol_procura' || id === 'sol_servicios' || id === 'sol_nomina') ? 'Gestión solicitudes · ' + item.t : navLabel(item)))))) : '';
     var R = {
       inicio: rInicio,
-      adminmenu: rAdminFrec, adminfrec: rAdminFrec, adminsomos: rAdminSomos, adminenc: rEncuestas, admincom: rAdminCom, admininducciones: rAdminInducciones, admindocs: rAdminDocs, admincultura: rAdminCultura,
+      adminmenu: rAdminFrec, adminfrec: rAdminFrec, adminsomos: rAdminSomos, adminenc: rEncuestas, admincom: rAdminCom, admininducciones: rAdminInducciones, admindocs: rAdminDocs, admincultura: rAdminCultura, adminemergencias: rAdminEmergencias,
       metas: rMetas, metas2026: rMetas, metasvision: rMetas, metashist: rMetas,
       somos: rSomos, cultura: rCultura, docs: rDocs,
       solicitudes: rSolicitudes,
@@ -1255,7 +1256,7 @@
       editado: !!(o.desc || o.imp || o.fly || (o.pr && o.pr.length))
     };
   }
-  function canEditCargo() { return me && (me.role === 'admin' || me.role === 'rrhh' || isSysManager(me)); }
+  function canEditCargo() { return me && (me.role === 'admin' || me.role === 'rrhh'); }
   function roleInfoHtml(u, editable) {
     var r = roleInfo(u);
     function sec(t, b) { return '<div style="margin-top:10px"><div style="font-size:11.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted2)">' + t + '</div><div style="font-size:13.5px;color:#33415C;line-height:1.55;margin-top:3px">' + b + '</div></div>'; }
@@ -8054,6 +8055,229 @@
     }
   }
 
+  /* ---------- ADMINISTRACIÓN · EMERGENCIAS ---------- */
+  var adminEmergTab = 'riesgo';
+  function emergenciasDefaults() {
+    return {
+      riesgo_telefono: '911',
+      riesgo_texto: 'Llama de inmediato a los servicios de emergencia',
+      pasos: [
+        'Mantén la calma y evalúa si hay riesgo de vida. Si lo hay, llama primero a emergencias (911).',
+        'Comunícate con la línea 24/7 de la aseguradora e indica el número de póliza para activar la carta aval.',
+        'Acude a una clínica de la red; presenta tu cédula y el número de póliza.',
+        'Avisa a Capital Humano lo antes posible para acompañar el caso y la carga familiar.',
+        'Conserva informes y facturas para cualquier reembolso o seguimiento.'
+      ],
+      aseguradora_empresa: 'Seguros Caracas · Grupo VEPAGOS (Consultora Alca, C.A.)',
+      aseguradora_producto: 'Póliza colectiva de HCM (Hospitalización, Cirugía y Maternidad)',
+      aseguradora_poliza: 'HCM-ALCA-2026-00417',
+      aseguradora_suma: '$20.000 por persona / año',
+      cobertura_items: [
+        'Cobertura de emergencias, hospitalización, cirugía y maternidad.',
+        'Atención en clínicas de la red nacional sin desembolso (carta aval).',
+        'Emergencias cubiertas 24/7, incluye accidentes laborales.',
+        'Titular + carga familiar directa registrada en Capital Humano.',
+        'Baremo de emergencia activable las 24 horas por la línea de la aseguradora.'
+      ],
+      no_cubre_items: [
+        'Tratamientos estéticos no reconstructivos',
+        'Enfermedades preexistentes no declaradas',
+        'Gastos sin autorización previa fuera de emergencia'
+      ],
+      contactos: [
+        { nombre: 'Emergencias nacionales', dato: '911', sub: 'Policía · Bomberos · Ambulancia' },
+        { nombre: 'Línea 24/7 aseguradora — Seguros Caracas', dato: '0500-2255000', sub: 'Activación de carta aval · indica tu N° de póliza' },
+        { nombre: 'Ambulancia privada', dato: '0212-5555911', sub: 'Traslados de emergencia red HCM' }
+      ]
+    };
+  }
+
+  function getEmergenciasConfig() {
+    if (!db.emergenciasInfo) db.emergenciasInfo = emergenciasDefaults();
+    var d = emergenciasDefaults();
+    Object.keys(d).forEach(function (k) { if (db.emergenciasInfo[k] === undefined) db.emergenciasInfo[k] = d[k]; });
+    return db.emergenciasInfo;
+  }
+
+  function rAdminEmergencias() {
+    resetContent();
+    var cfg = getEmergenciasConfig();
+    var TABS = [
+      ['riesgo', 'Línea 911 y Pasos'],
+      ['poliza', 'Póliza de Salud (HCM)'],
+      ['contactos', 'Contactos de emergencia']
+    ];
+    var html = '<div class="card" style="margin-bottom:14px">' +
+      '<div class="toolrow" style="margin:0"><div><h3 style="margin:0">Emergencias Institucional</h3><div class="note" style="margin:4px 0 0;max-width:680px">Gestiona la información de emergencias, la póliza colectiva HCM y los contactos clave. Toda la información guardada se sincroniza en vivo con el botón de Emergencias del portal.</div></div></div>' +
+      '</div>';
+    html += '<div class="doccat" style="margin-bottom:14px">' + TABS.map(function (t) { return '<button data-emergtab="' + t[0] + '" class="' + (adminEmergTab === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</div>';
+    html += '<div id="adminEmergBody"></div>';
+    $('#content').innerHTML = html;
+    $$('#content [data-emergtab]').forEach(function (b) { b.addEventListener('click', function () { adminEmergTab = b.getAttribute('data-emergtab'); rAdminEmergencias(); }); });
+    renderAdminEmergTab(cfg);
+
+    if (window.SV_API && typeof SV_API.getEmergencias === 'function') {
+      SV_API.getEmergencias().then(function (res) {
+        if (res && res.aseguradora_empresa) {
+          var oldStr = JSON.stringify(db.emergenciasInfo || {});
+          var newStr = JSON.stringify(res);
+          if (oldStr !== newStr) {
+            db.emergenciasInfo = res;
+            saveDB(db);
+            if (current === 'adminemergencias') renderAdminEmergTab(db.emergenciasInfo);
+          }
+        }
+      }).catch(function (e) { console.warn('Sync emergencias admin:', e); });
+    }
+  }
+
+  async function saveEmergenciasDB(cfg, successMsg) {
+    db.emergenciasInfo = cfg;
+    saveDB(db);
+    if (window.SV_API && typeof SV_API.updateEmergencias === 'function') {
+      try {
+        await SV_API.updateEmergencias(cfg);
+        toast(successMsg || 'Información de emergencias guardada en base de datos.');
+      } catch (err) {
+        console.error('Error guardando emergencias en DB:', err);
+        toast('Guardado localmente. Error al sincronizar con MySQL.');
+      }
+    } else {
+      toast(successMsg || 'Información de emergencias guardada.');
+    }
+    rAdminEmergencias();
+  }
+
+  function renderAdminEmergTab(cfg) {
+    var body = $('#adminEmergBody');
+    if (!body) return;
+
+    if (adminEmergTab === 'riesgo') {
+      var pasos = cfg.pasos || [];
+      body.innerHTML = '<div class="card"><h3 style="margin:0 0 12px">Línea de Riesgo de Vida y Pasos a Seguir</h3>' +
+        '<div class="grid g2">' +
+          '<div class="fld"><label>Número de teléfono de riesgo *</label><input id="aemTel" type="text" value="' + esc(cfg.riesgo_telefono || '911') + '"></div>' +
+          '<div class="fld"><label>Texto de instrucción de riesgo *</label><input id="aemTxt" type="text" value="' + esc(cfg.riesgo_texto || '') + '"></div>' +
+        '</div>' +
+        '<div class="fld" style="margin-top:14px"><label>Pasos a seguir ante una emergencia (uno por línea) *</label><textarea id="aemPasos" style="min-height:140px;font-size:13.5px;line-height:1.6">' + esc(pasos.join('\n')) + '</textarea></div>' +
+        '<div class="mod-actions" style="justify-content:flex-start;margin-top:16px"><button class="btn-g" id="aemRiesgoOk">Guardar en Base de Datos</button></div></div>';
+
+      $('#aemRiesgoOk').addEventListener('click', function () {
+        var tel = $('#aemTel').value.trim();
+        var txt = $('#aemTxt').value.trim();
+        var pLines = $('#aemPasos').value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+        if (!tel || !txt || !pLines.length) { toast('Por favor completa todos los campos requeridos.'); return; }
+        cfg.riesgo_telefono = tel;
+        cfg.riesgo_texto = txt;
+        cfg.pasos = pLines;
+        saveEmergenciasDB(cfg, 'Línea de riesgo y pasos guardados en MySQL.');
+      });
+
+    } else if (adminEmergTab === 'poliza') {
+      var cob = cfg.cobertura_items || [];
+      var noCob = cfg.no_cubre_items || [];
+      body.innerHTML = '<div class="card"><h3 style="margin:0 0 12px">Póliza Colectiva de Salud (HCM)</h3>' +
+        '<div class="grid g2">' +
+          '<div class="fld"><label>Empresa aseguradora *</label><input id="aemEmp" type="text" value="' + esc(cfg.aseguradora_empresa || '') + '"></div>' +
+          '<div class="fld"><label>Producto / Tipo de póliza *</label><input id="aemProd" type="text" value="' + esc(cfg.aseguradora_producto || '') + '"></div>' +
+          '<div class="fld"><label>N° de póliza institucional *</label><input id="aemPol" type="text" value="' + esc(cfg.aseguradora_poliza || '') + '"></div>' +
+          '<div class="fld"><label>Suma asegurada *</label><input id="aemSuma" type="text" value="' + esc(cfg.aseguradora_suma || '') + '"></div>' +
+        '</div>' +
+        '<div class="grid g2" style="margin-top:14px">' +
+          '<div class="fld"><label>Qué cubre y características (una por línea) *</label><textarea id="aemCob" style="min-height:130px;font-size:13.5px;line-height:1.6">' + esc(cob.join('\n')) + '</textarea></div>' +
+          '<div class="fld"><label>Qué no cubre / Exclusiones (una por línea) *</label><textarea id="aemNoCob" style="min-height:130px;font-size:13.5px;line-height:1.6">' + esc(noCob.join('\n')) + '</textarea></div>' +
+        '</div>' +
+        '<div class="mod-actions" style="justify-content:flex-start;margin-top:16px"><button class="btn-g" id="aemPolOk">Guardar en Base de Datos</button></div></div>';
+
+      $('#aemPolOk').addEventListener('click', function () {
+        var emp = $('#aemEmp').value.trim();
+        var prod = $('#aemProd').value.trim();
+        var pol = $('#aemPol').value.trim();
+        var suma = $('#aemSuma').value.trim();
+        var cLines = $('#aemCob').value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+        var ncLines = $('#aemNoCob').value.split('\n').map(function (s) { return s.trim(); }).filter(Boolean);
+
+        if (!emp || !prod || !pol || !suma) { toast('Completa los datos de la aseguradora.'); return; }
+        cfg.aseguradora_empresa = emp;
+        cfg.aseguradora_producto = prod;
+        cfg.aseguradora_poliza = pol;
+        cfg.aseguradora_suma = suma;
+        cfg.cobertura_items = cLines;
+        cfg.no_cubre_items = ncLines;
+        saveEmergenciasDB(cfg, 'Póliza de HCM actualizada en base de datos.');
+      });
+
+    } else if (adminEmergTab === 'contactos') {
+      var contactos = cfg.contactos || [];
+      body.innerHTML = '<div class="card">' +
+        '<div class="toolrow" style="margin:0 0 14px"><div><h3 style="margin:0">Contactos clave de emergencia</h3><div class="note" style="margin:4px 0 0">Teléfonos de asistencia 24/7, ambulancias y líneas institucionales para emergencias.</div></div>' +
+        '<span class="sp"></span><button class="btn-g" id="aemContAdd"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>+ Agregar contacto</button></div>' +
+        '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Nombre / Servicio</th><th>Teléfono / Dato</th><th>Subtexto / Detalle</th><th></th></tr></thead><tbody>' +
+        (contactos.length ? contactos.map(function (c, idx) {
+          return '<tr>' +
+            '<td><b style="color:var(--navy)">' + esc(c.nombre || '') + '</b></td>' +
+            '<td><span style="font-weight:700;color:#FF7A1A">' + esc(c.dato || '') + '</span></td>' +
+            '<td style="color:var(--muted);font-size:13px">' + esc(c.sub || '') + '</td>' +
+            '<td style="white-space:nowrap;text-align:right">' +
+              '<button class="btn-s" data-contedit="' + idx + '" style="font-size:12px;padding:4px 9px;margin-right:4px">Editar</button>' +
+              '<button class="btn-s" data-contdel="' + idx + '" style="font-size:12px;padding:4px 9px;color:#E0447B;border-color:#E0447B">Eliminar</button>' +
+            '</td></tr>';
+        }).join('') : '<tr><td colspan="4"><div class="empty">No hay contactos registrados.</div></td></tr>') +
+        '</tbody></table></div></div>';
+
+      function modalContacto(item, idx) {
+        var isEdit = item != null;
+        var nom = isEdit ? item.nombre : '';
+        var dat = isEdit ? item.dato : '';
+        var sub = isEdit ? item.sub : '';
+
+        modal('<button class="mod-x">✕</button><h3>' + (isEdit ? 'Editar contacto de emergencia' : 'Nuevo contacto de emergencia') + '</h3>' +
+          '<div class="fld"><label>Nombre del servicio o contacto *</label><input id="mcNom" type="text" value="' + esc(nom) + '" placeholder="Ej: Ambulancia privada / Línea 24/7 aseguradora"></div>' +
+          '<div class="fld"><label>Teléfono o dato de contacto *</label><input id="mcDat" type="text" value="' + esc(dat) + '" placeholder="Ej: 0500-2255000 / 911"></div>' +
+          '<div class="fld"><label>Subtexto o detalle de atención</label><input id="mcSub" type="text" value="' + esc(sub) + '" placeholder="Ej: Activación de carta aval · indica tu N° de póliza"></div>' +
+          '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="mcOk">Guardar en Base de Datos</button></div>');
+
+        $('#mcOk').addEventListener('click', function () {
+          var n = $('#mcNom').value.trim();
+          var d = $('#mcDat').value.trim();
+          var s = $('#mcSub').value.trim();
+          if (!n || !d) { toast('Completa el nombre y el teléfono del contacto.'); return; }
+          var cObj = { nombre: n, dato: d, sub: s };
+          if (isEdit) {
+            cfg.contactos[idx] = cObj;
+          } else {
+            cfg.contactos = cfg.contactos || [];
+            cfg.contactos.push(cObj);
+          }
+          closeModal();
+          saveEmergenciasDB(cfg, isEdit ? 'Contacto de emergencia actualizado.' : 'Contacto agregado a la base de datos.');
+        });
+      }
+
+      $('#aemContAdd').addEventListener('click', function () { modalContacto(null, null); });
+      $$('#adminEmergBody [data-contedit]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var i = +btn.getAttribute('data-contedit');
+          modalContacto(contactos[i], i);
+        });
+      });
+      $$('#adminEmergBody [data-contdel]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var i = +btn.getAttribute('data-contdel');
+          var c = contactos[i];
+          modal('<button class="mod-x">✕</button><h3>Eliminar contacto</h3>' +
+            '<p style="color:#33415C;font-size:14px;margin:8px 0 16px">¿Seguro que deseas eliminar <b>' + esc(c.nombre) + '</b>?</p>' +
+            '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-s" id="aemDelContOk" style="color:#fff;background:#E0447B;border-color:#E0447B">Sí, eliminar</button></div>');
+          $('#aemDelContOk').addEventListener('click', function () {
+            cfg.contactos.splice(i, 1);
+            closeModal();
+            saveEmergenciasDB(cfg, 'Contacto eliminado de la base de datos.');
+          });
+        });
+      });
+    }
+  }
+
   /* ---------- ADMINISTRACIÓN · ENCUESTAS ---------- */
   function rAdminEnc() {
     resetContent();
@@ -8662,23 +8886,23 @@
   }
 
   function emergenciasModal() {
-    var emp = (window.SV_SEED && SV_SEED.EMERGENCIA) || {};
+    var cfg = getEmergenciasConfig();
     var poliza = {
-      empresa: 'Seguros Caracas · Grupo VEPAGOS (Consultora Alca, C.A.)',
-      producto: 'Póliza colectiva de HCM (Hospitalización, Cirugía y Maternidad)',
-      numero: 'HCM-ALCA-2026-00417',
-      cobertura: '$20.000 por persona / año',
-      caracteristicas: [
+      empresa: cfg.aseguradora_empresa || 'Seguros Caracas · Grupo VEPAGOS (Consultora Alca, C.A.)',
+      producto: cfg.aseguradora_producto || 'Póliza colectiva de HCM (Hospitalización, Cirugía y Maternidad)',
+      numero: cfg.aseguradora_poliza || 'HCM-ALCA-2026-00417',
+      cobertura: cfg.aseguradora_suma || '$20.000 por persona / año',
+      caracteristicas: cfg.cobertura_items || [
         'Cobertura de emergencias, hospitalización, cirugía y maternidad.',
         'Atención en clínicas de la red nacional sin desembolso (carta aval).',
         'Emergencias cubiertas 24/7, incluye accidentes laborales.',
         'Titular + carga familiar directa registrada en Capital Humano.',
         'Baremo de emergencia activable las 24 horas por la línea de la aseguradora.'
       ],
-      noCubre: ['Tratamientos estéticos no reconstructivos', 'Enfermedades preexistentes no declaradas', 'Gastos sin autorización previa fuera de emergencia']
+      noCubre: cfg.no_cubre_items || ['Tratamientos estéticos no reconstructivos', 'Enfermedades preexistentes no declaradas', 'Gastos sin autorización previa fuera de emergencia']
     };
     var mePers = me;
-    var pasos = [
+    var pasos = cfg.pasos && cfg.pasos.length ? cfg.pasos : [
       'Mantén la calma y evalúa si hay riesgo de vida. Si lo hay, llama primero a emergencias (911).',
       'Comunícate con la línea 24/7 de la aseguradora e indica el número de póliza para activar la carta aval.',
       'Acude a una clínica de la red; presenta tu cédula y el número de póliza.',
@@ -8688,10 +8912,18 @@
     function sec(t, ico, col, bg) { return '<div style="display:flex;align-items:center;gap:9px;margin:16px 0 8px"><span style="width:30px;height:30px;border-radius:9px;background:' + bg + ';color:' + col + ';display:flex;align-items:center;justify-content:center;flex:0 0 auto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ico + '</svg></span><h3 style="margin:0;font-size:15px">' + t + '</h3></div>'; }
     function contacto(nombre, dato, sub) { return '<div style="display:flex;align-items:center;gap:11px;padding:9px 0;border-bottom:1px solid #F2F6FB"><div style="flex:1;min-width:0"><div style="font-weight:700;color:var(--navy);font-size:13.5px">' + esc(nombre) + '</div>' + (sub ? '<div style="font-size:12px;color:var(--muted2)">' + esc(sub) + '</div>' : '') + '</div><a href="tel:' + esc(String(dato).replace(/[^0-9+]/g, '')) + '" style="font-weight:800;color:#FF7A1A;font-size:14px;white-space:nowrap">' + esc(dato) + '</a></div>'; }
     var rrhh = db.users.find(function (u) { return u.role === 'rrhh' && u.activo; });
+    var rTel = cfg.riesgo_telefono || '911';
+    var rTxt = cfg.riesgo_texto || 'Llama de inmediato a los servicios de emergencia';
+    var contactosList = (cfg.contactos && cfg.contactos.length) ? cfg.contactos : [
+      { nombre: 'Emergencias nacionales', dato: '911', sub: 'Policía · Bomberos · Ambulancia' },
+      { nombre: 'Línea 24/7 aseguradora — Seguros Caracas', dato: '0500-2255000', sub: 'Activación de carta aval · indica tu N° de póliza' },
+      { nombre: 'Ambulancia privada', dato: '0212-5555911', sub: 'Traslados de emergencia red HCM' }
+    ];
+
     var body = '<button class="mod-x">✕</button>' +
       '<div style="display:flex;align-items:center;gap:11px;margin-bottom:4px"><span style="width:38px;height:38px;border-radius:11px;background:#FFE9D6;color:#FF7A1A;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><path d="M12 9v4M12 17h.01"></path></svg></span><h3 style="margin:0">Emergencias</h3></div>' +
       '<p style="color:var(--muted);font-size:14px;margin:0 0 6px">Qué hacer ante una emergencia, tu cobertura de salud y los contactos clave.</p>' +
-      '<div style="background:#FFF6EE;border:1px solid #FCD9B6;border-radius:12px;padding:12px 14px;margin:10px 0"><div style="font-size:12px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:#C15A00;margin-bottom:2px">Emergencia con riesgo de vida</div><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><span style="color:#33415C;font-size:13.5px">Llama de inmediato a los servicios de emergencia</span><a href="tel:911" style="background:#E5484D;color:#fff;font-weight:800;border-radius:10px;padding:8px 16px;font-size:15px">911</a></div></div>' +
+      '<div style="background:#FFF6EE;border:1px solid #FCD9B6;border-radius:12px;padding:12px 14px;margin:10px 0"><div style="font-size:12px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:#C15A00;margin-bottom:2px">Emergencia con riesgo de vida</div><div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><span style="color:#33415C;font-size:13.5px">' + esc(rTxt) + '</span><a href="tel:' + esc(String(rTel).replace(/[^0-9+]/g, '')) + '" style="background:#E5484D;color:#fff;font-weight:800;border-radius:10px;padding:8px 16px;font-size:15px">' + esc(rTel) + '</a></div></div>' +
       sec('Qué hacer paso a paso', '<path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>', '#2A6FDB', '#EAF1FD') +
       '<ol style="margin:0;padding-left:20px;color:#33415C;font-size:13.8px;line-height:1.7">' + pasos.map(function (p) { return '<li style="margin-bottom:4px">' + esc(p) + '</li>'; }).join('') + '</ol>' +
       sec('Tu cobertura de salud (HCM)', '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path>', '#1F8A5B', '#E7F6EE') +
@@ -8706,9 +8938,7 @@
       '<div style="font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--muted2);margin:12px 0 6px">Qué no cubre</div>' +
       '<div style="display:flex;flex-direction:column;gap:5px">' + poliza.noCubre.map(function (c) { return '<div style="display:flex;gap:9px;align-items:flex-start;font-size:13.5px;color:#33415C"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#B23A6E" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;margin-top:2px"><path d="M18 6 6 18M6 6l12 12"></path></svg>' + esc(c) + '</div>'; }).join('') + '</div>' +
       sec('Contactos de emergencia', '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"></path>', '#8A5CD1', '#F1EAFB') +
-      contacto('Emergencias nacionales', '911', 'Policía · Bomberos · Ambulancia') +
-      contacto('Línea 24/7 aseguradora — Seguros Caracas', '0500-2255000', 'Activación de carta aval · indica tu N° de póliza') +
-      contacto('Ambulancia privada', '0212-5555911', 'Traslados de emergencia red HCM') +
+      contactosList.map(function (c) { return contacto(c.nombre, c.dato, c.sub); }).join('') +
       (rrhh ? contacto('Capital Humano — ' + rrhh.nombre, rrhh.telefono || '0212-0000000', 'Acompañamiento del caso') : '') +
       (mePers.emergNombre || mePers.emergTelefono ? contacto('Tu contacto personal — ' + (mePers.emergNombre || '—'), mePers.emergTelefono || '—', 'Registrado en tu perfil') : '<div style="font-size:12.5px;color:var(--muted2);margin-top:8px">Tip: registra tu contacto de emergencia personal en tu perfil para que aparezca aquí.</div>') +
       '<div class="mod-actions"><button class="btn-g mod-x" style="background:#FF7A1A">Cerrar</button></div>';
@@ -8757,7 +8987,7 @@
     var cargoCard = '<div class="card" style="max-width:640px;margin-top:16px"><h3>Tu cargo</h3>' +
       '<div style="font-size:20px;font-weight:800;color:var(--navy);letter-spacing:-.3px;margin-top:2px">' + esc(me.cargo || 'Sin cargo asignado') + '</div>' +
       (me.ingreso ? '<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:6px;font-size:13.5px"><span style="color:var(--muted)">Ingreso: <b style="color:var(--navy)">' + fechaCorta(me.ingreso) + '</b></span><span style="color:var(--muted)">Antigüedad: <b style="color:var(--navy)">' + antiguedadTxt(me) + '</b></span></div>' : '') +
-      roleInfoHtml(me, true) +
+      roleInfoHtml(me, canEditCargo()) +
       '<div style="border-top:1px solid #EEF3F9;margin-top:14px;padding-top:14px">' +
         '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">' +
           '<div><div style="font-size:11.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted2)">Horario de trabajo</div>' +
@@ -8765,11 +8995,11 @@
           '<div class="note" style="margin-top:2px">' + (horarioDe(me).custom ? 'Horario personalizado' : 'Horario estándar de oficina') + '</div></div>' +
           '<div style="display:flex;gap:8px;flex-wrap:wrap">' +
           '<button class="btn-s" id="pfHorPol"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6M12 18v-6M9 15l3 3 3-3"></path></svg>Políticas de horario</button>' +
-          (adminEsViewer() ? '<button class="btn-s" id="pfHorEdit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>Modificar horario</button>' : '') +
+          (canEditCargo() ? '<button class="btn-s" id="pfHorEdit"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"></path></svg>Modificar horario</button>' : '') +
           '</div>' +
         '</div>' +
         (permisosActivos(me).length ? '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">' + permisosActivos(me).map(function (p) { return '<span class="chip" style="background:#F1EAFB;color:#8A5CD1">' + esc(permisoTxt(p)) + '</span>'; }).join('') + '</div>' : '') +
-        (!adminEsViewer() ? '<div class="note" style="margin-top:8px">Solo el administrador puede modificar tu horario.</div>' : '') +
+        (!canEditCargo() ? '<div class="note" style="margin-top:8px">Solo el Administrador y Talento Humano pueden modificar tu horario y ficha del cargo.</div>' : '') +
       '</div>' +
     '</div>';
     var sup = me.managerId ? byId(me.managerId) : null;
@@ -8811,18 +9041,29 @@
       cAdmin.map(chkRow).join('') +
       '</div>';
 
+    var curTS = me.tipoSangre || me.tipo_sangre || '';
+    var curAlerg = me.alergias || '';
+    var curCondMed = me.condicionMedica || me.condicion_medica || '';
+
     var datosCard = '<div class="card" style="max-width:640px;margin-top:16px"><h3>Datos de contacto</h3>' +
       '<div class="note" style="margin:2px 0 10px">Usa la misma foto de tu LinkedIn para mantener coherencia.</div>' +
       '<div class="fld"><label>Correo</label><input id="pfE" type="email" value="' + esc(me.email) + '" disabled></div>' +
       '<div class="fld"><label>Teléfono</label><input id="pfT" type="tel" value="' + esc(me.telefono) + '"' + dis + '></div>' +
       '<div class="fld"><label>LinkedIn</label><input id="pfL" type="url" value="' + esc(me.linkedin) + '"' + dis + '></div>' +
       '<div class="fld"><label>Ciudad</label><input id="pfC" type="text" value="' + esc(me.ciudad) + '"' + dis + '></div>' +
-      '<div class="fld"><label>Cumpleaños</label>' + (locked
-        ? '<input type="text" value="' + esc(me.cumple ? cumpleTxt(me.cumple) : 'No indicado') + '" disabled>'
-        : '<input id="pfB" type="date" value="' + (me.cumple ? '2000-' + me.cumple : '') + '">') + '</div>' +
+      '<div class="fld"><label>Cumpleaños</label><input type="text" value="' + esc(me.cumple ? cumpleTxt(me.cumple) : 'No indicado') + '" disabled title="Para actualizar tu fecha de cumpleaños, contacta a Talento Humano"></div>' +
+      '<div class="fld"><label>Tipo de sangre (opcional)</label>' +
+        '<select id="pfTipoSangre"' + dis + ' style="width:100%;border:1.5px solid #D9E2EF;border-radius:10px;padding:9px 12px;font-family:inherit;font-size:14px;background:#fff">' +
+          '<option value="">Selecciona tipo de sangre (opcional)</option>' +
+          ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'].map(function (ts) {
+            return '<option value="' + ts + '"' + (curTS === ts ? ' selected' : '') + '>' + ts + '</option>';
+          }).join('') +
+        '</select></div>' +
+      '<div class="fld"><label>Alérgico a (opcional)</label><input id="pfAlergias" type="text" value="' + esc(curAlerg) + '"' + dis + ' placeholder="Ej: Penicilina, mariscos, polen (o Ninguna)"></div>' +
+      '<div class="fld"><label>Condición médica (opcional)</label><input id="pfCondMedica" type="text" value="' + esc(curCondMed) + '"' + dis + ' placeholder="Ej: Asma, hipertensión, diabetes (o Ninguna)"></div>' +
       '<div style="margin:14px 0 8px;font-size:11.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted2)">Contacto de emergencia</div>' +
-      '<div class="fld"><label>Persona de contacto</label><input id="pfEmN" type="text" value="' + esc(me.emergNombre || '') + '"' + dis + ' placeholder="Nombre y parentesco (ej: Ana Pérez — esposa)"></div>' +
-      '<div class="fld"><label>Número de emergencia</label><input id="pfEmT" type="tel" value="' + esc(me.emergTelefono || '') + '"' + dis + ' placeholder="0412-0000000"></div>' +
+      '<div class="fld"><label>Persona de contacto</label><input id="pfEmN" type="text" value="' + esc(me.emergNombre || me.emerg_nombre || '') + '"' + dis + ' placeholder="Nombre y parentesco (ej: Ana Pérez — esposa)"></div>' +
+      '<div class="fld"><label>Número de emergencia</label><input id="pfEmT" type="tel" value="' + esc(me.emergTelefono || me.emerg_telefono || '') + '"' + dis + ' placeholder="0412-0000000"></div>' +
       (locked
         ? '<div class="note" style="margin-top:2px">Tus datos están protegidos. Para modificarlos, envía una solicitud al administrador.</div><div class="mod-actions" style="justify-content:flex-start"><button class="btn-s" id="pfReq">Solicitar cambio de datos</button></div>'
         : '<div class="note" style="margin-top:2px">Al completar y guardar tus datos quedarán protegidos. Después, cualquier cambio requiere una solicitud de modificación.</div><div class="mod-actions" style="justify-content:flex-start"><button class="btn-g" id="pfOk">Guardar cambios</button></div>') + '</div>';
@@ -8891,10 +9132,18 @@
     var supR = me.managerId ? byId(me.managerId) : null;
     function pfHead(ico, bg, col, t, tab, action) { return '<div class="pf-ch"><span class="ic" style="background:' + bg + ';color:' + col + '"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ico + '</svg></span><h3>' + t + '</h3><span class="sp"></span>' + (action ? '<button class="btn-s" data-gototab="' + tab + '" style="font-size:12px;padding:6px 12px">' + action + '</button>' : '') + '</div>'; }
     function pfLine(k, v) { return '<div class="pf-line"><span class="k">' + k + '</span><span class="v">' + v + '</span></div>'; }
+    var tsVal = me.tipoSangre || me.tipo_sangre;
+    var alVal = me.alergias;
+    var cmVal = me.condicionMedica || me.condicion_medica;
+    var emergVal = (me.emergNombre || me.emerg_nombre) ? esc(me.emergNombre || me.emerg_nombre) + ((me.emergTelefono || me.emerg_telefono) ? ' · ' + esc(me.emergTelefono || me.emerg_telefono) : '') : '<span style="color:var(--muted2);font-weight:500">Sin registrar</span>';
+
     var resumenDatos = '<div class="pf-card">' + pfHead('<rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-10 6L2 7"></path>', '#EAF1FD', '#2A6FDB', 'Datos de contacto', 'datos', 'Editar') +
       pfLine('Correo', esc(me.email)) + pfLine('Teléfono', esc(me.telefono || '—')) + pfLine('Ciudad', esc(me.ciudad || '—')) +
       pfLine('Cumpleaños', me.cumple ? esc(cumpleTxt(me.cumple)) : '—') +
-      pfLine('Emergencia', me.emergNombre ? esc(me.emergNombre) + (me.emergTelefono ? ' · ' + esc(me.emergTelefono) : '') : '<span style="color:var(--muted2);font-weight:500">Sin registrar</span>') +
+      (tsVal ? pfLine('Tipo de sangre', esc(tsVal)) : '') +
+      (alVal ? pfLine('Alérgico a', esc(alVal)) : '') +
+      (cmVal ? pfLine('Condición médica', esc(cmVal)) : '') +
+      pfLine('Emergencia', emergVal) +
     '</div>';
     var resumenCargo = '<div class="pf-card">' + pfHead('<rect x="2" y="7" width="20" height="14" rx="2"></rect><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>', '#E7F6EE', '#1F8A5B', 'Cargo y supervisor', 'cargo', 'Ver') +
       '<div style="font-size:18px;font-weight:800;color:var(--navy);letter-spacing:-.3px">' + esc(me.cargo || 'Sin cargo asignado') + '</div>' +
@@ -8980,18 +9229,41 @@
     var gf = $('#content [data-gofoto]'); if (gf) gf.addEventListener('click', function () { pickPhoto(function (d) { me.foto = d; logHist(me, 'Foto de perfil actualizada'); saveDB(db); renderShell(); rPerfil(); toast('Foto de perfil actualizada.'); }); });
     var ok = $('#pfOk');
     if (ok) ok.addEventListener('click', function () {
-      me.telefono = $('#pfT').value.trim(); me.linkedin = $('#pfL').value.trim(); me.ciudad = $('#pfC').value.trim();
+      me.telefono = $('#pfT').value.trim();
+      me.linkedin = $('#pfL').value.trim();
+      me.ciudad = $('#pfC').value.trim();
       me.emergNombre = ($('#pfEmN') || {}).value ? $('#pfEmN').value.trim() : me.emergNombre;
       me.emergTelefono = ($('#pfEmT') || {}).value ? $('#pfEmT').value.trim() : me.emergTelefono;
-      var b = $('#pfB'); if (b && b.value) me.cumple = b.value.slice(5);
+      if ($('#pfTipoSangre')) me.tipoSangre = $('#pfTipoSangre').value;
+      if ($('#pfAlergias')) me.alergias = $('#pfAlergias').value.trim();
+      if ($('#pfCondMedica')) me.condicionMedica = $('#pfCondMedica').value.trim();
+
       logHist(me, 'Actualizó sus datos personales', me.nombre);
-      if (me.role === 'admin') { saveDB(db); toast('Perfil actualizado.'); return; }
+
+      if (window.API && typeof API.updateUser === 'function') {
+        API.updateUser(me.id, {
+          telefono: me.telefono,
+          linkedin: me.linkedin,
+          ciudad: me.ciudad,
+          emerg_nombre: me.emergNombre,
+          emerg_telefono: me.emergTelefono,
+          tipo_sangre: me.tipoSangre,
+          alergias: me.alergias,
+          condicion_medica: me.condicionMedica
+        }).catch(function (e) { console.warn('Sync user profile in DB:', e); });
+      }
+
+      if (me.role === 'admin' || me.role === 'rrhh') {
+        saveDB(db); rPerfil();
+        toast('Perfil actualizado.');
+        return;
+      }
       var completo = me.telefono && me.linkedin && me.ciudad;
       if (completo) {
         me.perfilBloqueado = true; saveDB(db); rPerfil();
         toast('Datos guardados y protegidos. Para futuros cambios, solicita una modificación.');
       } else {
-        saveDB(db);
+        saveDB(db); rPerfil();
         toast('Datos guardados. Complétalos todos para protegerlos; luego los cambios requerirán solicitud.');
       }
     });

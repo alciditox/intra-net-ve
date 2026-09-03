@@ -15,6 +15,7 @@ import activosRoutes from './routes/activos.routes';
 import metasRoutes from './routes/metas.routes';
 import induccionesRoutes from './routes/inducciones.routes';
 import culturaRoutes from './routes/cultura.routes';
+import emergenciasRoutes from './routes/emergencias.routes';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -41,6 +42,7 @@ app.use('/api/activos', activosRoutes);
 app.use('/api/metas', metasRoutes);
 app.use('/api/inducciones', induccionesRoutes);
 app.use('/api/cultura', culturaRoutes);
+app.use('/api/emergencias', emergenciasRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

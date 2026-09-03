@@ -35,6 +35,11 @@ export interface Usuario {
   linkedin: string | null;
   ciudad: string | null;
   cumple: string | null;
+  tipo_sangre?: string | null;
+  alergias?: string | null;
+  condicion_medica?: string | null;
+  emerg_nombre?: string | null;
+  emerg_telefono?: string | null;
   es_ancla_equipo: boolean;
   nombre_equipo: string | null;
   activo: boolean;

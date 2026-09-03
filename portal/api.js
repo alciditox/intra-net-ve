@@ -205,6 +205,15 @@ window.SV_API = (function () {
     return await request('PUT', '/cultura', data);
   }
 
+  // ===== EMERGENCIAS =====
+  async function getEmergencias() {
+    return await request('GET', '/emergencias');
+  }
+
+  async function updateEmergencias(data) {
+    return await request('PUT', '/emergencias', data);
+  }
+
   return {
     login: login,
     logout: logout,
@@ -213,6 +222,7 @@ window.SV_API = (function () {
     getMenu: getMenu,
     getUsers: getUsers,
     getUser: getUser,
+    updateUser: function (id, data) { return request('PUT', '/users/' + id, data); },
     getPerfiles: getPerfiles,
     getPerfil: getPerfil,
     createPerfil: createPerfil,
@@ -244,6 +254,8 @@ window.SV_API = (function () {
     deleteDocumento: deleteDocumento,
     getCultura: getCultura,
     updateCultura: updateCultura,
+    getEmergencias: getEmergencias,
+    updateEmergencias: updateEmergencias,
     getToken: getToken,
     clearToken: clearToken,
   };
