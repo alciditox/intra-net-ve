@@ -823,7 +823,8 @@
       { id: 'adminenc', t: 'Encuestas' },
       { id: 'admincom', t: 'Comunicaciones' },
       { id: 'admininducciones', t: 'Inducciones' },
-      { id: 'admindocs', t: 'Biblioteca' }
+      { id: 'admindocs', t: 'Biblioteca' },
+      { id: 'admincultura', t: 'Cultura organizacional' }
     ] },
     { id: 'metas', g: 'personal', t: 'Metas', roles: ['admin', 'gerente'], ico: '<circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1"></circle>', sub: [
       { id: 'metas2026', t: 'Metas 2026' },
@@ -834,6 +835,13 @@
     { id: 'cultura', g: 'personal', t: 'Cultura organizacional', roles: 'all', ico: '<path d="M12 21s-7-4.35-7-10a4 4 0 0 1 7-2.65A4 4 0 0 1 19 11c0 5.65-7 10-7 10z"></path>' },
     { id: 'docs', g: 'personal', t: 'Biblioteca', roles: 'all', ico: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>' },
     { id: 'solicitudes', g: 'personal', t: 'Solicitudes', roles: 'all', ico: '<path d="M22 12h-6l-2 3h-4l-2-3H2"></path><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>' },
+    { id: 'gestionsol', g: 'gestion', t: 'Gestión solicitudes', roles: ['admin', 'rrhh', 'gerente'], ico: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8M16 17H8M10 9H8"></path>', sub: [
+      { id: 'sol_tec', t: 'Tecnología' },
+      { id: 'sol_th', t: 'Talento Humano' },
+      { id: 'sol_procura', t: 'Procura' },
+      { id: 'sol_servicios', t: 'Servicios Generales' },
+      { id: 'sol_nomina', t: 'Nómina' }
+    ] },
     { id: 'pendientes', g: 'personal', t: 'Notificaciones', roles: 'all', ico: '<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><path d="M12 9v4M12 17h.01"></path>' },
     { id: 'solequipo', g: 'gestion', t: 'Notificaciones del equipo', roles: ['admin', 'rrhh', 'gerente'], ico: '<path d="M9 11l3 3 8-8"></path><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"></path>' },
     { id: 'org', g: 'gestion', t: 'Organigrama', roles: ['admin', 'gerente', 'rrhh'], ico: '<rect x="9" y="2" width="6" height="5" rx="1"></rect><rect x="2" y="17" width="6" height="5" rx="1"></rect><rect x="16" y="17" width="6" height="5" rx="1"></rect><path d="M12 7v5M5 17v-3h14v3"></path>' },
@@ -935,6 +943,9 @@
     /* Si tenemos menú del API, usarlo como fuente de verdad */
     if (_apiMenuIds) {
       if (item.id === 'inicio' || item.id === 'perfil') return true;
+      if (item.sub && item.sub.length) {
+        return item.sub.some(function (c) { return _apiMenuIds.indexOf(c.id) > -1; });
+      }
       return _apiMenuIds.indexOf(item.id) > -1;
     }
     /* Fallback: lógica local (offline / sin API) */
@@ -942,6 +953,9 @@
     var menus = profileMenus(me.role);
     if (menus) {
       if (item.id === 'inicio' || item.id === 'perfil') return true;
+      if (item.sub && item.sub.length) {
+        return item.sub.some(function (c) { return menus.indexOf(c.id) > -1; });
+      }
       if (menus.indexOf(item.id) > -1) return true;
       if (PERM_NAV[item.id] && PERM_NAV[item.id].some(hasPerm)) return true;
       return false;
@@ -1099,12 +1113,25 @@
     var extIco = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto;opacity:.6"><path d="M7 17L17 7M8 7h9v9"></path></svg>';
     function linkHtml(n) {
       if (n.sub) {
-        var childActive = n.sub.some(function (c) { return c.id === current; });
+        var visibleSubs = n.sub.filter(canSee);
+        if (!visibleSubs.length) return '';
+        var childActive = visibleSubs.some(function (c) { return c.id === current; });
         var open = sbExpand[n.id] !== undefined ? sbExpand[n.id] : childActive;
         var chev = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto;opacity:.7;transition:transform .2s;transform:rotate(' + (open ? '180' : '0') + 'deg)"><path d="M6 9l6 6 6-6"></path></svg>';
-        var head = '<a href="#" data-navtoggle="' + n.id + '"' + (childActive ? ' class="on"' : '') + '>' + ico(n) + navLabel(n) + chev + '</a>';
-        var kids = open ? '<div class="sb-sub">' + n.sub.map(function (c) {
-          return '<a href="#" data-go="' + c.id + '"' + (c.id === current ? ' class="on"' : '') + '><span class="sb-dot"></span>' + esc(c.t) + '</a>';
+        var parentBadge = '';
+        if (n.id === 'gestionsol') {
+          var totalOpen = ['tecnologia', 'talento', 'procura', 'servicios', 'nomina'].reduce(function (sum, dk) { return sum + deptOpenCount(dk); }, 0);
+          if (totalOpen) parentBadge = '<span style="margin-left:auto;margin-right:6px;background:#FF9F45;color:#fff;font-size:11px;font-weight:800;min-width:20px;height:20px;padding:0 6px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center">' + totalOpen + '</span>';
+        }
+        var head = '<a href="#" data-navtoggle="' + n.id + '"' + (childActive ? ' class="on"' : '') + '>' + ico(n) + navLabel(n) + parentBadge + (parentBadge ? '' : chev) + (parentBadge ? chev : '') + '</a>';
+        var kids = open ? '<div class="sb-sub">' + visibleSubs.map(function (c) {
+          var sBadge = '';
+          if (c.id === 'sol_tec') { var n = deptOpenCount('tecnologia'); if (n) sBadge = '<span style="margin-left:auto;background:#2A6FDB;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:999px">' + n + '</span>'; }
+          if (c.id === 'sol_th') { var n = deptOpenCount('talento'); if (n) sBadge = '<span style="margin-left:auto;background:#1F8A5B;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:999px">' + n + '</span>'; }
+          if (c.id === 'sol_procura') { var n = deptOpenCount('procura'); if (n) sBadge = '<span style="margin-left:auto;background:#8A5CD1;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:999px">' + n + '</span>'; }
+          if (c.id === 'sol_servicios') { var n = deptOpenCount('servicios'); if (n) sBadge = '<span style="margin-left:auto;background:#C9772A;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:999px">' + n + '</span>'; }
+          if (c.id === 'sol_nomina') { var n = deptOpenCount('nomina'); if (n) sBadge = '<span style="margin-left:auto;background:#B23A6E;color:#fff;font-size:10px;font-weight:800;padding:1px 6px;border-radius:999px">' + n + '</span>'; }
+          return '<a href="#" data-go="' + c.id + '"' + (c.id === current ? ' class="on"' : '') + '><span class="sb-dot"></span>' + esc(c.t) + sBadge + '</a>';
         }).join('') + '</div>' : '';
         return head + kids;
       }
@@ -1122,14 +1149,6 @@
       return (showHeaders ? '<div style="font-size:10.5px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,.5);padding:16px 12px 6px">' + x.g.t + '</div>' : '') +
         x.items.map(linkHtml).join('');
     }).join('');
-    var favTools = (me.accesosFrec || []).map(function (id) { return (me.herramientas || []).find(function (t) { return t.id === id; }); }).filter(Boolean);
-    if (favTools.length) {
-      html += '<div class="sb-apps"><div class="sb-apps-t">Accesos frecuentes</div>' +
-        favTools.map(function (t) {
-          var openable = t.url && t.url !== '#';
-          return '<a href="' + esc(openable ? t.url : '#') + '"' + (openable ? ' target="_blank" rel="noopener"' : '') + ' data-ext="fav">' + toolIco(t.tipo) + esc(t.nombre) + extIco + '</a>';
-        }).join('') + '</div>';
-    }
     $('#sbNav').innerHTML = html;
   }
   $('#sbNav').addEventListener('click', function (e) {
@@ -1152,8 +1171,28 @@
     $$('#sbNav a').forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-go') === id); });
     var item = null;
     NAV.forEach(function (n) { if (n.id === id) item = n; if (n.sub) n.sub.forEach(function (c) { if (c.id === id) item = c; }); });
-    $('#pageTitle').textContent = item ? (id === 'adminfrec' || id === 'adminsomos' || id === 'adminenc' || id === 'admincom' || id === 'admininducciones' || id === 'admindocs' ? 'Administración · ' + item.t : (item.t === 'Metas 2026' || item.t === 'Visión' || item.t === 'Histórico' ? 'Metas · ' + item.t : ((id === 'afpanel' || id === 'afactivos' || id === 'aftech' || id === 'afalmacen' || id === 'afmercadeo' || id === 'afprocura') ? 'Activos y procura · ' + item.t : ((id === 'ventasfv' || id === 'ventasbancos') ? 'Ventas · ' + item.t : navLabel(item))))) : '';
-    var R = { inicio: rInicio, adminmenu: rAdminFrec, adminfrec: rAdminFrec, adminsomos: rAdminSomos, adminenc: rEncuestas, admincom: rAdminCom, admininducciones: rAdminInducciones, admindocs: rAdminDocs, metas: rMetas, metas2026: rMetas, metasvision: rMetas, metashist: rMetas, somos: rSomos, cultura: rCultura, docs: rDocs, solicitudes: rSolicitudes, solequipo: rSolEquipo, claves: rClaves, activos: rAfPanel, afpanel: rAfPanel, afactivos: rAfActivos, aftech: rAfTech, afalmacen: rAfAlmacen, afmercadeo: rAfMercadeo, afprocura: rAfProcura, ventasmenu: rEquipo, ventasfv: rEquipo, ventasbancos: rBancos, org: rOrg, directorio: rDirectorio, equipo: rEquipo, onboarding: rOnboarding, induccionequipo: rOnboarding, pendientes: rPendientes, candidatos: rCandidatos, empleados: rEmpleados, asistencia: rAsistencia, encuestas: rEncuestas, contratos: rContratos, marketing: rMarketing, perfil: rPerfil, perfiles: rPerfiles, requerimientos: rRequerimientos, accesos: rAccesos, recursos: rRecursos };
+    $('#pageTitle').textContent = item ? (id === 'adminfrec' || id === 'adminsomos' || id === 'adminenc' || id === 'admincom' || id === 'admininducciones' || id === 'admindocs' || id === 'admincultura' ? 'Administración · ' + item.t : (item.t === 'Metas 2026' || item.t === 'Visión' || item.t === 'Histórico' ? 'Metas · ' + item.t : ((id === 'afpanel' || id === 'afactivos' || id === 'aftech' || id === 'afalmacen' || id === 'afmercadeo' || id === 'afprocura') ? 'Activos y procura · ' + item.t : ((id === 'ventasfv' || id === 'ventasbancos') ? 'Ventas · ' + item.t : ((id === 'sol_tec' || id === 'sol_th' || id === 'sol_procura' || id === 'sol_servicios' || id === 'sol_nomina') ? 'Gestión solicitudes · ' + item.t : navLabel(item)))))) : '';
+    var R = {
+      inicio: rInicio,
+      adminmenu: rAdminFrec, adminfrec: rAdminFrec, adminsomos: rAdminSomos, adminenc: rEncuestas, admincom: rAdminCom, admininducciones: rAdminInducciones, admindocs: rAdminDocs, admincultura: rAdminCultura,
+      metas: rMetas, metas2026: rMetas, metasvision: rMetas, metashist: rMetas,
+      somos: rSomos, cultura: rCultura, docs: rDocs,
+      solicitudes: rSolicitudes,
+      gestionsol: function () { go('sol_tec'); },
+      sol_tec: function () { rGestionDeptSol('tecnologia'); },
+      sol_th: function () { rGestionDeptSol('talento'); },
+      sol_procura: function () { rGestionDeptSol('procura'); },
+      sol_servicios: function () { rGestionDeptSol('servicios'); },
+      sol_nomina: function () { rGestionDeptSol('nomina'); },
+      solequipo: rSolEquipo, claves: rClaves,
+      activos: rAfPanel, afpanel: rAfPanel, afactivos: rAfActivos, aftech: rAfTech, afalmacen: rAfAlmacen, afmercadeo: rAfMercadeo, afprocura: rAfProcura,
+      ventasmenu: rEquipo, ventasfv: rEquipo, ventasbancos: rBancos,
+      org: rOrg, directorio: rDirectorio, equipo: rEquipo,
+      onboarding: rOnboarding, induccionequipo: rOnboarding, pendientes: rPendientes,
+      candidatos: rCandidatos, empleados: rEmpleados, asistencia: rAsistencia,
+      encuestas: rEncuestas, contratos: rContratos, marketing: rMarketing,
+      perfil: rPerfil, perfiles: rPerfiles, requerimientos: rRequerimientos, accesos: rAccesos, recursos: rRecursos
+    };
     (R[id] || rInicio)();
     window.scrollTo(0, 0);
   }
@@ -1900,57 +1939,68 @@
     });
   }
 
-  /* ---------- CULTURA ORGANIZACIONAL ---------- */
+  /* ---------- CULTURA ORGANIZACIONAL (DATOS & VISTA) ---------- */
+  function getCulturaConfig() {
+    if (db.cultura && db.cultura.proposito_titulo) return db.cultura;
+    return {
+      proposito_titulo: '“Hacer crecer tu negocio.”',
+      proposito_desc: 'No es un eslogan pegado en la pared. Es la vara con la que medimos cada decisión: si ayuda a que un comercio venda más, vamos por ahí. Es la promesa que le hacemos al cliente y el trabajo de todos los que formamos VEPAGOS.',
+      mision: 'Facilitar el cobro electrónico a cada comercio de Venezuela con tecnología confiable y soporte cercano.',
+      vision: 'Ser el aliado de pagos preferido del comercio venezolano.',
+      valores: [
+        { titulo: 'Cliente primero', desc: 'Cada decisión se mide por cómo ayuda al comercio a vender más.', color: '#E0447B', bg: 'rgba(224,68,123,.1)', icono: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"></path>' },
+        { titulo: 'Compromiso', desc: 'Respondemos de verdad: soporte los 365 días del año y seguimiento real.', color: '#00B871', bg: 'rgba(0,184,113,.1)', icono: '<path d="M9 12l2 2 4-4"></path><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"></path>' },
+        { titulo: 'Cercanía', desc: 'Atención local y humana: en la calle, en sitio y por WhatsApp.', color: '#2AB0C4', bg: 'rgba(42,176,196,.1)', icono: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>' },
+        { titulo: 'Excelencia', desc: 'Hacemos las cosas bien desde el primer intento, sin sorpresas.', color: '#FF9F45', bg: 'rgba(255,159,69,.12)', icono: '<path d="M12 2l2.9 6.3 6.8.9-5 4.7 1.3 6.8L12 17.8 5.9 20.7l1.3-6.8-5-4.7 6.8-.9z"></path>' },
+        { titulo: 'Trabajo en equipo', desc: 'El flywheel lo giramos entre todos: ventas, operaciones, SAC y soporte.', color: '#2A6FDB', bg: 'rgba(42,111,219,.1)', icono: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path>' },
+        { titulo: 'Integridad', desc: 'Transparencia total: sin costos ocultos ni promesas que no cumplimos.', color: '#7C5CFC', bg: 'rgba(124,92,252,.1)', icono: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>' }
+      ],
+      flywheel: [
+        { paso: 'Afiliar', desc: 'Sumamos nuevos comercios a VEPAGOS.', color: '#2A6FDB' },
+        { paso: 'Activar', desc: 'Los ponemos a cobrar desde el primer día.', color: '#2AB0C4' },
+        { paso: 'Transaccionar', desc: 'Cada venta que pasa por el POS.', color: '#00B871' },
+        { paso: 'Retener', desc: 'Soporte 365 días para que se queden.', color: '#FF9F45' },
+        { paso: 'Recomendar', desc: 'Un cliente feliz nos trae al siguiente.', color: '#E0447B' }
+      ],
+      perks: [
+        { titulo: 'Creces con nosotros', desc: 'Onboarding real, formación continua y camino de desarrollo. Aquí no te dejan solo: aprendes haciendo y con acompañamiento.', color: '#00B871', bg: 'rgba(0,184,113,.1)', icono: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>' },
+        { titulo: 'Un equipo que responde', desc: 'Soporte los 365 días del año no es solo para el cliente: es la forma en que trabajamos entre nosotros. Nadie se queda atascado.', color: '#2A6FDB', bg: 'rgba(42,111,219,.1)', icono: '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"></path>' },
+        { titulo: 'Tu trabajo se nota', desc: 'Más de 80.000 comercios han cobrado gracias a este equipo. Lo que haces mueve negocios reales en toda Venezuela.', color: '#E0447B', bg: 'rgba(224,68,123,.1)', icono: '<path d="M13 2L3 14h9l-1 8 10-12h-9z"></path>' },
+        { titulo: 'Cercanía de verdad', desc: 'Somos un equipo unido, sin corbatas ni jerarquías eternas. Se trabaja con confianza, buena onda y las puertas abiertas.', color: '#7C5CFC', bg: 'rgba(124,92,252,.1)', icono: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path>' }
+      ]
+    };
+  }
+
   function rCultura() {
     resetContent();
+    var cfg = getCulturaConfig();
     var nombre = esc((me.nombre || '').split(' ')[0] || '');
-    var anios = new Date().getFullYear() - 2019;
     function kicker(t, col) { col = col || '#00E58C'; return '<div style="display:inline-flex;align-items:center;gap:8px;font-size:11.5px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:' + col + ';margin-bottom:12px"><span style="width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 0 4px ' + col + '22"></span>' + t + '</div>'; }
     function head(t) { return '<div style="font-size:clamp(19px,2.2vw,25px);font-weight:800;color:var(--navy);letter-spacing:-.5px;margin-bottom:4px">' + t + '</div>'; }
 
-    var VALORES = [
-      ['Cliente primero', 'Cada decisión se mide por cómo ayuda al comercio a vender más.', '#E0447B', 'rgba(224,68,123,.1)', '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"></path>'],
-      ['Compromiso', 'Respondemos de verdad: soporte los 365 días del año y seguimiento real.', '#00B871', 'rgba(0,184,113,.1)', '<path d="M9 12l2 2 4-4"></path><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"></path>'],
-      ['Cercanía', 'Atención local y humana: en la calle, en sitio y por WhatsApp.', '#2AB0C4', 'rgba(42,176,196,.1)', '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>'],
-      ['Excelencia', 'Hacemos las cosas bien desde el primer intento, sin sorpresas.', '#FF9F45', 'rgba(255,159,69,.12)', '<path d="M12 2l2.9 6.3 6.8.9-5 4.7 1.3 6.8L12 17.8 5.9 20.7l1.3-6.8-5-4.7 6.8-.9z"></path>'],
-      ['Trabajo en equipo', 'El flywheel lo giramos entre todos: ventas, operaciones, SAC y soporte.', '#2A6FDB', 'rgba(42,111,219,.1)', '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path>'],
-      ['Integridad', 'Transparencia total: sin costos ocultos ni promesas que no cumplimos.', '#7C5CFC', 'rgba(124,92,252,.1)', '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>']
-    ];
     function valorCard(v) {
+      var tit = esc(v.titulo || v[0] || ''), d = esc(v.desc || v[1] || ''), col = v.color || v[2] || '#00B871', bg = v.bg || v[3] || 'rgba(0,184,113,.1)', ico = v.icono || v[4] || '<path d="M9 12l2 2 4-4"></path><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"></path>';
       return '<div class="cx-val" style="background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;transition:transform .2s,box-shadow .2s,border-color .2s;cursor:default">' +
-        '<span style="display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:14px;background:' + v[3] + ';color:' + v[2] + ';margin-bottom:16px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + v[4] + '</svg></span>' +
-        '<div style="font-weight:800;color:var(--navy);font-size:16.5px;margin-bottom:5px;letter-spacing:-.2px">' + v[0] + '</div>' +
-        '<div style="font-size:13.5px;color:var(--muted);line-height:1.6">' + v[1] + '</div></div>';
+        '<span style="display:flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:14px;background:' + bg + ';color:' + col + ';margin-bottom:16px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ico + '</svg></span>' +
+        '<div style="font-weight:800;color:var(--navy);font-size:16.5px;margin-bottom:5px;letter-spacing:-.2px">' + tit + '</div>' +
+        '<div style="font-size:13.5px;color:var(--muted);line-height:1.6">' + d + '</div></div>';
     }
 
-    var FLY = [
-      ['Afiliar', 'Sumamos nuevos comercios a VEPAGOS.', '#2A6FDB'],
-      ['Activar', 'Los ponemos a cobrar desde el primer día.', '#2AB0C4'],
-      ['Transaccionar', 'Cada venta que pasa por el POS.', '#00B871'],
-      ['Retener', 'Soporte 365 días para que se queden.', '#FF9F45'],
-      ['Recomendar', 'Un cliente feliz nos trae al siguiente.', '#E0447B']
-    ];
     function flyStep(s, i) {
+      var p = esc(s.paso || s[0] || ''), d = esc(s.desc || s[1] || ''), col = s.color || s[2] || '#2A6FDB';
       return '<div style="flex:1;min-width:150px;position:relative;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:18px 16px">' +
-        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:9px"><span style="width:30px;height:30px;border-radius:9px;background:' + s[2] + ';color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex:0 0 auto">' + (i + 1) + '</span>' +
-        '<span style="font-weight:800;color:#fff;font-size:15px">' + s[0] + '</span></div>' +
-        '<div style="font-size:12.5px;color:rgba(255,255,255,.62);line-height:1.5">' + s[1] + '</div></div>';
+        '<div style="display:flex;align-items:center;gap:10px;margin-bottom:9px"><span style="width:30px;height:30px;border-radius:9px;background:' + col + ';color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex:0 0 auto">' + (i + 1) + '</span>' +
+        '<span style="font-weight:800;color:#fff;font-size:15px">' + p + '</span></div>' +
+        '<div style="font-size:12.5px;color:rgba(255,255,255,.62);line-height:1.5">' + d + '</div></div>';
     }
 
-    var PERKS = [
-      ['Creces con nosotros', 'Onboarding real, formación continua y camino de desarrollo. Aquí no te dejan solo: aprendes haciendo y con acompañamiento.', '#00B871', 'rgba(0,184,113,.1)', '<path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>'],
-      ['Un equipo que responde', 'Soporte los 365 días del año no es solo para el cliente: es la forma en que trabajamos entre nosotros. Nadie se queda atascado.', '#2A6FDB', 'rgba(42,111,219,.1)', '<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"></path>'],
-      ['Tu trabajo se nota', 'Más de 80.000 comercios han cobrado gracias a este equipo. Lo que haces mueve negocios reales en toda Venezuela.', '#E0447B', 'rgba(224,68,123,.1)', '<path d="M13 2L3 14h9l-1 8 10-12h-9z"></path>'],
-      ['Cercanía de verdad', 'Somos un equipo unido, sin corbatas ni jerarquías eternas. Se trabaja con confianza, buena onda y las puertas abiertas.', '#7C5CFC', 'rgba(124,92,252,.1)', '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path>']
-    ];
     function perkCard(p) {
+      var tit = esc(p.titulo || p[0] || ''), d = esc(p.desc || p[1] || ''), col = p.color || p[2] || '#00B871', bg = p.bg || p[3] || 'rgba(0,184,113,.1)', ico = p.icono || p[4] || '<path d="M12 2l2.9 6.3 6.8.9-5 4.7 1.3 6.8L12 17.8 5.9 20.7l1.3-6.8-5-4.7 6.8-.9z"></path>';
       return '<div class="cx-val" style="background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;display:flex;gap:16px;transition:transform .2s,box-shadow .2s,border-color .2s">' +
-        '<span style="display:flex;align-items:center;justify-content:center;width:46px;height:46px;border-radius:13px;background:' + p[3] + ';color:' + p[2] + ';flex:0 0 auto"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + p[4] + '</svg></span>' +
-        '<div><div style="font-weight:800;color:var(--navy);font-size:16px;margin-bottom:5px;letter-spacing:-.2px">' + p[0] + '</div>' +
-        '<div style="font-size:13.5px;color:var(--muted);line-height:1.6">' + p[1] + '</div></div></div>';
+        '<span style="display:flex;align-items:center;justify-content:center;width:46px;height:46px;border-radius:13px;background:' + bg + ';color:' + col + ';flex:0 0 auto"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ico + '</svg></span>' +
+        '<div><div style="font-weight:800;color:var(--navy);font-size:16px;margin-bottom:5px;letter-spacing:-.2px">' + tit + '</div>' +
+        '<div style="font-size:13.5px;color:var(--muted);line-height:1.6">' + d + '</div></div></div>';
     }
-
-    var STATS = [['2019', 'nacimos'], ['+80.000', 'comercios'], ['365', 'días de soporte'], [anios + ' años', 'creciendo']];
 
     $('#content').innerHTML =
       '<style>' +
@@ -1963,34 +2013,34 @@
       '<div style="position:relative;background:linear-gradient(120deg,#E7FAF1,#F4F9FF);border:1px solid #D5EEE1;border-radius:22px;padding:clamp(26px,3.5vw,42px);margin-bottom:20px;overflow:hidden">' +
         '<svg viewBox="0 0 24 24" width="120" height="120" fill="none" stroke="#00CE7C" stroke-width="1.4" style="position:absolute;right:24px;top:22px;opacity:.16"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg>' +
         '<div style="position:relative;max-width:720px">' + kicker('Nuestro propósito', '#00874f') +
-          '<div style="font-size:clamp(24px,3.4vw,36px);font-weight:800;color:var(--navy);letter-spacing:-.7px;line-height:1.15">“Hacer crecer tu negocio.”</div>' +
-          '<div style="font-size:15px;color:#33415C;margin-top:12px;line-height:1.7">No es un eslogan pegado en la pared. Es la vara con la que medimos cada decisión: si ayuda a que un comercio venda más, vamos por ahí. Es la promesa que le hacemos al cliente y el trabajo de todos los que formamos VEPAGOS.</div>' +
+          '<div style="font-size:clamp(24px,3.4vw,36px);font-weight:800;color:var(--navy);letter-spacing:-.7px;line-height:1.15">' + esc(cfg.proposito_titulo) + '</div>' +
+          '<div style="font-size:15px;color:#33415C;margin-top:12px;line-height:1.7">' + esc(cfg.proposito_desc) + '</div>' +
         '</div>' +
       '</div>' +
 
       '<div class="grid g2" style="margin-bottom:22px">' +
         '<div class="card" style="border-radius:18px;padding:24px;border-left:4px solid #2A6FDB">' + kicker('Misión', '#2A6FDB') +
-          '<div style="font-size:16px;color:var(--navy);font-weight:700;line-height:1.55">Facilitar el cobro electrónico a cada comercio de Venezuela con tecnología confiable y soporte cercano.</div>' +
+          '<div style="font-size:16px;color:var(--navy);font-weight:700;line-height:1.55">' + esc(cfg.mision) + '</div>' +
         '</div>' +
         '<div class="card" style="border-radius:18px;padding:24px;border-left:4px solid #00CE7C">' + kicker('Visión', '#00874f') +
-          '<div style="font-size:16px;color:var(--navy);font-weight:700;line-height:1.55">Ser el aliado de pagos preferido del comercio venezolano.</div>' +
+          '<div style="font-size:16px;color:var(--navy);font-weight:700;line-height:1.55">' + esc(cfg.vision) + '</div>' +
         '</div>' +
       '</div>' +
 
       '<div style="margin-bottom:14px">' + kicker('Nuestros valores', '#00874f') + head('Lo que nos define, en el día a día') + '</div>' +
-      '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(250px,1fr));margin-bottom:26px">' + VALORES.map(valorCard).join('') + '</div>' +
+      '<div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(250px,1fr));margin-bottom:26px">' + (cfg.valores || []).map(valorCard).join('') + '</div>' +
 
       '<div style="position:relative;overflow:hidden;background:linear-gradient(135deg,#012A7C,#001A54);border-radius:24px;padding:clamp(26px,3.5vw,42px);margin-bottom:26px">' +
         '<div style="position:absolute;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(0,229,140,.22),transparent 70%);bottom:-120px;right:-40px;animation:cxFloat2 12s ease-in-out infinite;pointer-events:none"></div>' +
         '<div style="position:relative">' + kicker('Cómo trabajamos') +
           '<div style="font-size:clamp(20px,2.6vw,28px);font-weight:800;color:#fff;letter-spacing:-.5px;line-height:1.2;max-width:620px">Giramos un mismo motor. Cada rol impulsa una etapa.</div>' +
           '<div style="font-size:14.5px;color:rgba(255,255,255,.72);margin-top:10px;line-height:1.65;max-width:640px">Es un <b style="color:#00E58C">flywheel</b>: cuando cada quien hace bien su parte, el motor gira más rápido y más comercios crecen con nosotros. Tú también empujas una parte de esta rueda.</div>' +
-          '<div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:24px">' + FLY.map(flyStep).join('') + '</div>' +
+          '<div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:24px">' + (cfg.flywheel || []).map(flyStep).join('') + '</div>' +
         '</div>' +
       '</div>' +
 
       '<div style="margin-bottom:14px">' + kicker('Lo que es trabajar aquí', '#00874f') + head('Razones para emocionarte cada mañana') + '</div>' +
-      '<div class="grid g2" style="margin-bottom:26px">' + PERKS.map(perkCard).join('') + '</div>' +
+      '<div class="grid g2" style="margin-bottom:26px">' + (cfg.perks || []).map(perkCard).join('') + '</div>' +
 
       '<div style="position:relative;overflow:hidden;background:linear-gradient(135deg,#00693e 0%,#00874f 45%,#00B871 100%);border-radius:26px;padding:clamp(30px,3.8vw,50px);text-align:center;box-shadow:0 30px 70px -34px rgba(0,135,79,.7)">' +
         '<div style="position:absolute;inset:0;background:radial-gradient(120% 90% at 50% -10%,rgba(255,255,255,.22),transparent 55%);pointer-events:none"></div>' +
@@ -2007,6 +2057,21 @@
         '</div>' +
       '</div>';
     $('#content').addEventListener('click', goBtnHandler);
+
+    // Cargar asíncronamente desde MySQL para sincronizar
+    if (window.SV_API && typeof SV_API.getCultura === 'function') {
+      SV_API.getCultura().then(function (res) {
+        if (res && res.proposito_titulo) {
+          var oldStr = JSON.stringify(db.cultura || {});
+          var newStr = JSON.stringify(res);
+          if (oldStr !== newStr) {
+            db.cultura = res;
+            saveDB(db);
+            if (current === 'cultura') rCultura();
+          }
+        }
+      }).catch(function (e) { console.warn('Sync cultura DB:', e); });
+    }
   }
 
   /* ---------- SOMOS VEPAGOS ---------- */
@@ -2509,6 +2574,9 @@
     if (key === 'supervisor') { var u = byId(r.userId); return !!(u && u.managerId === me.id); }
     var uid = (db.aprobadores || {})[key]; if (uid && uid === me.id) return true;
     if (key === 'rrhh' || key === 'nomina') return me.role === 'rrhh';
+    if (key === 'ti' || key === 'sistemas') return me.role === 'admin' || me.area === 'Tecnología' || me.role === 'gerente';
+    if (key === 'procura') return me.role === 'admin' || me.role === 'rrhh' || afCan('procuraAprobar');
+    if (key === 'servicios') return me.role === 'admin' || me.role === 'rrhh' || me.role === 'gerente';
     return false;
   }
   function antiguedadAnios(u) { if (!u.ingreso) return 0; return Math.max(0, Math.floor((Date.now() - new Date(u.ingreso).getTime()) / (365.25 * 86400000))); }
@@ -2605,7 +2673,208 @@
     var eq = (db.equipReqs || []).filter(function (r) { return r.estado === 'pendiente' && (me.role === 'admin' || r.asignadoA === me.id || r.mgrId === me.id); }).length;
     return reqs + pend + eq;
   }
-  function reRenderSol() { if (current === 'solequipo') rSolEquipo(); else if (current === 'pendientes') rPendientes(); else rSolicitudes(); }
+  function reRenderSol() {
+    if (current === 'solequipo') rSolEquipo();
+    else if (current === 'pendientes') rPendientes();
+    else if (current === 'sol_tec') rGestionDeptSol('tecnologia');
+    else if (current === 'sol_th') rGestionDeptSol('talento');
+    else if (current === 'sol_procura') rGestionDeptSol('procura');
+    else if (current === 'sol_servicios') rGestionDeptSol('servicios');
+    else if (current === 'sol_nomina') rGestionDeptSol('nomina');
+    else rSolicitudes();
+  }
+
+  function deptOpenCount(deptKey) {
+    if (!db || !db.rrhhReqs) return 0;
+    return db.rrhhReqs.filter(function (r) {
+      var tp = reqTipo(r.tipo);
+      var d = r.depto || (tp ? tp.depto : null);
+      return d === deptKey && r.estado === 'abierta';
+    }).length;
+  }
+
+  var gDeptFilter = 'todas', gDeptCat = 'todas', gDeptQ = '', gDeptPrio = 'todas';
+  function rGestionDeptSol(deptKey) {
+    resetContent();
+    var d = reqDepto(deptKey);
+    var allDeptReqs = (db.rrhhReqs || []).filter(function (r) {
+      var tp = reqTipo(r.tipo);
+      var dId = r.depto || (tp ? tp.depto : null);
+      return dId === deptKey;
+    }).sort(function (a, b) { return b.id - a.id; });
+
+    var total = allDeptReqs.length;
+    var pendientes = allDeptReqs.filter(function (r) { return r.estado === 'abierta'; }).length;
+    var aprobadas = allDeptReqs.filter(function (r) { return r.estado === 'aprobada'; }).length;
+    var rechazadas = allDeptReqs.filter(function (r) { return r.estado === 'rechazada'; }).length;
+
+    var lista = allDeptReqs.filter(function (r) {
+      if (gDeptFilter === 'pendientes' && r.estado !== 'abierta') return false;
+      if (gDeptFilter === 'aprobadas' && r.estado !== 'aprobada') return false;
+      if (gDeptFilter === 'rechazadas' && r.estado !== 'rechazada') return false;
+
+      var tp = reqTipo(r.tipo);
+      if (gDeptCat !== 'todas' && tp.cat !== gDeptCat) return false;
+      if (gDeptPrio !== 'todas' && r.prioridad !== gDeptPrio) return false;
+
+      if (gDeptQ) {
+        var u = byId(r.userId);
+        var hayTxt = (reqFolio(r) + ' ' + (r.titulo || '') + ' ' + (tp.nombre || '') + ' ' + (u ? u.nombre : '') + ' ' + (r.descripcion || '')).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        if (hayTxt.indexOf(gDeptQ) === -1) return false;
+      }
+      return true;
+    });
+
+    var FILTROS_EST = [
+      ['todas', 'Todas (' + total + ')'],
+      ['pendientes', 'En proceso (' + pendientes + ')'],
+      ['aprobadas', 'Aprobadas / Resueltas (' + aprobadas + ')'],
+      ['rechazadas', 'Rechazadas (' + rechazadas + ')']
+    ];
+
+    var html =
+      '<div class="toolrow" style="margin-bottom:16px;align-items:flex-start;gap:16px;flex-wrap:wrap">' +
+        '<div style="display:flex;align-items:center;gap:12px;flex:1;min-width:260px">' +
+          '<span style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;background:' + d.bg + ';color:' + d.color + ';flex:0 0 auto">' +
+            '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + d.ico + '</svg>' +
+          '</span>' +
+          '<div>' +
+            '<div style="font-size:11.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:' + d.color + '">Gestión de solicitudes</div>' +
+            '<h2 style="margin:0;font-size:22px;color:var(--navy);font-weight:800">' + esc(d.nombre) + '</h2>' +
+            '<div style="font-size:13px;color:var(--muted);margin-top:2px">' + esc(d.desc) + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' +
+          (adminReq() ? '<button class="btn-s" id="btnCfgDeptFlujo" style="padding:9px 14px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>Aprobaciones ' + esc(d.nombre) + '</button>' : '') +
+          '<button class="btn-g" id="btnNewDeptReq" style="padding:9px 15px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Crear ticket en ' + esc(d.nombre) + '</button>' +
+        '</div>' +
+      '</div>';
+
+    // Tarjetas KPI
+    html +=
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:18px">' +
+        '<div class="card" style="margin:0;padding:16px">' +
+          '<div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">Total Solicitudes</div>' +
+          '<div style="font-size:32px;font-weight:800;color:var(--navy);margin-top:4px;line-height:1">' + total + '</div>' +
+          '<div style="font-size:12px;color:var(--muted2);margin-top:4px">Histórico de tickets</div>' +
+        '</div>' +
+        '<div class="card" style="margin:0;padding:16px;border-left:4px solid #FF9F45;background:linear-gradient(180deg,#FFFDF9,#fff)">' +
+          '<div style="display:flex;align-items:center;justify-content:space-between">' +
+            '<div style="font-size:12px;font-weight:700;color:#9A6B00;text-transform:uppercase;letter-spacing:.5px">Por Atender</div>' +
+            (pendientes ? '<span class="chip y" style="font-size:10.5px">' + pendientes + ' activas</span>' : '') +
+          '</div>' +
+          '<div style="font-size:32px;font-weight:800;color:#D97706;margin-top:4px;line-height:1">' + pendientes + '</div>' +
+          '<div style="font-size:12px;color:var(--muted);margin-top:4px">En espera de gestión o resolución</div>' +
+        '</div>' +
+        '<div class="card" style="margin:0;padding:16px;border-left:4px solid #00CE7C">' +
+          '<div style="font-size:12px;font-weight:700;color:#00874F;text-transform:uppercase;letter-spacing:.5px">Aprobadas / Resueltas</div>' +
+          '<div style="font-size:32px;font-weight:800;color:#00CE7C;margin-top:4px;line-height:1">' + aprobadas + '</div>' +
+          '<div style="font-size:12px;color:var(--muted2);margin-top:4px">Procesadas exitosamente</div>' +
+        '</div>' +
+        '<div class="card" style="margin:0;padding:16px;border-left:4px solid #D9463E">' +
+          '<div style="font-size:12px;font-weight:700;color:#D9463E;text-transform:uppercase;letter-spacing:.5px">Rechazadas</div>' +
+          '<div style="font-size:32px;font-weight:800;color:#D9463E;margin-top:4px;line-height:1">' + rechazadas + '</div>' +
+          '<div style="font-size:12px;color:var(--muted2);margin-top:4px">No procedentes o canceladas</div>' +
+        '</div>' +
+      '</div>';
+
+    // Barra de búsqueda y filtros
+    html +=
+      '<div class="card" style="margin-bottom:14px;padding:14px 18px">' +
+        '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">' +
+          '<div class="doccat" style="margin:0;flex:1;min-width:280px">' +
+            FILTROS_EST.map(function (f) {
+              return '<button data-gfilter="' + f[0] + '" class="' + (gDeptFilter === f[0] ? 'on' : '') + '" style="font-size:13px;padding:7px 14px">' + f[1] + '</button>';
+            }).join('') +
+          '</div>' +
+          '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">' +
+            '<select id="gDeptCatSel" style="font-size:13px;padding:8px 12px;border:1.5px solid var(--line);border-radius:10px;background:#fff;font-weight:600;color:var(--navy)">' +
+              '<option value="todas"' + (gDeptCat === 'todas' ? ' selected' : '') + '>Todas las categorías (' + d.cats.length + ')</option>' +
+              d.cats.map(function (c) {
+                return '<option value="' + esc(c.nombre) + '"' + (gDeptCat === c.nombre ? ' selected' : '') + '>' + esc(c.nombre) + '</option>';
+              }).join('') +
+            '</select>' +
+            '<div style="position:relative;min-width:220px">' +
+              '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2.2" stroke-linecap="round" style="position:absolute;left:11px;top:50%;transform:translateY(-50%)"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg>' +
+              '<input id="gDeptSearch" type="text" value="' + esc(gDeptQ) + '" placeholder="Buscar ticket, persona..." style="width:100%;box-sizing:border-box;padding:8px 12px 8px 33px;border:1.5px solid var(--line);border-radius:10px;font-size:13px;font-family:inherit">' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    // Lista de tickets
+    html += '<div class="card" style="padding:16px 20px">' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">' +
+        '<h3 style="margin:0;font-size:16px;color:var(--navy)">Bandeja de solicitudes <span class="chip n">' + lista.length + '</span></h3>' +
+        (gDeptQ || gDeptCat !== 'todas' || gDeptFilter !== 'todas' ? '<button class="btn-s" id="btnResetGFilters" style="font-size:11.5px;padding:4px 10px">Limpiar filtros</button>' : '') +
+      '</div>' +
+      (lista.length
+        ? lista.map(function (r) {
+            return reqRow(r, true);
+          }).join('')
+        : '<div class="empty" style="padding:36px 16px">' +
+            '<svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:8px;opacity:.7"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8M16 17H8M10 9H8"></path></svg>' +
+            '<div style="font-weight:700;color:var(--navy);font-size:15px">' + (allDeptReqs.length ? 'No hay solicitudes que coincidan con estos filtros' : 'Aún no hay solicitudes para ' + esc(d.nombre)) + '</div>' +
+            '<div style="font-size:13px;color:var(--muted);margin-top:4px;max-width:380px">' + (allDeptReqs.length ? 'Prueba cambiando los términos de búsqueda o el estado del filtro.' : 'Crea el primer ticket o comparte el catálogo de ' + esc(d.nombre) + ' con el equipo.') + '</div>' +
+            '<button class="btn-g" id="btnEmptyNewReq" style="margin-top:14px;padding:8px 16px">Crear ticket</button>' +
+          '</div>') +
+    '</div>';
+
+    $('#content').innerHTML = html;
+
+    // Eventos
+    $('#content').addEventListener('click', function (e) {
+      var gf = e.target.closest('[data-gfilter]');
+      if (gf) { gDeptFilter = gf.getAttribute('data-gfilter'); rGestionDeptSol(deptKey); return; }
+
+      if (e.target.closest('#btnNewDeptReq') || e.target.closest('#btnEmptyNewReq')) {
+        openReqModal(tiposDeDepto(deptKey)[0] ? tiposDeDepto(deptKey)[0].id : null);
+        return;
+      }
+
+      if (e.target.closest('#btnCfgDeptFlujo')) {
+        openConfigModal('flujo', null, deptKey);
+        return;
+      }
+
+      if (e.target.closest('#btnResetGFilters')) {
+        gDeptFilter = 'todas'; gDeptCat = 'todas'; gDeptQ = '';
+        rGestionDeptSol(deptKey);
+        return;
+      }
+
+      var rv = e.target.closest('[data-reqview]'); if (!rv) rv = e.target.closest('[data-req]');
+      if (rv) {
+        var id = +(rv.getAttribute('data-reqview') || rv.getAttribute('data-req'));
+        var req = db.rrhhReqs.find(function (x) { return x.id === id; });
+        if (req) reqView(req);
+      }
+    });
+
+    var catSel = $('#gDeptCatSel');
+    if (catSel) {
+      catSel.addEventListener('change', function () {
+        gDeptCat = this.value;
+        rGestionDeptSol(deptKey);
+      });
+    }
+
+    var searchInp = $('#gDeptSearch');
+    if (searchInp) {
+      searchInp.addEventListener('input', function () {
+        gDeptQ = this.value.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        $$('#content [data-req]').forEach(function (row) {
+          var id = +row.getAttribute('data-req');
+          var r = db.rrhhReqs.find(function (x) { return x.id === id; });
+          if (!r) return;
+          var tp = reqTipo(r.tipo), u = byId(r.userId);
+          var hayTxt = (reqFolio(r) + ' ' + (r.titulo || '') + ' ' + (tp.nombre || '') + ' ' + (u ? u.nombre : '') + ' ' + (r.descripcion || '')).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          row.style.display = (hayTxt.indexOf(gDeptQ) > -1) ? '' : 'none';
+        });
+      });
+    }
+  }
+
   var reqFilter = 'todas', segDept = 'todos';
   function reqSeguimiento() {
     if (me.role === 'admin' || me.role === 'rrhh') return db.rrhhReqs.filter(function (r) { return r.userId !== me.id; });
@@ -6834,49 +7103,102 @@
       var allScreens = results[0].error ? [] : results[0];
       var curMenuIds = results[1].error ? [] : results[1];
       var curPermKeys = results[2].error ? [] : results[2];
-      var menuItems = allScreens.filter(function (s) { return s.id !== 'inicio' && s.id !== 'perfil' && !s.padre_id; });
-      var GRP = { personal: 'Tu espacio', gestion: 'Seguimiento del equipo', config: 'Configuraci\u00f3n' };
+
+      var menuParents = allScreens.filter(function (s) { return s.id !== 'inicio' && s.id !== 'perfil' && !s.padre_id; });
+      var menuChildren = allScreens.filter(function (s) { return !!s.padre_id; });
+      var GRP = { personal: 'Tu espacio', gestion: 'Seguimiento del equipo', config: 'Configuración' };
+
       var menusHtml = ['personal', 'gestion', 'config'].map(function (gk) {
-        var items = menuItems.filter(function (s) { return s.grupo === gk; });
-        if (!items.length) return '';
-        return '<div style="font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted2);margin:10px 0 2px">' + GRP[gk] + '</div>' + items.map(function (s) {
-          var checked = curMenuIds.indexOf(s.id) > -1;
-          return '<label style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #F2F6FB;cursor:pointer"><input type="checkbox" data-pmmenu="' + s.id + '"' + (checked ? ' checked' : '') + ' style="accent-color:#00CE7C;width:17px;height:17px;flex:0 0 auto"><span style="flex:1;font-size:13.5px;color:var(--navy);font-weight:600">' + esc(s.titulo) + '</span></label>';
-        }).join('');
+        var parents = menuParents.filter(function (s) { return s.grupo === gk; });
+        if (!parents.length) return '';
+        return '<div style="font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted2);margin:14px 0 6px">' + GRP[gk] + '</div>' +
+          parents.map(function (s) {
+            var kids = menuChildren.filter(function (k) { return k.padre_id === s.id; });
+            var pChecked = curMenuIds.indexOf(s.id) > -1 || kids.some(function (k) { return curMenuIds.indexOf(k.id) > -1; });
+
+            if (!kids.length) {
+              return '<label style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #F2F6FB;cursor:pointer">' +
+                '<input type="checkbox" data-pmmenu="' + s.id + '"' + (pChecked ? ' checked' : '') + ' style="accent-color:#00CE7C;width:17px;height:17px;flex:0 0 auto">' +
+                '<span style="flex:1;font-size:13.5px;color:var(--navy);font-weight:600">' + esc(s.titulo) + '</span>' +
+              '</label>';
+            }
+
+            return '<div style="border-bottom:1px solid #F2F6FB;padding:7px 0">' +
+              '<div style="display:flex;align-items:center;gap:10px">' +
+                '<input type="checkbox" data-pmmenu="' + s.id + '" data-pmparentbox="' + s.id + '"' + (pChecked ? ' checked' : '') + ' style="accent-color:#00CE7C;width:17px;height:17px;flex:0 0 auto;cursor:pointer">' +
+                '<span style="flex:1;font-size:13.5px;color:var(--navy);font-weight:700">' + esc(s.titulo) + ' <span class="chip b" style="font-size:10px;padding:2px 7px;font-weight:600;margin-left:6px">' + kids.length + ' submenús</span></span>' +
+              '</div>' +
+              '<div style="background:#F8FAFC;border-left:3px solid #00CE7C;border-radius:0 10px 10px 0;padding:8px 14px;margin:6px 0 4px 12px;display:flex;flex-direction:column;gap:6px">' +
+                kids.map(function (k) {
+                  var kChecked = curMenuIds.indexOf(k.id) > -1;
+                  return '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#33415C;font-weight:500">' +
+                    '<input type="checkbox" data-pmmenu="' + k.id + '" data-pmchildof="' + s.id + '"' + (kChecked ? ' checked' : '') + ' style="accent-color:#00CE7C;width:15px;height:15px;cursor:pointer">' +
+                    '<span>' + esc(k.titulo) + '</span>' +
+                  '</label>';
+                }).join('') +
+              '</div>' +
+            '</div>';
+          }).join('');
       }).join('');
-      var permsHtml = ['Activos y procura', 'Almac\u00e9n y activos', 'Otros m\u00f3dulos'].map(function (g) {
+
+      var permsHtml = ['Activos y procura', 'Almacén y activos', 'Otros módulos'].map(function (g) {
         var items = PERMISOS.filter(function (x) { return x.grupo === g; });
         if (!items.length) return '';
-        return '<div style="font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted2);margin:10px 0 2px">' + esc(g) + '</div>' + items.map(function (x) {
+        return '<div style="font-size:11px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--muted2);margin:14px 0 6px">' + esc(g) + '</div>' + items.map(function (x) {
           var checked = curPermKeys.indexOf(x.key) > -1;
           return '<label style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid #F2F6FB;cursor:pointer"><input type="checkbox" data-pmperm="' + x.key + '"' + (checked ? ' checked' : '') + ' style="accent-color:#00CE7C;width:17px;height:17px;margin:2px 0 0;flex:0 0 auto"><span style="flex:1"><span style="font-weight:700;color:var(--navy);font-size:13.5px">' + esc(x.label) + '</span><span style="display:block;font-size:12px;color:var(--muted)">' + esc(x.desc) + '</span></span></label>';
         }).join('');
       }).join('');
-      modal('<button class="mod-x">\u2715</button><h3>' + (edit ? 'Editar perfil' : 'Nuevo perfil') + '</h3>' +
+
+      modal('<button class="mod-x">✕</button><h3>' + (edit ? 'Editar perfil' : 'Nuevo perfil') + '</h3>' +
         '<div class="fld"><label>Nombre del perfil *</label><input id="pfLabel" type="text" value="' + esc(p.label || '') + '" placeholder="Ej: Analista Senior"></div>' +
-        '<div class="fld"><label>Hereda permisos de</label><select id="pfBase"' + (edit && p.sistema ? ' disabled' : '') + '><option value="">\u2014 Sin herencia (permisos propios) \u2014</option>' +
+        '<div class="fld"><label>Hereda permisos de</label><select id="pfBase"' + (edit && p.sistema ? ' disabled' : '') + '><option value="">— Sin herencia (permisos propios) —</option>' +
           bases.map(function (x) { return '<option value="' + esc(x.key) + '"' + (p.base_key === x.key ? ' selected' : '') + '>' + esc(x.label) + '</option>'; }).join('') + '</select>' +
           '<div class="note" style="margin:4px 0 0">Punto de partida: al elegir una base, marca abajo lo que este perfil ve y puede hacer.</div></div>' +
-        '<div class="fld"><label>Descripci\u00f3n</label><textarea id="pfDesc" style="min-height:60px" placeholder="Qu\u00e9 hace este perfil y qu\u00e9 puede ver">' + esc(p.descripcion || '') + '</textarea></div>' +
-        '<div style="font-size:11px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--muted2);margin:16px 0 2px">Men\u00fas que ve este perfil</div>' +
-        '<div class="note" style="margin:0 0 4px">Marca a qu\u00e9 secciones del portal tiene acceso. Inicio y Mi perfil siempre est\u00e1n disponibles.</div>' + menusHtml +
-        '<div style="font-size:11px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--muted2);margin:16px 0 2px">Permisos y aprobaciones</div>' +
-        '<div class="note" style="margin:0 0 4px">Qu\u00e9 puede hacer y aprobar dentro de los m\u00f3dulos. ' + (edit && p.key === 'admin' ? '<b>El Administrador siempre tiene acceso total.</b>' : 'Estos permisos aplican a todas las personas con este perfil.') + '</div>' + permsHtml +
+        '<div class="fld"><label>Descripción</label><textarea id="pfDesc" style="min-height:60px" placeholder="Qué hace este perfil y qué puede ver">' + esc(p.descripcion || '') + '</textarea></div>' +
+        '<div style="font-size:11px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--muted2);margin:16px 0 2px">Menús y submenús que ve este perfil</div>' +
+        '<div class="note" style="margin:0 0 6px">Marca a qué secciones y subsecciones específicas tiene acceso. Inicio y Mi perfil siempre están disponibles.</div>' + menusHtml +
+        '<div style="font-size:11px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:var(--muted2);margin:18px 0 2px">Permisos y aprobaciones de módulos</div>' +
+        '<div class="note" style="margin:0 0 6px">Qué puede hacer y aprobar dentro de los módulos. ' + (edit && p.key === 'admin' ? '<b>El Administrador siempre tiene acceso total.</b>' : 'Estos permisos aplican a todas las personas con este perfil.') + '</div>' + permsHtml +
         '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="pfOk">' + (edit ? 'Guardar cambios' : 'Crear perfil') + '</button></div>', 'wide');
+
+      // Sincronización interactiva entre menú padre y sus submenús
+      $$('#modalHost [data-pmparentbox]').forEach(function (parentCb) {
+        parentCb.addEventListener('change', function () {
+          var pid = parentCb.getAttribute('data-pmparentbox');
+          $$('#modalHost [data-pmchildof="' + pid + '"]').forEach(function (childCb) {
+            childCb.checked = parentCb.checked;
+          });
+        });
+      });
+
+      $$('#modalHost [data-pmchildof]').forEach(function (childCb) {
+        childCb.addEventListener('change', function () {
+          var pid = childCb.getAttribute('data-pmchildof');
+          var parentCb = $('#modalHost [data-pmparentbox="' + pid + '"]');
+          var siblingCbs = $$('#modalHost [data-pmchildof="' + pid + '"]');
+          var anyChecked = siblingCbs.some(function (cb) { return cb.checked; });
+          if (parentCb) {
+            parentCb.checked = anyChecked;
+          }
+        });
+      });
+
       $('#pfOk').addEventListener('click', function () {
         var label = $('#pfLabel').value.trim(); if (!label) { toast('Escribe el nombre del perfil.'); return; }
         var baseKey = $('#pfBase').value || null;
         var desc = $('#pfDesc').value.trim();
         var menus = $$('#modalHost [data-pmmenu]').filter(function (cb) { return cb.checked; }).map(function (cb) { return cb.getAttribute('data-pmmenu'); });
         var expanded = menus.slice();
-        menus.forEach(function (mid) {
-          allScreens.filter(function (s) { return s.padre_id === mid; }).forEach(function (child) {
-            if (expanded.indexOf(child.id) < 0) expanded.push(child.id);
-          });
+        menuChildren.forEach(function (child) {
+          if (expanded.indexOf(child.id) > -1 && expanded.indexOf(child.padre_id) < 0) {
+            expanded.push(child.padre_id);
+          }
         });
         if (expanded.indexOf('inicio') < 0) expanded.push('inicio');
         if (expanded.indexOf('perfil') < 0) expanded.push('perfil');
         var permKeys = $$('#modalHost [data-pmperm]').filter(function (cb) { return cb.checked; }).map(function (cb) { return cb.getAttribute('data-pmperm'); });
+
         if (edit) {
           Promise.all([
             window.SV_API.updatePerfil(p.key, { label: label, base_key: baseKey, descripcion: desc }),
@@ -6886,8 +7208,24 @@
             if (res[0].error) { toast(res[0].error); return; }
             var lp = getPerfil(p.key);
             if (lp) { lp.label = label; if (!lp.sistema) lp.base = baseKey; lp.desc = desc; lp.menus = expanded; saveDB(db); }
-            closeModal(); if (me) { $('#meRol').textContent = roleLabelOf(me.role); $('#pillRol').textContent = roleLabelOf(me.role); }
-            rPerfiles(); toast('Perfil actualizado.');
+            closeModal();
+            if (me) {
+              $('#meRol').textContent = roleLabelOf(me.role);
+              $('#pillRol').textContent = roleLabelOf(me.role);
+              window.SV_API.getMenu().then(function (menuData) {
+                if (menuData && menuData.groups) {
+                  _apiMenuIds = [];
+                  menuData.groups.forEach(function (g) {
+                    g.items.forEach(function (it) {
+                      _apiMenuIds.push(it.id);
+                      if (it.sub) it.sub.forEach(function (s) { _apiMenuIds.push(s.id); });
+                    });
+                  });
+                  refreshNav();
+                }
+              }).catch(function (e) { console.warn(e); });
+            }
+            rPerfiles(); toast('Perfil actualizado en base de datos.');
           });
         } else {
           var key = label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '').slice(0, 20) || ('perfil' + Date.now());
@@ -6900,7 +7238,7 @@
               db.perfiles.push({ key: key, label: label, desc: desc, base: baseKey, sistema: false, menus: expanded, permisos: {} });
               permKeys.forEach(function (pk) { db.perfiles[db.perfiles.length - 1].permisos[pk] = true; });
               saveDB(db);
-              closeModal(); rPerfiles(); toast('Perfil creado.');
+              closeModal(); rPerfiles(); toast('Perfil creado en base de datos.');
             });
           });
         }
@@ -7391,6 +7729,328 @@
           saveDB(db); closeModal(); rAdminSomos(); toast('Modelo eliminado.');
         });
       }); });
+    }
+  }
+
+  /* ---------- ADMINISTRACIÓN · CULTURA ORGANIZACIONAL ---------- */
+  var adminCulturaTab = 'proposito';
+  function rAdminCultura() {
+    resetContent();
+    var cfg = getCulturaConfig();
+    var TABS = [
+      ['proposito', 'Propósito y Misión / Visión'],
+      ['valores', 'Valores corporativos'],
+      ['flywheel', 'Cómo trabajamos (Flywheel)'],
+      ['perks', 'Razones para trabajar aquí']
+    ];
+    var html = '<div class="card" style="margin-bottom:14px"><div class="toolrow" style="margin:0"><div><h3 style="margin:0">Cultura organizacional</h3><div class="note" style="margin:4px 0 0;max-width:680px">Gestiona el propósito, misión, visión, valores, etapas del flywheel y beneficios corporativos. Los cambios se guardan directamente en la base de datos MySQL.</div></div></div></div>';
+    html += '<div class="doccat" style="margin-bottom:14px">' + TABS.map(function (t) { return '<button data-culturatab="' + t[0] + '" class="' + (adminCulturaTab === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</div>';
+    html += '<div id="adminCulturaBody"></div>';
+    $('#content').innerHTML = html;
+    $$('#content [data-culturatab]').forEach(function (b) { b.addEventListener('click', function () { adminCulturaTab = b.getAttribute('data-culturatab'); rAdminCultura(); }); });
+    renderAdminCulturaTab(cfg);
+
+    if (window.SV_API && typeof SV_API.getCultura === 'function') {
+      SV_API.getCultura().then(function (res) {
+        if (res && res.proposito_titulo) {
+          var oldStr = JSON.stringify(db.cultura || {});
+          var newStr = JSON.stringify(res);
+          if (oldStr !== newStr) {
+            db.cultura = res;
+            saveDB(db);
+            if (current === 'admincultura') renderAdminCulturaTab(db.cultura);
+          }
+        }
+      }).catch(function (e) { console.warn('Sync cultura admin:', e); });
+    }
+  }
+
+  async function saveCulturaDB(cfg, successMsg) {
+    db.cultura = cfg;
+    saveDB(db);
+    if (window.SV_API && typeof SV_API.updateCultura === 'function') {
+      try {
+        await SV_API.updateCultura(cfg);
+        toast(successMsg || 'Cambios guardados en base de datos.');
+      } catch (err) {
+        console.error('Error guardando cultura en DB:', err);
+        toast('Guardado localmente. Error al sincronizar con MySQL.');
+      }
+    } else {
+      toast(successMsg || 'Cambios guardados.');
+    }
+    rAdminCultura();
+  }
+
+  function renderAdminCulturaTab(cfg) {
+    var body = $('#adminCulturaBody');
+    if (!body) return;
+
+    if (adminCulturaTab === 'proposito') {
+      body.innerHTML = '<div class="card"><h3 style="margin:0 0 12px">Propósito, Misión y Visión</h3>' +
+        '<div class="fld"><label>Título del Propósito *</label><input id="acPropTit" type="text" value="' + esc(cfg.proposito_titulo || '') + '"></div>' +
+        '<div class="fld"><label>Descripción del Propósito *</label><textarea id="acPropDesc" style="min-height:90px">' + esc(cfg.proposito_desc || '') + '</textarea></div>' +
+        '<div class="grid g2" style="margin-top:12px">' +
+          '<div class="fld"><label>Misión institucional *</label><textarea id="acMision" style="min-height:100px">' + esc(cfg.mision || '') + '</textarea></div>' +
+          '<div class="fld"><label>Visión institucional *</label><textarea id="acVision" style="min-height:100px">' + esc(cfg.vision || '') + '</textarea></div>' +
+        '</div>' +
+        '<div class="mod-actions" style="justify-content:flex-start;margin-top:16px"><button class="btn-g" id="acPropOk">Guardar en Base de Datos</button></div></div>';
+
+      $('#acPropOk').addEventListener('click', function () {
+        var pt = $('#acPropTit').value.trim();
+        var pd = $('#acPropDesc').value.trim();
+        var mi = $('#acMision').value.trim();
+        var vi = $('#acVision').value.trim();
+        if (!pt || !pd || !mi || !vi) { toast('Por favor completa todos los campos.'); return; }
+        cfg.proposito_titulo = pt;
+        cfg.proposito_desc = pd;
+        cfg.mision = mi;
+        cfg.vision = vi;
+        saveCulturaDB(cfg, 'Propósito, Misión y Visión actualizados en BD.');
+      });
+
+    } else if (adminCulturaTab === 'valores') {
+      var valores = cfg.valores || [];
+      body.innerHTML = '<div class="card">' +
+        '<div class="toolrow" style="margin:0 0 14px"><div><h3 style="margin:0">Valores corporativos</h3><div class="note" style="margin:4px 0 0">Define los valores que guían a todos los integrantes de VEPAGOS.</div></div>' +
+        '<span class="sp"></span><button class="btn-g" id="acValAdd"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>+ Agregar valor</button></div>' +
+        '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Icono / Color</th><th>Título</th><th>Descripción</th><th></th></tr></thead><tbody>' +
+        (valores.length ? valores.map(function (v, idx) {
+          var tit = esc(v.titulo || v[0] || '');
+          var d = esc(v.desc || v[1] || '');
+          var col = v.color || v[2] || '#00B871';
+          var bg = v.bg || v[3] || 'rgba(0,184,113,.1)';
+          var ico = v.icono || v[4] || '<path d="M9 12l2 2 4-4"></path><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"></path>';
+          return '<tr>' +
+            '<td><span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:' + bg + ';color:' + col + '"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ico + '</svg></span></td>' +
+            '<td><b style="color:var(--navy)">' + tit + '</b></td>' +
+            '<td style="font-size:13px;color:#33415C;max-width:380px">' + d + '</td>' +
+            '<td style="white-space:nowrap;text-align:right">' +
+              '<button class="btn-s" data-valedit="' + idx + '" style="font-size:12.5px;padding:6px 11px">Editar</button> ' +
+              '<button class="btn-s" data-valdel="' + idx + '" style="font-size:12.5px;padding:6px 11px;color:#E0447B;border-color:#E0447B">Eliminar</button>' +
+            '</td>' +
+          '</tr>';
+        }).join('') : '<tr><td colspan="4"><div class="empty">No hay valores corporativos definidos.</div></td></tr>') +
+        '</tbody></table></div></div>';
+
+      function modalValor(val, idx) {
+        var isEdit = typeof idx === 'number';
+        var tit = isEdit ? (val.titulo || val[0] || '') : '';
+        var d = isEdit ? (val.desc || val[1] || '') : '';
+        var col = isEdit ? (val.color || val[2] || '#00B871') : '#00B871';
+        var bg = isEdit ? (val.bg || val[3] || 'rgba(0,184,113,.1)') : 'rgba(0,184,113,.1)';
+        var ico = isEdit ? (val.icono || val[4] || '<path d="M9 12l2 2 4-4"></path><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"></path>') : '<path d="M9 12l2 2 4-4"></path><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"></path>';
+
+        modal('<button class="mod-x">✕</button><h3>' + (isEdit ? 'Editar valor' : 'Nuevo valor corporativo') + '</h3>' +
+          '<div class="fld"><label>Título del valor *</label><input id="mvTit" type="text" value="' + esc(tit) + '"></div>' +
+          '<div class="fld"><label>Descripción *</label><textarea id="mvDesc" style="min-height:80px">' + esc(d) + '</textarea></div>' +
+          '<div class="grid g2">' +
+            '<div class="fld"><label>Color distintivo (Hex) *</label><input id="mvCol" type="text" value="' + esc(col) + '"></div>' +
+            '<div class="fld"><label>Fondo de ícono (RGBA / Hex)</label><input id="mvBg" type="text" value="' + esc(bg) + '"></div>' +
+          '</div>' +
+          '<div class="fld"><label>Trazos del Ícono SVG (&lt;path...&gt;)</label><input id="mvIco" type="text" value="' + esc(ico) + '"></div>' +
+          '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="mvOk">Guardar en Base de Datos</button></div>');
+
+        $('#mvOk').addEventListener('click', function () {
+          var t = $('#mvTit').value.trim();
+          var desc = $('#mvDesc').value.trim();
+          var c = $('#mvCol').value.trim() || '#00B871';
+          var b = $('#mvBg').value.trim() || 'rgba(0,184,113,.1)';
+          var ic = $('#mvIco').value.trim() || '<path d="M9 12l2 2 4-4"></path><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"></path>';
+          if (!t || !desc) { toast('Completa el título y la descripción.'); return; }
+          var itemObj = { titulo: t, desc: desc, color: c, bg: b, icono: ic };
+          if (isEdit) {
+            cfg.valores[idx] = itemObj;
+          } else {
+            cfg.valores = cfg.valores || [];
+            cfg.valores.push(itemObj);
+          }
+          closeModal();
+          saveCulturaDB(cfg, isEdit ? 'Valor corporativo actualizado en BD.' : 'Valor agregado a la BD.');
+        });
+      }
+
+      $('#acValAdd').addEventListener('click', function () { modalValor(null, null); });
+      $$('#adminCulturaBody [data-valedit]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var i = +btn.getAttribute('data-valedit');
+          modalValor(valores[i], i);
+        });
+      });
+      $$('#adminCulturaBody [data-valdel]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var i = +btn.getAttribute('data-valdel');
+          var item = valores[i];
+          var tit = item ? (item.titulo || item[0] || 'este valor') : 'este valor';
+          modal('<button class="mod-x">✕</button><h3>Eliminar valor</h3>' +
+            '<p style="color:#33415C;font-size:14px;margin:8px 0 16px">¿Seguro que deseas eliminar <b>' + esc(tit) + '</b> de la cultura corporativa?</p>' +
+            '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-s" id="acValDelOk" style="color:#fff;background:#E0447B;border-color:#E0447B">Sí, eliminar</button></div>');
+          $('#acValDelOk').addEventListener('click', function () {
+            cfg.valores.splice(i, 1);
+            closeModal();
+            saveCulturaDB(cfg, 'Valor eliminado de la base de datos.');
+          });
+        });
+      });
+
+    } else if (adminCulturaTab === 'flywheel') {
+      var flywheel = cfg.flywheel || [];
+      body.innerHTML = '<div class="card">' +
+        '<div class="toolrow" style="margin:0 0 14px"><div><h3 style="margin:0">Cómo trabajamos (Flywheel)</h3><div class="note" style="margin:4px 0 0">Las etapas consecutivas que impulsan el crecimiento y la satisfacción de los comercios.</div></div>' +
+        '<span class="sp"></span><button class="btn-g" id="acFlyAdd"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>+ Agregar etapa</button></div>' +
+        '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>#</th><th>Color</th><th>Etapa / Paso</th><th>Descripción</th><th></th></tr></thead><tbody>' +
+        (flywheel.length ? flywheel.map(function (f, idx) {
+          var p = esc(f.paso || f[0] || '');
+          var d = esc(f.desc || f[1] || '');
+          var col = f.color || f[2] || '#2A6FDB';
+          return '<tr>' +
+            '<td><b style="color:var(--navy)">' + (idx + 1) + '</b></td>' +
+            '<td><span style="display:inline-block;width:18px;height:18px;border-radius:6px;background:' + col + '"></span></td>' +
+            '<td><b style="color:var(--navy)">' + p + '</b></td>' +
+            '<td style="font-size:13px;color:#33415C;max-width:380px">' + d + '</td>' +
+            '<td style="white-space:nowrap;text-align:right">' +
+              '<button class="btn-s" data-flyedit="' + idx + '" style="font-size:12.5px;padding:6px 11px">Editar</button> ' +
+              '<button class="btn-s" data-flydel="' + idx + '" style="font-size:12.5px;padding:6px 11px;color:#E0447B;border-color:#E0447B">Eliminar</button>' +
+            '</td>' +
+          '</tr>';
+        }).join('') : '<tr><td colspan="5"><div class="empty">No hay etapas configuradas.</div></td></tr>') +
+        '</tbody></table></div></div>';
+
+      function modalFly(fly, idx) {
+        var isEdit = typeof idx === 'number';
+        var p = isEdit ? (fly.paso || fly[0] || '') : '';
+        var d = isEdit ? (fly.desc || fly[1] || '') : '';
+        var col = isEdit ? (fly.color || fly[2] || '#2A6FDB') : '#2A6FDB';
+
+        modal('<button class="mod-x">✕</button><h3>' + (isEdit ? 'Editar etapa del flywheel' : 'Nueva etapa del flywheel') + '</h3>' +
+          '<div class="fld"><label>Nombre de la etapa (ej. Afiliar, Activar) *</label><input id="mfPaso" type="text" value="' + esc(p) + '"></div>' +
+          '<div class="fld"><label>Descripción del impacto *</label><textarea id="mfDesc" style="min-height:80px">' + esc(d) + '</textarea></div>' +
+          '<div class="fld"><label>Color distintivo (Hex) *</label><input id="mfCol" type="text" value="' + esc(col) + '"></div>' +
+          '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="mfOk">Guardar en Base de Datos</button></div>');
+
+        $('#mfOk').addEventListener('click', function () {
+          var paso = $('#mfPaso').value.trim();
+          var desc = $('#mfDesc').value.trim();
+          var c = $('#mfCol').value.trim() || '#2A6FDB';
+          if (!paso || !desc) { toast('Completa el nombre y la descripción.'); return; }
+          var itemObj = { paso: paso, desc: desc, color: c };
+          if (isEdit) {
+            cfg.flywheel[idx] = itemObj;
+          } else {
+            cfg.flywheel = cfg.flywheel || [];
+            cfg.flywheel.push(itemObj);
+          }
+          closeModal();
+          saveCulturaDB(cfg, isEdit ? 'Etapa del flywheel actualizada en BD.' : 'Etapa agregada a la BD.');
+        });
+      }
+
+      $('#acFlyAdd').addEventListener('click', function () { modalFly(null, null); });
+      $$('#adminCulturaBody [data-flyedit]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var i = +btn.getAttribute('data-flyedit');
+          modalFly(flywheel[i], i);
+        });
+      });
+      $$('#adminCulturaBody [data-flydel]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var i = +btn.getAttribute('data-flydel');
+          var item = flywheel[i];
+          var paso = item ? (item.paso || item[0] || 'esta etapa') : 'esta etapa';
+          modal('<button class="mod-x">✕</button><h3>Eliminar etapa</h3>' +
+            '<p style="color:#33415C;font-size:14px;margin:8px 0 16px">¿Seguro que deseas eliminar la etapa <b>' + esc(paso) + '</b>?</p>' +
+            '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-s" id="acFlyDelOk" style="color:#fff;background:#E0447B;border-color:#E0447B">Sí, eliminar</button></div>');
+          $('#acFlyDelOk').addEventListener('click', function () {
+            cfg.flywheel.splice(i, 1);
+            closeModal();
+            saveCulturaDB(cfg, 'Etapa eliminada de la base de datos.');
+          });
+        });
+      });
+
+    } else if (adminCulturaTab === 'perks') {
+      var perks = cfg.perks || [];
+      body.innerHTML = '<div class="card">' +
+        '<div class="toolrow" style="margin:0 0 14px"><div><h3 style="margin:0">Razones para trabajar aquí</h3><div class="note" style="margin:4px 0 0">Los motivos y beneficios destacados de formar parte del equipo VEPAGOS.</div></div>' +
+        '<span class="sp"></span><button class="btn-g" id="acPerkAdd"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>+ Agregar motivo</button></div>' +
+        '<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Icono / Color</th><th>Título</th><th>Descripción</th><th></th></tr></thead><tbody>' +
+        (perks.length ? perks.map(function (p, idx) {
+          var tit = esc(p.titulo || p[0] || '');
+          var d = esc(p.desc || p[1] || '');
+          var col = p.color || p[2] || '#00B871';
+          var bg = p.bg || p[3] || 'rgba(0,184,113,.1)';
+          var ico = p.icono || p[4] || '<path d="M12 2l2.9 6.3 6.8.9-5 4.7 1.3 6.8L12 17.8 5.9 20.7l1.3-6.8-5-4.7 6.8-.9z"></path>';
+          return '<tr>' +
+            '<td><span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:' + bg + ';color:' + col + '"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ico + '</svg></span></td>' +
+            '<td><b style="color:var(--navy)">' + tit + '</b></td>' +
+            '<td style="font-size:13px;color:#33415C;max-width:380px">' + d + '</td>' +
+            '<td style="white-space:nowrap;text-align:right">' +
+              '<button class="btn-s" data-perkedit="' + idx + '" style="font-size:12.5px;padding:6px 11px">Editar</button> ' +
+              '<button class="btn-s" data-perkdel="' + idx + '" style="font-size:12.5px;padding:6px 11px;color:#E0447B;border-color:#E0447B">Eliminar</button>' +
+            '</td>' +
+          '</tr>';
+        }).join('') : '<tr><td colspan="4"><div class="empty">No hay motivos o beneficios configurados.</div></td></tr>') +
+        '</tbody></table></div></div>';
+
+      function modalPerk(perk, idx) {
+        var isEdit = typeof idx === 'number';
+        var tit = isEdit ? (perk.titulo || perk[0] || '') : '';
+        var d = isEdit ? (perk.desc || perk[1] || '') : '';
+        var col = isEdit ? (perk.color || perk[2] || '#00B871') : '#00B871';
+        var bg = isEdit ? (perk.bg || perk[3] || 'rgba(0,184,113,.1)') : 'rgba(0,184,113,.1)';
+        var ico = isEdit ? (perk.icono || perk[4] || '<path d="M12 2l2.9 6.3 6.8.9-5 4.7 1.3 6.8L12 17.8 5.9 20.7l1.3-6.8-5-4.7 6.8-.9z"></path>') : '<path d="M12 2l2.9 6.3 6.8.9-5 4.7 1.3 6.8L12 17.8 5.9 20.7l1.3-6.8-5-4.7 6.8-.9z"></path>';
+
+        modal('<button class="mod-x">✕</button><h3>' + (isEdit ? 'Editar motivo' : 'Nuevo motivo / beneficio') + '</h3>' +
+          '<div class="fld"><label>Título *</label><input id="mpTit" type="text" value="' + esc(tit) + '"></div>' +
+          '<div class="fld"><label>Descripción *</label><textarea id="mpDesc" style="min-height:80px">' + esc(d) + '</textarea></div>' +
+          '<div class="grid g2">' +
+            '<div class="fld"><label>Color distintivo (Hex) *</label><input id="mpCol" type="text" value="' + esc(col) + '"></div>' +
+            '<div class="fld"><label>Fondo de ícono (RGBA / Hex)</label><input id="mpBg" type="text" value="' + esc(bg) + '"></div>' +
+          '</div>' +
+          '<div class="fld"><label>Trazos del Ícono SVG (&lt;path...&gt;)</label><input id="mpIco" type="text" value="' + esc(ico) + '"></div>' +
+          '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="mpOk">Guardar en Base de Datos</button></div>');
+
+        $('#mpOk').addEventListener('click', function () {
+          var t = $('#mpTit').value.trim();
+          var desc = $('#mpDesc').value.trim();
+          var c = $('#mpCol').value.trim() || '#00B871';
+          var b = $('#mpBg').value.trim() || 'rgba(0,184,113,.1)';
+          var ic = $('#mpIco').value.trim() || '<path d="M12 2l2.9 6.3 6.8.9-5 4.7 1.3 6.8L12 17.8 5.9 20.7l1.3-6.8-5-4.7 6.8-.9z"></path>';
+          if (!t || !desc) { toast('Completa el título y la descripción.'); return; }
+          var itemObj = { titulo: t, desc: desc, color: c, bg: b, icono: ic };
+          if (isEdit) {
+            cfg.perks[idx] = itemObj;
+          } else {
+            cfg.perks = cfg.perks || [];
+            cfg.perks.push(itemObj);
+          }
+          closeModal();
+          saveCulturaDB(cfg, isEdit ? 'Motivo actualizado en BD.' : 'Motivo agregado a la BD.');
+        });
+      }
+
+      $('#acPerkAdd').addEventListener('click', function () { modalPerk(null, null); });
+      $$('#adminCulturaBody [data-perkedit]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var i = +btn.getAttribute('data-perkedit');
+          modalPerk(perks[i], i);
+        });
+      });
+      $$('#adminCulturaBody [data-perkdel]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var i = +btn.getAttribute('data-perkdel');
+          var item = perks[i];
+          var tit = item ? (item.titulo || item[0] || 'este motivo') : 'este motivo';
+          modal('<button class="mod-x">✕</button><h3>Eliminar motivo</h3>' +
+            '<p style="color:#33415C;font-size:14px;margin:8px 0 16px">¿Seguro que deseas eliminar <b>' + esc(tit) + '</b>?</p>' +
+            '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-s" id="acPerkDelOk" style="color:#fff;background:#E0447B;border-color:#E0447B">Sí, eliminar</button></div>');
+          $('#acPerkDelOk').addEventListener('click', function () {
+            cfg.perks.splice(i, 1);
+            closeModal();
+            saveCulturaDB(cfg, 'Motivo eliminado de la base de datos.');
+          });
+        });
+      });
     }
   }
 

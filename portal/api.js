@@ -197,6 +197,14 @@ window.SV_API = (function () {
     return await request('DELETE', '/documentos/' + id);
   }
 
+  async function getCultura() {
+    return await request('GET', '/cultura');
+  }
+
+  async function updateCultura(data) {
+    return await request('PUT', '/cultura', data);
+  }
+
   return {
     login: login,
     logout: logout,
@@ -234,6 +242,8 @@ window.SV_API = (function () {
     createDocumento: createDocumento,
     updateDocumento: updateDocumento,
     deleteDocumento: deleteDocumento,
+    getCultura: getCultura,
+    updateCultura: updateCultura,
     getToken: getToken,
     clearToken: clearToken,
   };

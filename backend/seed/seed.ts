@@ -89,8 +89,9 @@ async function seed() {
     { id: 'ventasmenu', g: 'gestion', t: 'Ventas', orden: 4, ico: '<path d="M3 3v18h18"></path><path d="m19 9-5 5-4-4-3 3"></path>' },
     { id: 'induccionequipo', g: 'gestion', t: 'Onboarding del equipo', orden: 5, ico: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path>' },
     { id: 'empleados', g: 'gestion', t: 'Empleados', orden: 6, ico: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M9 13h6M9 17h6"></path>' },
-    { id: 'claves', g: 'gestion', t: 'Restauración de claves', orden: 7, ico: '<rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>' },
-    { id: 'activos', g: 'gestion', t: 'Activos y procura', orden: 8, ico: '<path d="M20 7h-3V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v3H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"></path><path d="M9 7V4h6v3"></path>' },
+    { id: 'gestionsol', g: 'gestion', t: 'Gestión de solicitudes', orden: 7, ico: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8M16 17H8M10 9H8"></path>' },
+    { id: 'claves', g: 'gestion', t: 'Restauración de claves', orden: 8, ico: '<rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>' },
+    { id: 'activos', g: 'gestion', t: 'Activos y procura', orden: 9, ico: '<path d="M20 7h-3V4a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v3H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"></path><path d="M9 7V4h6v3"></path>' },
     { id: 'encuestas', g: 'gestion', t: 'Encuestas', orden: 10, ico: '<path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>' },
     { id: 'contratos', g: 'gestion', t: 'Contratos', orden: 11, ico: '<path d="M9 12h6M9 16h6M9 8h6"></path><path d="M5 3h14a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"></path>' },
     { id: 'perfiles', g: 'config', t: 'Perfiles', orden: 1, ico: '<circle cx="9" cy="7" r="4"></circle><path d="M3 21v-1a6 6 0 0 1 12 0v1"></path><path d="M16 11l2 2 4-4"></path>' },
@@ -98,6 +99,11 @@ async function seed() {
     { id: 'accesos', g: 'config', t: 'Accesos y permisos', orden: 3, ico: '<rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path><circle cx="12" cy="16" r="1"></circle>' },
     { id: 'recursos', g: 'config', t: 'Aplicativos y drives', orden: 4, ico: '<rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect>' },
     // Subpantallas (hijas)
+    { id: 'sol_tec', g: 'gestion', t: 'Tecnología', orden: 1, padre: 'gestionsol', ico: null },
+    { id: 'sol_th', g: 'gestion', t: 'Talento Humano', orden: 2, padre: 'gestionsol', ico: null },
+    { id: 'sol_procura', g: 'gestion', t: 'Procura', orden: 3, padre: 'gestionsol', ico: null },
+    { id: 'sol_servicios', g: 'gestion', t: 'Servicios Generales', orden: 4, padre: 'gestionsol', ico: null },
+    { id: 'sol_nomina', g: 'gestion', t: 'Nómina', orden: 5, padre: 'gestionsol', ico: null },
     { id: 'metas2026', g: 'personal', t: 'Metas 2026', orden: 1, padre: 'metas', ico: null },
     { id: 'metasvision', g: 'personal', t: 'Visión', orden: 2, padre: 'metas', ico: null },
     { id: 'metashist', g: 'personal', t: 'Histórico', orden: 3, padre: 'metas', ico: null },
@@ -120,6 +126,7 @@ async function seed() {
     { id: 'admincom', g: 'personal', t: 'Comunicaciones', orden: 4, padre: 'adminmenu', ico: null },
     { id: 'admininducciones', g: 'personal', t: 'Inducciones', orden: 5, padre: 'adminmenu', ico: null },
     { id: 'admindocs', g: 'personal', t: 'Biblioteca', orden: 6, padre: 'adminmenu', ico: null },
+    { id: 'admincultura', g: 'personal', t: 'Cultura organizacional', orden: 7, padre: 'adminmenu', ico: null },
   ];
 
   // Insert parent items first (no padre), then children

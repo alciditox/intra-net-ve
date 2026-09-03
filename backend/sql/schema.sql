@@ -71,11 +71,33 @@ CREATE TABLE IF NOT EXISTS perfil_pantallas (
   FOREIGN KEY (pantalla_id) REFERENCES pantallas(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
--- Registro de pantalla administrativa Biblioteca (admindocs)
+-- Registro de pantallas administrativas Biblioteca (admindocs) y Cultura organizacional (admincultura)
 INSERT IGNORE INTO pantallas (id, titulo, grupo, padre_id, icono, href_externo, orden) VALUES
-  ('admindocs', 'Biblioteca', 'personal', 'adminmenu', NULL, NULL, 6);
+  ('admindocs', 'Biblioteca', 'personal', 'adminmenu', NULL, NULL, 6),
+  ('admincultura', 'Cultura organizacional', 'personal', 'adminmenu', NULL, NULL, 7);
 INSERT IGNORE INTO perfil_pantallas (perfil_key, pantalla_id) VALUES
-  ('admin', 'admindocs');
+  ('admin', 'admindocs'),
+  ('admin', 'admincultura');
+
+-- Registro de Gestión de Solicitudes y submenús departamentales
+INSERT IGNORE INTO pantallas (id, titulo, grupo, padre_id, icono, href_externo, orden) VALUES
+  ('gestionsol', 'Gestión de solicitudes', 'gestion', NULL, '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path><path d="M16 13H8M16 17H8M10 9H8"></path>', NULL, 7),
+  ('sol_tec', 'Tecnología', 'gestion', 'gestionsol', NULL, NULL, 1),
+  ('sol_th', 'Talento Humano', 'gestion', 'gestionsol', NULL, NULL, 2),
+  ('sol_procura', 'Procura', 'gestion', 'gestionsol', NULL, NULL, 3),
+  ('sol_servicios', 'Servicios Generales', 'gestion', 'gestionsol', NULL, NULL, 4),
+  ('sol_nomina', 'Nómina', 'gestion', 'gestionsol', NULL, NULL, 5);
+
+INSERT IGNORE INTO perfil_pantallas (perfil_key, pantalla_id) VALUES
+  ('admin', 'gestionsol'),
+  ('admin', 'sol_tec'),
+  ('admin', 'sol_th'),
+  ('admin', 'sol_procura'),
+  ('admin', 'sol_servicios'),
+  ('admin', 'sol_nomina'),
+  ('rrhh', 'gestionsol'),
+  ('rrhh', 'sol_th'),
+  ('rrhh', 'sol_nomina');
 
 -- ---------- Personas ----------
 
@@ -438,3 +460,17 @@ CREATE TABLE IF NOT EXISTS inducciones_progreso (
   UNIQUE KEY uq_usuario_mod (usuario_id, modulo_id),
   FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+-- ---------- Cultura Organizacional ----------
+
+CREATE TABLE IF NOT EXISTS cultura_organizacional (
+  id               INT          PRIMARY KEY DEFAULT 1,
+  proposito_titulo VARCHAR(160) NOT NULL DEFAULT '“Hacer crecer tu negocio.”',
+  proposito_desc   TEXT         NOT NULL,
+  mision           TEXT         NOT NULL,
+  vision           TEXT         NOT NULL,
+  valores          JSON         NOT NULL,
+  flywheel         JSON         NOT NULL,
+  perks            JSON         NOT NULL,
+  updated_at       TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
