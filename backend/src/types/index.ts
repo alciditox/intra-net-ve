@@ -85,6 +85,8 @@ export interface JwtPayload {
   email: string;
 }
 
-export interface AuthenticatedRequest extends import('express').Request {
+import { Request } from 'express';
+
+export interface AuthenticatedRequest extends Request {
   user?: JwtPayload;
 }

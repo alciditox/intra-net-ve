@@ -4,6 +4,7 @@ import { RowDataPacket } from 'mysql2';
 import { authMiddleware, adminOnly } from '../middleware/auth';
 import { AuthenticatedRequest } from '../types';
 import { getScreensForProfile, setScreensForProfile } from '../services/menu.service';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -15,7 +16,7 @@ router.get('/', authMiddleware, async (req: AuthenticatedRequest, res: Response)
     );
     res.json(rows);
   } catch (err) {
-    console.error('Pantallas list error:', err);
+    logger.error('Pantallas list error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -26,7 +27,7 @@ router.get('/perfil/:key', authMiddleware, async (req: AuthenticatedRequest, res
     const screens = await getScreensForProfile(req.params.key);
     res.json(screens);
   } catch (err) {
-    console.error('Pantallas perfil error:', err);
+    logger.error('Pantallas perfil error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -43,7 +44,7 @@ router.put('/perfil/:key', authMiddleware, adminOnly, async (req: AuthenticatedR
     await setScreensForProfile(req.params.key, pantallas);
     res.json({ message: 'Pantallas actualizadas para el perfil' });
   } catch (err) {
-    console.error('Pantallas perfil update error:', err);
+    logger.error('Pantallas perfil update error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -67,7 +68,7 @@ router.post('/', authMiddleware, adminOnly, async (req: AuthenticatedRequest, re
       res.status(409).json({ error: 'Ya existe una pantalla con ese ID' });
       return;
     }
-    console.error('Pantalla create error:', err);
+    logger.error('Pantalla create error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -95,7 +96,7 @@ router.put('/:id', authMiddleware, adminOnly, async (req: AuthenticatedRequest, 
     await pool.execute(`UPDATE pantallas SET ${fields.join(', ')} WHERE id = ?`, values);
     res.json({ message: 'Pantalla actualizada' });
   } catch (err) {
-    console.error('Pantalla update error:', err);
+    logger.error('Pantalla update error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -106,7 +107,7 @@ router.delete('/:id', authMiddleware, adminOnly, async (req: AuthenticatedReques
     await pool.execute('DELETE FROM pantallas WHERE id = ?', [req.params.id]);
     res.json({ message: 'Pantalla eliminada' });
   } catch (err) {
-    console.error('Pantalla delete error:', err);
+    logger.error('Pantalla delete error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

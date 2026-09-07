@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import pool from '../config/database';
 import { authMiddleware, adminOnly } from '../middleware/auth';
 import { AuthenticatedRequest } from '../types';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -16,7 +17,7 @@ router.get('/', authMiddleware, async (req: AuthenticatedRequest, res: Response)
     const [rows] = await pool.execute(sql, params);
     res.json(rows);
   } catch (err) {
-    console.error('Documentos list error:', err);
+    logger.error('Documentos list error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno' });
   }
 });
@@ -27,7 +28,7 @@ router.get('/categorias', authMiddleware, async (req: AuthenticatedRequest, res:
     const [rows] = await pool.execute('SELECT * FROM categorias_documento ORDER BY orden ASC');
     res.json(rows);
   } catch (err) {
-    console.error('Categorias list error:', err);
+    logger.error('Categorias list error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno' });
   }
 });
@@ -40,7 +41,7 @@ router.get('/:id', authMiddleware, async (req: AuthenticatedRequest, res: Respon
     if (!arr.length) { res.status(404).json({ error: 'No encontrado' }); return; }
     res.json(arr[0]);
   } catch (err) {
-    console.error('Documento get error:', err);
+    logger.error('Documento get error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno' });
   }
 });
@@ -57,7 +58,7 @@ router.post('/', authMiddleware, adminOnly, async (req: AuthenticatedRequest, re
     );
     res.status(201).json({ id: (result as any).insertId, message: 'Documento creado' });
   } catch (err) {
-    console.error('Documento create error:', err);
+    logger.error('Documento create error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno' });
   }
 });
@@ -76,7 +77,7 @@ router.put('/:id', authMiddleware, adminOnly, async (req: AuthenticatedRequest, 
     await pool.execute(`UPDATE documentos SET ${fields.join(', ')} WHERE id = ?`, values);
     res.json({ message: 'Documento actualizado' });
   } catch (err) {
-    console.error('Documento update error:', err);
+    logger.error('Documento update error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno' });
   }
 });
@@ -87,7 +88,7 @@ router.delete('/:id', authMiddleware, adminOnly, async (req: AuthenticatedReques
     await pool.execute('DELETE FROM documentos WHERE id = ?', [req.params.id]);
     res.json({ message: 'Documento eliminado' });
   } catch (err) {
-    console.error('Documento delete error:', err);
+    logger.error('Documento delete error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno' });
   }
 });

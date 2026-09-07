@@ -6,6 +6,7 @@ import { getAllPermsForUser } from '../services/permission.service';
 import { getBaseChain } from '../services/menu.service';
 import pool from '../config/database';
 import { RowDataPacket } from 'mysql2';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -20,13 +21,15 @@ router.post('/login', async (req, res: Response) => {
 
     const result = await login(email, password, cedula);
     if (!result) {
+      logger.warn('Login fallido', { email, ip: req.ip });
       res.status(401).json({ error: 'Correo o contraseña incorrectos' });
       return;
     }
 
+    logger.info('Login exitoso', { userId: result.user.id, email });
     res.json(result);
   } catch (err) {
-    console.error('Login error:', err);
+    logger.error('Login error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -73,7 +76,7 @@ router.get('/me', authMiddleware, async (req: AuthenticatedRequest, res: Respons
       tieneReportes,
     });
   } catch (err) {
-    console.error('Me error:', err);
+    logger.error('Me error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

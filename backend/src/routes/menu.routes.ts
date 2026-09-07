@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { authMiddleware } from '../middleware/auth';
 import { AuthenticatedRequest } from '../types';
 import { getMenuForUser, userHasReports, userIsApprover } from '../services/menu.service';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -25,7 +26,7 @@ router.get('/', authMiddleware, async (req: AuthenticatedRequest, res: Response)
 
     res.json(menu);
   } catch (err) {
-    console.error('Menu error:', err);
+    logger.error('Menu error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

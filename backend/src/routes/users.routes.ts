@@ -4,6 +4,7 @@ import { RowDataPacket } from 'mysql2';
 import { authMiddleware, adminOnly } from '../middleware/auth';
 import { AuthenticatedRequest } from '../types';
 import { getAllUsers, getUserById, hashPassword } from '../services/auth.service';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -11,9 +12,23 @@ const router = Router();
 router.get('/', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const users = await getAllUsers();
+    const isPrivileged = req.user?.perfil === 'admin' || req.user?.perfil === 'rrhh';
+
+    // Filtrar campos sensibles para usuarios sin privilegios
+    if (!isPrivileged) {
+      const safeUsers = users.map(u => ({
+        id: u.id, nombre: u.nombre, cargo: u.cargo, area: u.area,
+        perfil_key: u.perfil_key, email: u.email, activo: u.activo,
+        es_ancla_equipo: u.es_ancla_equipo, nombre_equipo: u.nombre_equipo,
+        supervisor_id: u.supervisor_id, ciudad: u.ciudad, cumple: u.cumple,
+      }));
+      res.json(safeUsers);
+      return;
+    }
+
     res.json(users);
   } catch (err) {
-    console.error('Users list error:', err);
+    logger.error('Users list error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -28,7 +43,7 @@ router.get('/:id', authMiddleware, async (req: AuthenticatedRequest, res: Respon
     }
     res.json(user);
   } catch (err) {
-    console.error('User get error:', err);
+    logger.error('User get error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -55,7 +70,7 @@ router.post('/', authMiddleware, adminOnly, async (req: AuthenticatedRequest, re
       res.status(409).json({ error: 'Ya existe un usuario con ese correo' });
       return;
     }
-    console.error('User create error:', err);
+    logger.error('User create error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -108,7 +123,7 @@ router.put('/:id', authMiddleware, async (req: AuthenticatedRequest, res: Respon
     await pool.execute(`UPDATE usuarios SET ${fields.join(', ')} WHERE id = ?`, values);
     res.json({ message: 'Usuario actualizado exitosamente' });
   } catch (err) {
-    console.error('User update error:', err);
+    logger.error('User update error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

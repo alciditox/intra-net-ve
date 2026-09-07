@@ -4,6 +4,7 @@ import { RowDataPacket } from 'mysql2';
 import { authMiddleware, adminOnly } from '../middleware/auth';
 import { AuthenticatedRequest } from '../types';
 import { getBaseChain } from '../services/menu.service';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -15,7 +16,7 @@ router.get('/', authMiddleware, async (req: AuthenticatedRequest, res: Response)
     );
     res.json(rows);
   } catch (err) {
-    console.error('Perfiles list error:', err);
+    logger.error('Perfiles list error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -47,7 +48,7 @@ router.get('/:key', authMiddleware, async (req: AuthenticatedRequest, res: Respo
       permisos: (perms as RowDataPacket[]).map(r => r.clave),
     });
   } catch (err) {
-    console.error('Perfil get error:', err);
+    logger.error('Perfil get error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -73,7 +74,7 @@ router.put('/:key', authMiddleware, adminOnly, async (req: AuthenticatedRequest,
     await pool.execute(`UPDATE perfiles SET ${fields.join(', ')} WHERE \`key\` = ?`, values);
     res.json({ message: 'Perfil actualizado' });
   } catch (err) {
-    console.error('Perfil update error:', err);
+    logger.error('Perfil update error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -97,7 +98,7 @@ router.post('/', authMiddleware, adminOnly, async (req: AuthenticatedRequest, re
       res.status(409).json({ error: 'Ya existe un perfil con esa clave' });
       return;
     }
-    console.error('Perfil create error:', err);
+    logger.error('Perfil create error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -130,7 +131,7 @@ router.delete('/:key', authMiddleware, adminOnly, async (req: AuthenticatedReque
     await pool.execute('DELETE FROM perfiles WHERE `key` = ?', [req.params.key]);
     res.json({ message: 'Perfil eliminado' });
   } catch (err) {
-    console.error('Perfil delete error:', err);
+    logger.error('Perfil delete error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

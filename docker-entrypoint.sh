@@ -8,7 +8,7 @@ echo "  ╚═══════════════════════
 echo ""
 
 # -------------------------------------------
-# Esperar a que MySQL esté listo
+# Esperar a que MySQL esté listo (sin interpolación insegura)
 # -------------------------------------------
 echo "⏳ Esperando a que MySQL ($DB_HOST:$DB_PORT) esté disponible..."
 
@@ -16,7 +16,9 @@ MAX_RETRIES=30
 RETRY=0
 until node -e "
   const net = require('net');
-  const s = net.createConnection(${DB_PORT}, '${DB_HOST}');
+  const host = process.env.DB_HOST || '127.0.0.1';
+  const port = parseInt(process.env.DB_PORT || '3306');
+  const s = net.createConnection(port, host);
   s.on('connect', () => { s.destroy(); process.exit(0); });
   s.on('error', () => process.exit(1));
 " 2>/dev/null; do
@@ -33,15 +35,40 @@ echo "✅ MySQL disponible."
 echo ""
 
 # -------------------------------------------
-# Ejecutar seed (crea BD + pobla datos)
+# Ejecutar seed SOLO si la BD no tiene datos
 # -------------------------------------------
-echo "🌱 Ejecutando seed de base de datos..."
+echo "🌱 Verificando si la base de datos necesita seed..."
 cd /app/backend
-npx tsx seed/seed.ts
+
+NEEDS_SEED=$(node -e "
+  const mysql = require('mysql2/promise');
+  (async () => {
+    try {
+      const conn = await mysql.createConnection({
+        host: process.env.DB_HOST, port: parseInt(process.env.DB_PORT || '3306'),
+        user: process.env.DB_USER, password: process.env.DB_PASSWORD || '',
+        database: process.env.DB_NAME || 'intranet_vepagos'
+      });
+      const [rows] = await conn.execute('SELECT COUNT(*) AS cnt FROM perfiles');
+      await conn.end();
+      process.stdout.write(rows[0].cnt > 0 ? 'no' : 'yes');
+    } catch (e) {
+      process.stdout.write('yes');
+    }
+  })();
+" 2>/dev/null)
+
+if [ "$NEEDS_SEED" = "yes" ]; then
+  echo "   Base de datos vacía, ejecutando seed..."
+  node dist/seed/seed.js 2>/dev/null || npx tsx seed/seed.ts
+  echo "   ✅ Seed completado."
+else
+  echo "   ✅ Base de datos ya tiene datos, saltando seed."
+fi
 echo ""
 
 # -------------------------------------------
 # Iniciar el servidor
 # -------------------------------------------
 echo "🚀 Iniciando servidor Express..."
-exec npx tsx src/index.ts
+exec node dist/src/index.js 2>/dev/null || exec npx tsx src/index.ts

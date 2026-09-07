@@ -4,6 +4,7 @@ import { RowDataPacket } from 'mysql2';
 import { authMiddleware, adminOnly } from '../middleware/auth';
 import { AuthenticatedRequest } from '../types';
 import { getPermsCatalog, getAllPermsForUser, grantPerm, revokePerm } from '../services/permission.service';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -13,7 +14,7 @@ router.get('/catalogo', authMiddleware, async (req: AuthenticatedRequest, res: R
     const catalog = await getPermsCatalog();
     res.json(catalog);
   } catch (err) {
-    console.error('Permisos catalog error:', err);
+    logger.error('Permisos catalog error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -44,7 +45,7 @@ router.get('/usuario/:id', authMiddleware, async (req: AuthenticatedRequest, res
       individual: (individual as RowDataPacket[]).map(r => r.clave),
     });
   } catch (err) {
-    console.error('Permisos usuario error:', err);
+    logger.error('Permisos usuario error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -61,7 +62,7 @@ router.post('/grant', authMiddleware, adminOnly, async (req: AuthenticatedReques
     await grantPerm(usuario_id, clave, req.user!.userId);
     res.json({ message: 'Permiso concedido' });
   } catch (err) {
-    console.error('Perm grant error:', err);
+    logger.error('Perm grant error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -78,7 +79,7 @@ router.post('/revoke', authMiddleware, adminOnly, async (req: AuthenticatedReque
     await revokePerm(usuario_id, clave);
     res.json({ message: 'Permiso revocado' });
   } catch (err) {
-    console.error('Perm revoke error:', err);
+    logger.error('Perm revoke error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -92,7 +93,7 @@ router.get('/perfil/:key', authMiddleware, async (req: AuthenticatedRequest, res
     );
     res.json((rows as RowDataPacket[]).map(r => r.clave));
   } catch (err) {
-    console.error('Permisos perfil error:', err);
+    logger.error('Permisos perfil error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -126,7 +127,7 @@ router.put('/perfil/:key', authMiddleware, adminOnly, async (req: AuthenticatedR
 
     res.json({ message: 'Permisos del perfil actualizados' });
   } catch (err) {
-    console.error('Permisos perfil update error:', err);
+    logger.error('Permisos perfil update error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

@@ -5,25 +5,41 @@ import { Perfil, Pantalla, MenuGroup, MenuItem, MenuResponse } from '../types';
 /**
  * Obtiene la cadena de herencia de un perfil (el perfil + sus bases).
  * Ej: 'director' → ['director', 'gerente']
+ * Usa CTE recursiva para obtener toda la cadena en una sola query.
  */
 export async function getBaseChain(perfilKey: string): Promise<string[]> {
-  const chain: string[] = [perfilKey];
-  let current = perfilKey;
-  let guard = 0;
-
-  while (guard++ < 6) {
+  try {
     const [rows] = await pool.execute<RowDataPacket[]>(
-      'SELECT base_key FROM perfiles WHERE `key` = ?',
-      [current]
+      `WITH RECURSIVE chain AS (
+        SELECT \`key\`, base_key, 1 AS depth FROM perfiles WHERE \`key\` = ?
+        UNION ALL
+        SELECT p.\`key\`, p.base_key, c.depth + 1
+        FROM perfiles p
+        INNER JOIN chain c ON p.\`key\` = c.base_key
+        WHERE c.depth < 6
+      )
+      SELECT \`key\` FROM chain ORDER BY depth`,
+      [perfilKey]
     );
-    if (rows.length === 0 || !rows[0].base_key) break;
-    const base = rows[0].base_key as string;
-    if (chain.includes(base)) break;
-    chain.push(base);
-    current = base;
+    return (rows as RowDataPacket[]).map(r => r.key);
+  } catch {
+    // Fallback para MySQL < 8 sin soporte CTE
+    const chain: string[] = [perfilKey];
+    let current = perfilKey;
+    let guard = 0;
+    while (guard++ < 6) {
+      const [rows] = await pool.execute<RowDataPacket[]>(
+        'SELECT base_key FROM perfiles WHERE `key` = ?',
+        [current]
+      );
+      if (rows.length === 0 || !rows[0].base_key) break;
+      const base = rows[0].base_key as string;
+      if (chain.includes(base)) break;
+      chain.push(base);
+      current = base;
+    }
+    return chain;
   }
-
-  return chain;
 }
 
 /**

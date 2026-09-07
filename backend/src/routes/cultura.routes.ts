@@ -3,6 +3,7 @@ import pool from '../config/database';
 import { RowDataPacket } from 'mysql2';
 import { authMiddleware, adminOnly } from '../middleware/auth';
 import { AuthenticatedRequest } from '../types';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -29,19 +30,26 @@ router.get('/', authMiddleware, async (req: AuthenticatedRequest, res: Response)
     }
 
     const row = rows[0] as any;
+    function safeParseJSON(val: any, fallback: any[] = []): any {
+      if (Array.isArray(val)) return val;
+      if (typeof val === 'string') {
+        try { return JSON.parse(val); } catch { return fallback; }
+      }
+      return val || fallback;
+    }
     res.json({
       id: row.id,
       proposito_titulo: row.proposito_titulo,
       proposito_desc: row.proposito_desc,
       mision: row.mision,
       vision: row.vision,
-      valores: typeof row.valores === 'string' ? JSON.parse(row.valores) : (row.valores || []),
-      flywheel: typeof row.flywheel === 'string' ? JSON.parse(row.flywheel) : (row.flywheel || []),
-      perks: typeof row.perks === 'string' ? JSON.parse(row.perks) : (row.perks || []),
+      valores: safeParseJSON(row.valores),
+      flywheel: safeParseJSON(row.flywheel),
+      perks: safeParseJSON(row.perks),
       updated_at: row.updated_at
     });
   } catch (err) {
-    console.error('Cultura get error:', err);
+    logger.error('Cultura get error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -66,14 +74,20 @@ router.put('/', authMiddleware, adminOnly, async (req: AuthenticatedRequest, res
       return;
     }
 
+    // UPSERT: si la fila id=1 no existe, la crea
+    const setCols = fields.join(', ');
+    const colNames = fields.map(f => f.split(' = ')[0]).join(', ');
+    const placeholders = fields.map(() => '?').join(', ');
     await pool.execute(
-      `UPDATE cultura_organizacional SET ${fields.join(', ')} WHERE id = 1`,
-      values
+      `INSERT INTO cultura_organizacional (id, ${colNames})
+       VALUES (1, ${placeholders})
+       ON DUPLICATE KEY UPDATE ${setCols}`,
+      [...values, ...values]
     );
 
     res.json({ message: 'Cultura organizacional actualizada exitosamente' });
   } catch (err: any) {
-    console.error('Cultura update error:', err);
+    logger.error('Cultura update error', { error: err.message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

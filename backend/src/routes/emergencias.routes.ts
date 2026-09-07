@@ -1,8 +1,9 @@
 import { Router, Response } from 'express';
 import pool from '../config/database';
 import { RowDataPacket } from 'mysql2';
-import { authMiddleware } from '../middleware/auth';
+import { authMiddleware, requireRole } from '../middleware/auth';
 import { AuthenticatedRequest } from '../types';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -51,33 +52,37 @@ router.get('/', authMiddleware, async (req: AuthenticatedRequest, res: Response)
     }
 
     const row = rows[0] as any;
+    // Parse seguro de columnas JSON
+    function safeParseJSON(val: any, fallback: any[] = []): any {
+      if (Array.isArray(val)) return val;
+      if (typeof val === 'string') {
+        try { return JSON.parse(val); } catch { return fallback; }
+      }
+      return val || fallback;
+    }
     res.json({
       id: row.id,
       riesgo_telefono: row.riesgo_telefono || '911',
       riesgo_texto: row.riesgo_texto || 'Llama de inmediato a los servicios de emergencia',
-      pasos: typeof row.pasos === 'string' ? JSON.parse(row.pasos) : (row.pasos || []),
+      pasos: safeParseJSON(row.pasos),
       aseguradora_empresa: row.aseguradora_empresa || '',
       aseguradora_producto: row.aseguradora_producto || '',
       aseguradora_poliza: row.aseguradora_poliza || '',
       aseguradora_suma: row.aseguradora_suma || '',
-      cobertura_items: typeof row.cobertura_items === 'string' ? JSON.parse(row.cobertura_items) : (row.cobertura_items || []),
-      no_cubre_items: typeof row.no_cubre_items === 'string' ? JSON.parse(row.no_cubre_items) : (row.no_cubre_items || []),
-      contactos: typeof row.contactos === 'string' ? JSON.parse(row.contactos) : (row.contactos || []),
+      cobertura_items: safeParseJSON(row.cobertura_items),
+      no_cubre_items: safeParseJSON(row.no_cubre_items),
+      contactos: safeParseJSON(row.contactos),
       updated_at: row.updated_at
     });
   } catch (err) {
-    console.error('Emergencias get error:', err);
+    logger.error('Emergencias get error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 
 // PUT /api/emergencias — actualizar información institucional de emergencias (admin o rrhh)
-router.put('/', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+router.put('/', authMiddleware, requireRole('admin', 'rrhh'), async (req: AuthenticatedRequest, res: Response) => {
   try {
-    if (req.user?.perfil !== 'admin' && req.user?.perfil !== 'rrhh') {
-      res.status(403).json({ error: 'Solo administradores o Talento Humano pueden modificar esta información' });
-      return;
-    }
 
     const {
       riesgo_telefono,
@@ -111,15 +116,18 @@ router.put('/', authMiddleware, async (req: AuthenticatedRequest, res: Response)
       return;
     }
 
-    values.push(1); // WHERE id = 1
+    // UPSERT: si la fila id=1 no existe, la crea
+    const setCols = fields.join(', ');
     await pool.execute(
-      `UPDATE emergencias_info SET ${fields.join(', ')} WHERE id = ?`,
-      values
+      `INSERT INTO emergencias_info (id, ${fields.map(f => f.split(' = ')[0]).join(', ')})
+       VALUES (1, ${fields.map(() => '?').join(', ')})
+       ON DUPLICATE KEY UPDATE ${setCols}`,
+      [...values, ...values]
     );
 
     res.json({ message: 'Información de emergencias actualizada exitosamente' });
   } catch (err) {
-    console.error('Emergencias put error:', err);
+    logger.error('Emergencias put error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

@@ -44,10 +44,13 @@ services:
       args:
         WWWUSER: ${HOST_UID:-1000}
         WWWGROUP: ${HOST_GID:-1000}
-    image: ${DOCKER_IMAGE:-intranet-php:latest}
+    image: ${DOCKER_IMAGE:-intranet-node:latest}
     container_name: intranet-app
-    env_file:             # <--- AGREGA ESTO
-      - .env              # <--- AGREGA ESTO
-    networks:             # <--- AGREGA ESTO
-      - proxy             # Para que se hable con Nginx
-      - database          # Para que alcance al host 'db' de MySQL
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - proxy
+      - database
+    logging: *default-logging
+

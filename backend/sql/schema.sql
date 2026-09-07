@@ -126,11 +126,26 @@ CREATE TABLE IF NOT EXISTS usuarios (
   nombre_equipo   VARCHAR(80)  NULL,
   activo          TINYINT(1)   NOT NULL DEFAULT 1,
   creado_en       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at      DATETIME     NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (perfil_key) REFERENCES perfiles(`key`),
   FOREIGN KEY (supervisor_id) REFERENCES usuarios(id) ON DELETE SET NULL,
   INDEX idx_usuarios_supervisor (supervisor_id),
   INDEX idx_usuarios_perfil (perfil_key),
   INDEX idx_usuarios_activo (activo)
+) ENGINE=InnoDB;
+
+-- ---------- Cultura Organizacional Institucional ----------
+
+CREATE TABLE IF NOT EXISTS cultura_organizacional (
+  id               INT PRIMARY KEY DEFAULT 1,
+  proposito_titulo VARCHAR(255) NOT NULL,
+  proposito_desc   TEXT NOT NULL,
+  mision           TEXT NOT NULL,
+  vision           TEXT NOT NULL,
+  valores          JSON NOT NULL,
+  flywheel         JSON NOT NULL,
+  perks            JSON NOT NULL,
+  updated_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
 -- ---------- Información de Emergencias Institucional ----------
@@ -217,15 +232,7 @@ CREATE TABLE IF NOT EXISTS solicitud_tipos (
   INDEX idx_tipos_cat (categoria_id)
 ) ENGINE=InnoDB;
 
--- ---------- Inducciones ----------
-
-CREATE TABLE IF NOT EXISTS inducciones (
-  id         BIGINT       AUTO_INCREMENT PRIMARY KEY,
-  perfil_key VARCHAR(30)  NOT NULL,
-  titulo     VARCHAR(120) NOT NULL,
-  modulos    JSON         NOT NULL,
-  FOREIGN KEY (perfil_key) REFERENCES perfiles(`key`)
-) ENGINE=InnoDB;
+-- (tabla inducciones eliminada — el backend usa inducciones_rutas)
 
 -- ---------- Recursos ----------
 
@@ -249,18 +256,7 @@ CREATE TABLE IF NOT EXISTS historial_actividad (
   INDEX idx_hist_user (usuario_id, ocurrido_en)
 ) ENGINE=InnoDB;
 
--- ---------- Grupos de menú ----------
-
-CREATE TABLE IF NOT EXISTS nav_groups (
-  id    VARCHAR(10) PRIMARY KEY,
-  titulo VARCHAR(60) NOT NULL,
-  orden  SMALLINT    NOT NULL DEFAULT 0
-) ENGINE=InnoDB;
-
-INSERT IGNORE INTO nav_groups (id, titulo, orden) VALUES
-  ('personal', 'Tu espacio', 1),
-  ('gestion', 'Seguimiento del equipo', 2),
-  ('config', 'Configuración', 3);
+-- (nav_groups ya definida e insertada arriba en línea 55-64)
 
 -- ---------- Documentos (biblioteca) ----------
 
@@ -305,7 +301,8 @@ CREATE TABLE IF NOT EXISTS candidatos (
   experiencia VARCHAR(30)  NULL,
   etapa       VARCHAR(30)  NOT NULL DEFAULT 'nuevo',
   fecha       DATE         NULL,
-  nota        TEXT         NULL
+  nota        TEXT         NULL,
+  INDEX idx_candidatos_email (email)
 ) ENGINE=InnoDB;
 
 -- ---------- Activos fijos — catálogos auxiliares ----------

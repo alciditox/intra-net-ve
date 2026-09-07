@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import pool from '../config/database';
 import { authMiddleware, adminOnly } from '../middleware/auth';
 import { AuthenticatedRequest } from '../types';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -10,7 +11,7 @@ router.get('/', authMiddleware, async (_req: AuthenticatedRequest, res: Response
   try {
     const [rows] = await pool.execute('SELECT * FROM candidatos ORDER BY fecha DESC');
     res.json(rows);
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Error interno' }); }
+  } catch (err) { logger.error('Error', { error: (err as Error).message }); res.status(500).json({ error: 'Error interno' }); }
 });
 
 // POST /api/candidatos
@@ -23,7 +24,7 @@ router.post('/', authMiddleware, async (req: AuthenticatedRequest, res: Response
       [nombre, email || null, telefono || null, linkedin || null, ciudad || null, experiencia || null, etapa || 'nuevo', fecha || null, nota || null]
     );
     res.status(201).json({ id: (result as any).insertId, message: 'Candidato creado' });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Error interno' }); }
+  } catch (err) { logger.error('Error', { error: (err as Error).message }); res.status(500).json({ error: 'Error interno' }); }
 });
 
 // PUT /api/candidatos/:id
@@ -37,7 +38,7 @@ router.put('/:id', authMiddleware, async (req: AuthenticatedRequest, res: Respon
     values.push(req.params.id);
     await pool.execute(`UPDATE candidatos SET ${fields.join(', ')} WHERE id = ?`, values);
     res.json({ message: 'Candidato actualizado' });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Error interno' }); }
+  } catch (err) { logger.error('Error', { error: (err as Error).message }); res.status(500).json({ error: 'Error interno' }); }
 });
 
 // DELETE /api/candidatos/:id
@@ -45,7 +46,7 @@ router.delete('/:id', authMiddleware, adminOnly, async (req: AuthenticatedReques
   try {
     await pool.execute('DELETE FROM candidatos WHERE id = ?', [req.params.id]);
     res.json({ message: 'Candidato eliminado' });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Error interno' }); }
+  } catch (err) { logger.error('Error', { error: (err as Error).message }); res.status(500).json({ error: 'Error interno' }); }
 });
 
 export default router;

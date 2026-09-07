@@ -2,7 +2,14 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { JwtPayload, AuthenticatedRequest } from '../types';
 
-export const JWT_SECRET = process.env.JWT_SECRET || 'vepagos_intranet_secret_2026';
+// JWT_SECRET DEBE estar definido; sin fallback inseguro.
+if (!process.env.JWT_SECRET) {
+  console.error('❌ FATAL: JWT_SECRET no está definido en las variables de entorno.');
+  console.error('   Defínelo en el archivo .env antes de iniciar el servidor.');
+  process.exit(1);
+}
+
+export const JWT_SECRET: string = process.env.JWT_SECRET;
 export const JWT_EXPIRES_IN = '24h';
 
 export function authMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
@@ -22,6 +29,23 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
   }
 }
 
+/**
+ * Middleware configurable que permite acceso solo a los perfiles indicados.
+ * Uso: requireRole('admin', 'rrhh')
+ */
+export function requireRole(...roles: string[]) {
+  return function (req: AuthenticatedRequest, res: Response, next: NextFunction): void {
+    if (!req.user || !roles.includes(req.user.perfil)) {
+      res.status(403).json({
+        error: `Se requiere perfil: ${roles.join(' o ')}`
+      });
+      return;
+    }
+    next();
+  };
+}
+
+/** Alias retrocompatible — solo admin */
 export function adminOnly(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
   if (!req.user || req.user.perfil !== 'admin') {
     res.status(403).json({ error: 'Se requiere perfil de Administrador' });

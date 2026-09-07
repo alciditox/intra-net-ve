@@ -3,6 +3,7 @@ import pool from '../config/database';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import { authMiddleware, adminOnly } from '../middleware/auth';
 import { AuthenticatedRequest } from '../types';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -17,7 +18,7 @@ router.get('/', authMiddleware, async (req: AuthenticatedRequest, res: Response)
     );
     res.json(rows);
   } catch (err) {
-    console.error('Inducciones list error:', err);
+    logger.error('Inducciones list error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -41,7 +42,7 @@ router.get('/perfil/:key', authMiddleware, async (req: AuthenticatedRequest, res
     });
     res.json(rutas);
   } catch (err) {
-    console.error('Inducciones perfil error:', err);
+    logger.error('Inducciones perfil error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -51,11 +52,11 @@ router.get('/progreso/mio', authMiddleware, async (req: AuthenticatedRequest, re
   try {
     const [rows] = await pool.execute<RowDataPacket[]>(
       'SELECT modulo_id, aprobado, puntaje_pct, completado_el FROM inducciones_progreso WHERE usuario_id = ?',
-      [req.user!.id]
+      [req.user!.userId]
     );
     res.json(rows);
   } catch (err) {
-    console.error('Error fetching my induction progress:', err);
+    logger.error('Error fetching my induction progress', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -70,7 +71,7 @@ router.get('/progreso/todos', authMiddleware, async (req: AuthenticatedRequest, 
     );
     res.json(rows);
   } catch (err) {
-    console.error('Error fetching all induction progress:', err);
+    logger.error('Error fetching all induction progress', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -88,11 +89,11 @@ router.post('/progreso', authMiddleware, async (req: AuthenticatedRequest, res: 
       `INSERT INTO inducciones_progreso (usuario_id, modulo_id, aprobado, puntaje_pct)
        VALUES (?, ?, 1, ?)
        ON DUPLICATE KEY UPDATE aprobado = 1, puntaje_pct = VALUES(puntaje_pct), completado_el = CURRENT_TIMESTAMP`,
-      [req.user!.id, modulo_id, pct]
+      [req.user!.userId, modulo_id, pct]
     );
     res.status(200).json({ success: true, message: 'Módulo registrado como aprobado' });
   } catch (err) {
-    console.error('Error saving induction progress:', err);
+    logger.error('Error saving induction progress', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -115,7 +116,7 @@ router.get('/:id', authMiddleware, async (req: AuthenticatedRequest, res: Respon
     ruta.modulos = typeof ruta.modulos === 'string' ? JSON.parse(ruta.modulos) : ruta.modulos;
     res.json(ruta);
   } catch (err) {
-    console.error('Inducciones detail error:', err);
+    logger.error('Inducciones detail error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -135,7 +136,7 @@ router.post('/', authMiddleware, adminOnly, async (req: AuthenticatedRequest, re
     );
     res.status(201).json({ id: result.insertId, message: 'Ruta de inducción creada' });
   } catch (err: any) {
-    console.error('Inducciones create error:', err);
+    logger.error('Inducciones create error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -161,7 +162,7 @@ router.put('/:id', authMiddleware, adminOnly, async (req: AuthenticatedRequest, 
     await pool.execute(`UPDATE inducciones_rutas SET ${fields.join(', ')} WHERE id = ?`, values);
     res.json({ message: 'Ruta actualizada' });
   } catch (err: any) {
-    console.error('Inducciones update error:', err);
+    logger.error('Inducciones update error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
@@ -172,7 +173,7 @@ router.delete('/:id', authMiddleware, adminOnly, async (req: AuthenticatedReques
     await pool.execute('DELETE FROM inducciones_rutas WHERE id = ?', [req.params.id]);
     res.json({ message: 'Ruta eliminada' });
   } catch (err) {
-    console.error('Inducciones delete error:', err);
+    logger.error('Inducciones delete error', { error: (err as Error).message });
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 });

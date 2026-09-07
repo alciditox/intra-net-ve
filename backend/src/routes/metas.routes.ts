@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import pool from '../config/database';
 import { authMiddleware, adminOnly } from '../middleware/auth';
 import { AuthenticatedRequest } from '../types';
+import logger from '../utils/logger';
 
 const router = Router();
 
@@ -18,7 +19,7 @@ router.get('/', authMiddleware, async (_req: AuthenticatedRequest, res: Response
       kpis,
       historico
     });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Error interno' }); }
+  } catch (err) { logger.error('Error', { error: (err as Error).message }); res.status(500).json({ error: 'Error interno' }); }
 });
 
 // PUT /api/metas/config
@@ -40,7 +41,7 @@ router.put('/config', authMiddleware, adminOnly, async (req: AuthenticatedReques
         [vision || '', norte || '', updated || null]);
     }
     res.json({ message: 'Config actualizada' });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Error interno' }); }
+  } catch (err) { logger.error('Error', { error: (err as Error).message }); res.status(500).json({ error: 'Error interno' }); }
 });
 
 // POST /api/metas/objetivos
@@ -53,7 +54,7 @@ router.post('/objetivos', authMiddleware, adminOnly, async (req: AuthenticatedRe
       [titulo, descripcion||null, metrica||null, plazo||null, orden||0]
     );
     res.status(201).json({ id: (result as any).insertId, message: 'Objetivo creado' });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Error interno' }); }
+  } catch (err) { logger.error('Error', { error: (err as Error).message }); res.status(500).json({ error: 'Error interno' }); }
 });
 
 // PUT /api/metas/objetivos/:id
@@ -67,7 +68,7 @@ router.put('/objetivos/:id', authMiddleware, adminOnly, async (req: Authenticate
     values.push(req.params.id);
     await pool.execute(`UPDATE metas_objetivos SET ${fields.join(', ')} WHERE id = ?`, values);
     res.json({ message: 'Objetivo actualizado' });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Error interno' }); }
+  } catch (err) { logger.error('Error', { error: (err as Error).message }); res.status(500).json({ error: 'Error interno' }); }
 });
 
 // DELETE /api/metas/objetivos/:id
@@ -75,7 +76,7 @@ router.delete('/objetivos/:id', authMiddleware, adminOnly, async (req: Authentic
   try {
     await pool.execute('DELETE FROM metas_objetivos WHERE id = ?', [req.params.id]);
     res.json({ message: 'Objetivo eliminado' });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Error interno' }); }
+  } catch (err) { logger.error('Error', { error: (err as Error).message }); res.status(500).json({ error: 'Error interno' }); }
 });
 
 // POST /api/metas/kpis
@@ -88,7 +89,7 @@ router.post('/kpis', authMiddleware, adminOnly, async (req: AuthenticatedRequest
       [nombre, actual||null, meta||null, direccion||'up', orden||0]
     );
     res.status(201).json({ id: (result as any).insertId, message: 'KPI creado' });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Error interno' }); }
+  } catch (err) { logger.error('Error', { error: (err as Error).message }); res.status(500).json({ error: 'Error interno' }); }
 });
 
 // PUT /api/metas/kpis/:id
@@ -102,7 +103,7 @@ router.put('/kpis/:id', authMiddleware, adminOnly, async (req: AuthenticatedRequ
     values.push(req.params.id);
     await pool.execute(`UPDATE metas_kpis SET ${fields.join(', ')} WHERE id = ?`, values);
     res.json({ message: 'KPI actualizado' });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Error interno' }); }
+  } catch (err) { logger.error('Error', { error: (err as Error).message }); res.status(500).json({ error: 'Error interno' }); }
 });
 
 // DELETE /api/metas/kpis/:id
@@ -110,7 +111,7 @@ router.delete('/kpis/:id', authMiddleware, adminOnly, async (req: AuthenticatedR
   try {
     await pool.execute('DELETE FROM metas_kpis WHERE id = ?', [req.params.id]);
     res.json({ message: 'KPI eliminado' });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Error interno' }); }
+  } catch (err) { logger.error('Error', { error: (err as Error).message }); res.status(500).json({ error: 'Error interno' }); }
 });
 
 // PUT /api/metas/historico/:id
@@ -126,7 +127,7 @@ router.put('/historico/:id', authMiddleware, adminOnly, async (req: Authenticate
     values.push(req.params.id);
     await pool.execute(`UPDATE metas_historico SET ${fields.join(', ')} WHERE id = ?`, values);
     res.json({ message: 'Histórico actualizado' });
-  } catch (err) { console.error(err); res.status(500).json({ error: 'Error interno' }); }
+  } catch (err) { logger.error('Error', { error: (err as Error).message }); res.status(500).json({ error: 'Error interno' }); }
 });
 
 export default router;

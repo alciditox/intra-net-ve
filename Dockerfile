@@ -2,30 +2,41 @@
 #  Dockerfile — Portal Somos VEPAGOS (backend + frontend)
 # =============================================================
 
+# ─── Stage 1: Install dependencies ────────────────────────
 FROM node:20-alpine AS deps
 
 WORKDIR /app/backend
 
 # Copiar solo package files para cachear npm install
 COPY backend/package.json backend/package-lock.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+RUN npm ci && npm cache clean --force
 
-# Instalar tsx para producción (necesario para ejecutar TypeScript)
-RUN npm install tsx
+# ─── Stage 2: Build TypeScript ────────────────────────────
+FROM deps AS builder
 
-# =============================================================
+WORKDIR /app/backend
+
+COPY backend/tsconfig.json ./
+COPY backend/src/ ./src/
+COPY backend/seed/ ./seed/
+
+# Compilar TypeScript a JavaScript
+RUN npx tsc --project tsconfig.json
+
+# ─── Stage 3: Production runner ──────────────────────────
 FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Copiar dependencias instaladas
-COPY --from=deps /app/backend/node_modules ./backend/node_modules
+# Copiar dependencias de producción
+COPY backend/package.json backend/package-lock.json ./backend/
+RUN cd backend && npm ci --omit=dev && npm cache clean --force
 
-# Copiar código del backend
-COPY backend/package.json ./backend/
-COPY backend/tsconfig.json ./backend/
-COPY backend/src/ ./backend/src/
-COPY backend/seed/ ./backend/seed/
+# Copiar código compilado
+COPY --from=builder /app/backend/dist ./backend/dist
+
+# Copiar seed compilado y esquema SQL
+COPY --from=builder /app/backend/dist ./backend/dist
 COPY backend/sql/ ./backend/sql/
 
 # Copiar datos de seed (JSONs)
@@ -50,3 +61,4 @@ COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
+
