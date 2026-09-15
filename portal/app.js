@@ -1181,7 +1181,7 @@
     };
   }
 
-  var ROLE_LABEL = { admin: 'Administradora', director: 'Director', gerente: 'Gerente Ejecutivo', gerenteop: 'Gerente Operativo', coordinador: 'Coordinador/Supervisor', rrhh: 'Capital Humano', interno: 'Equipo interno', ventas: 'Fuerza de ventas', candidato: 'Candidato', reclutador: 'Reclutador FV', entrenador: 'Entrenador FV', inces: 'Pasante INCES' };
+  var ROLE_LABEL = { admin: 'Super Administrador', director: 'Director', gerente: 'Gerente Ejecutivo', gerenteop: 'Gerente Operativo', coordinador: 'Coordinador/Supervisor', rrhh: 'Capital Humano', interno: 'Equipo interno', ventas: 'Fuerza de ventas', candidato: 'Candidato', reclutador: 'Reclutador FV', entrenador: 'Entrenador FV', inces: 'Pasante INCES' };
   var ONB = window.SV_SEED.ONBOARDING, CATS = window.SV_SEED.DOC_CATS, ANUNCIOS = window.SV_SEED.ANUNCIOS;
 
   /* ---------- helpers ---------- */
@@ -1494,7 +1494,7 @@
 
   /* ---------- login ---------- */
   var DEMO = [
-    ['Administradora', 'admin@somosvepagos.com', '10000001'], ['Director', 'antonio.palermo@somosvepagos.com', '10000010'], ['Gerente Ejecutivo', 'mayra.gruber@somosvepagos.com', '10000070'], ['Gerente Operativo', 'aymara.gonzalez@somosvepagos.com', '10000011'], ['Coordinador/Supervisor', 'victor.torrealba@somosvepagos.com', '10000071'], ['Capital Humano', 'rrhh@somosvepagos.com', '10000077'],
+    ['Super Administrador', 'admin@somosvepagos.com', '10000001'], ['Director', 'antonio.palermo@somosvepagos.com', '10000010'], ['Gerente Ejecutivo', 'mayra.gruber@somosvepagos.com', '10000070'], ['Gerente Operativo', 'aymara.gonzalez@somosvepagos.com', '10000011'], ['Coordinador/Supervisor', 'victor.torrealba@somosvepagos.com', '10000071'], ['Capital Humano', 'rrhh@somosvepagos.com', '10000077'],
     ['Equipo interno', 'gina.sanchez@somosvepagos.com', '10000014'],
     ['Pasante INCES', 'maria.linares@somosvepagos.com', '10000091']
   ];
