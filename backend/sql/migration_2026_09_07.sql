@@ -207,7 +207,8 @@ INSERT IGNORE INTO pantallas (id, titulo, grupo, padre_id, icono, href_externo, 
   ('sol_th', 'Talento Humano', 'gestion', 'gestionsol', NULL, NULL, 2),
   ('sol_procura', 'Procura', 'gestion', 'gestionsol', NULL, NULL, 3),
   ('sol_servicios', 'Servicios Generales', 'gestion', 'gestionsol', NULL, NULL, 4),
-  ('sol_nomina', 'Nómina', 'gestion', 'gestionsol', NULL, NULL, 5);
+  ('sol_nomina', 'Nómina', 'gestion', 'gestionsol', NULL, NULL, 5),
+  ('aflog', 'Log', 'gestion', 'activos', NULL, NULL, 7);
 
 INSERT IGNORE INTO perfil_pantallas (perfil_key, pantalla_id) VALUES
   ('admin', 'gestionsol'),
@@ -216,9 +217,11 @@ INSERT IGNORE INTO perfil_pantallas (perfil_key, pantalla_id) VALUES
   ('admin', 'sol_procura'),
   ('admin', 'sol_servicios'),
   ('admin', 'sol_nomina'),
+  ('admin', 'aflog'),
   ('rrhh', 'gestionsol'),
   ('rrhh', 'sol_th'),
-  ('rrhh', 'sol_nomina');
+  ('rrhh', 'sol_nomina'),
+  ('rrhh', 'aflog');
 
 -- ─────────────────────────────────────────────────────────────
 -- 9. ÍNDICE en candidatos.email

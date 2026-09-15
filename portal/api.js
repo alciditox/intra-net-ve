@@ -26,18 +26,22 @@ window.SV_API = (function () {
   }
 
   async function request(method, path, body) {
-    var opts = { method: method, headers: headers() };
-    if (body) opts.body = JSON.stringify(body);
-    var res = await fetch(API_BASE + path, opts);
-    if (res.status === 401) {
-      clearToken();
-      return { error: 'No autenticado', status: 401 };
+    try {
+      var opts = { method: method, headers: headers() };
+      if (body) opts.body = JSON.stringify(body);
+      var res = await fetch(API_BASE + path, opts);
+      if (res.status === 401) {
+        clearToken();
+        return { error: 'No autenticado', status: 401 };
+      }
+      var data = await res.json();
+      if (!res.ok) {
+        return { error: data.error || 'Error del servidor', status: res.status };
+      }
+      return data;
+    } catch (err) {
+      return { error: err.message || 'Error de conexión con el servidor' };
     }
-    var data = await res.json();
-    if (!res.ok) {
-      return { error: data.error || 'Error del servidor', status: res.status };
-    }
-    return data;
   }
 
   // ===== AUTH =====

@@ -532,6 +532,31 @@
       db.af.activos.push({ id: id, categoria: 'Mercadeo', descripcion: x.descripcion, marca: x.marca, modelo: x.modelo, serial: '', fechaCompra: '2026-02-10', costo: x.costo, proveedor: 'BrandLab C.A.', factura: '', sede: 'Depósito', area: 'PB - Almacén', departamento: 'Comercial', userId: null, fechaAsig: null, estado: 'Disponible', estadoFisico: 'Bueno', ultimoInv: '2026-07-10', creadoPor: 'Isabella M.', obs: 'Activo de mercadeo (no consumible).' });
     });
   }
+  if (!db.af.actasSeed) {
+    db.af.actasSeed = true;
+    if (!db.af.actas || !db.af.actas.length) {
+      db.af.actas = [
+        { id: 'ACTA-0001', activoId: 'AF-0001', descripcion: 'Laptop 14" administración', serial: 'DL-3440-4821', empleado: 'Rosaura García', empleadoCargo: 'Gerente de Finanzas', tipo: 'Entrega', estadoFisico: 'Bueno', notas: 'Equipo entregado para funciones administrativas y de finanzas.', fecha: '2025-11-20', por: 'Isabella M.' }
+      ];
+      db.af.nextActa = 2;
+    }
+  }
+  if (!db.af.auditSeed) {
+    db.af.auditSeed = true;
+    if (!db.af.audit || !db.af.audit.length) {
+      db.af.audit = [
+        { id: db.af.nextAudit++, accion: 'Asignación', entidad: 'AF-0001', detalle: 'Asignó Laptop 14" administración (AF-0001) a Rosaura García — Acta ACTA-0001', por: 'Administradora VEPAGOS', fecha: '2026-07-10T14:30:00Z' },
+        { id: db.af.nextAudit++, accion: 'Alta', entidad: 'AF-0002', detalle: 'Registró el activo AF-0002 — Laptop 15" comercial (Lenovo ThinkPad E15)', por: 'Isabella M.', fecha: '2026-07-09T10:15:00Z' },
+        { id: db.af.nextAudit++, accion: 'Salida', entidad: 'CO-004', detalle: 'Salida de 25 Rollo — Rollo papel térmico POS → Equipo POS (Comercial)', por: 'Isabella M.', fecha: '2026-07-09T09:40:00Z' },
+        { id: db.af.nextAudit++, accion: 'Salida', entidad: 'CO-001', detalle: 'Salida de 8 Resma — Resma de papel carta → Rosaura García (Finanzas)', por: 'Isabella M.', fecha: '2026-07-08T11:20:00Z' },
+        { id: db.af.nextAudit++, accion: 'Aprobación', entidad: 'SC-0002', detalle: 'Aprobó la solicitud SC-0002 de Tecnología', por: 'Administradora VEPAGOS', fecha: '2026-07-10T16:00:00Z' },
+        { id: db.af.nextAudit++, accion: 'Solicitud', entidad: 'SC-0001', detalle: 'Creó la solicitud de compra SC-0001 (2 ítem(s)) para Administración', por: 'Jesús David', fecha: '2026-07-11T08:30:00Z' },
+        { id: db.af.nextAudit++, accion: 'Alta', entidad: 'AF-0004', detalle: 'Registró el activo AF-0004 — Terminal POS demo A50', por: 'Isabella M.', fecha: '2026-07-05T15:00:00Z' },
+        { id: db.af.nextAudit++, accion: 'Envío a reparación', entidad: 'AF-0004', detalle: 'Envío a reparación — AF-0004 (Terminal POS demo A50): Pantalla con falla táctil', por: 'Isabella M.', fecha: '2026-07-06T09:00:00Z' },
+        { id: db.af.nextAudit++, accion: 'Carga masiva', entidad: '', detalle: 'Carga masiva en Almacén consumibles: 4 nuevo(s), 0 actualizado(s)', por: 'Isabella M.', fecha: '2026-07-01T08:00:00Z' }
+      ];
+    }
+  }
   if (!db.activos.some(function (a) { return a.ingreso; })) {
     db.activos.push({ id: db.nextActId++, userId: 14, nombre: 'Kit de ingreso: carnet corporativo y uniforme', serial: 'ING-2026-014', fecha: '2026-03-02', por: 'Jesús David', ingreso: true });
     db.activos.push({ id: db.nextActId++, userId: 21, nombre: 'Kit de ingreso: carnet y material de ventas', serial: 'ING-2026-021', fecha: '2026-04-18', por: 'Jesús David', ingreso: true });
@@ -861,7 +886,8 @@
       { id: 'aftech', t: 'Almacén de tecnología' },
       { id: 'afalmacen', t: 'Almacén consumibles' },
       { id: 'afmercadeo', t: 'Almacén Mercadeo' },
-      { id: 'afprocura', t: 'Procura' }
+      { id: 'afprocura', t: 'Procura' },
+      { id: 'aflog', t: 'Log' }
     ] },
     { id: 'asistencia', g: 'gestion', t: 'Asistencia', roles: 'all', ico: '<rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M8 2v4M16 2v4M3 10h18"></path><path d="m9 16 2 2 4-4"></path>' },
     { id: 'encuestas', g: 'gestion', t: 'Encuestas', roles: ['admin', 'rrhh'], ico: '<path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>' },
@@ -944,8 +970,11 @@
     /* Si tenemos menú del API, usarlo como fuente de verdad */
     if (_apiMenuIds) {
       if (item.id === 'inicio' || item.id === 'perfil') return true;
+      if (item.id === 'aflog' && (_apiMenuIds.indexOf('aflog') > -1 || _apiMenuIds.indexOf('activos') > -1 || _apiMenuIds.indexOf('afpanel') > -1 || (me && (me.role === 'admin' || me.role === 'rrhh')))) return true;
       if (item.sub && item.sub.length) {
-        return item.sub.some(function (c) { return _apiMenuIds.indexOf(c.id) > -1; });
+        return item.sub.some(function (c) {
+          return _apiMenuIds.indexOf(c.id) > -1 || (c.id === 'aflog' && (_apiMenuIds.indexOf('activos') > -1 || _apiMenuIds.indexOf('afpanel') > -1 || (me && (me.role === 'admin' || me.role === 'rrhh'))));
+        });
       }
       return _apiMenuIds.indexOf(item.id) > -1;
     }
@@ -1042,6 +1071,9 @@
                   if (it.sub) it.sub.forEach(function (s) { _apiMenuIds.push(s.id); });
                 });
               });
+              if ((_apiMenuIds.indexOf('activos') > -1 || _apiMenuIds.indexOf('afpanel') > -1 || (u && (u.role === 'admin' || u.role === 'rrhh'))) && _apiMenuIds.indexOf('aflog') < 0) {
+                _apiMenuIds.push('aflog');
+              }
             }
             $('#lgErr').style.display = 'none';
             doLogin(u);
@@ -1172,7 +1204,7 @@
     $$('#sbNav a').forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-go') === id); });
     var item = null;
     NAV.forEach(function (n) { if (n.id === id) item = n; if (n.sub) n.sub.forEach(function (c) { if (c.id === id) item = c; }); });
-    $('#pageTitle').textContent = item ? (id === 'adminfrec' || id === 'adminsomos' || id === 'adminenc' || id === 'admincom' || id === 'admininducciones' || id === 'admindocs' || id === 'admincultura' || id === 'adminemergencias' ? 'Administración · ' + item.t : (item.t === 'Metas 2026' || item.t === 'Visión' || item.t === 'Histórico' ? 'Metas · ' + item.t : ((id === 'afpanel' || id === 'afactivos' || id === 'aftech' || id === 'afalmacen' || id === 'afmercadeo' || id === 'afprocura') ? 'Activos y procura · ' + item.t : ((id === 'ventasfv' || id === 'ventasbancos') ? 'Ventas · ' + item.t : ((id === 'sol_tec' || id === 'sol_th' || id === 'sol_procura' || id === 'sol_servicios' || id === 'sol_nomina') ? 'Gestión solicitudes · ' + item.t : navLabel(item)))))) : '';
+    $('#pageTitle').textContent = item ? (id === 'adminfrec' || id === 'adminsomos' || id === 'adminenc' || id === 'admincom' || id === 'admininducciones' || id === 'admindocs' || id === 'admincultura' || id === 'adminemergencias' ? 'Administración · ' + item.t : (item.t === 'Metas 2026' || item.t === 'Visión' || item.t === 'Histórico' ? 'Metas · ' + item.t : ((id === 'afpanel' || id === 'afactivos' || id === 'aftech' || id === 'afalmacen' || id === 'afmercadeo' || id === 'afprocura' || id === 'aflog') ? 'Activos y procura · ' + item.t : ((id === 'ventasfv' || id === 'ventasbancos') ? 'Ventas · ' + item.t : ((id === 'sol_tec' || id === 'sol_th' || id === 'sol_procura' || id === 'sol_servicios' || id === 'sol_nomina') ? 'Gestión solicitudes · ' + item.t : navLabel(item)))))) : '';
     var R = {
       inicio: rInicio,
       adminmenu: rAdminFrec, adminfrec: rAdminFrec, adminsomos: rAdminSomos, adminenc: rEncuestas, admincom: rAdminCom, admininducciones: rAdminInducciones, admindocs: rAdminDocs, admincultura: rAdminCultura, adminemergencias: rAdminEmergencias,
@@ -1186,7 +1218,7 @@
       sol_servicios: function () { rGestionDeptSol('servicios'); },
       sol_nomina: function () { rGestionDeptSol('nomina'); },
       solequipo: rSolEquipo, claves: rClaves,
-      activos: rAfPanel, afpanel: rAfPanel, afactivos: rAfActivos, aftech: rAfTech, afalmacen: rAfAlmacen, afmercadeo: rAfMercadeo, afprocura: rAfProcura,
+      activos: rAfPanel, afpanel: rAfPanel, afactivos: rAfActivos, aftech: rAfTech, afalmacen: rAfAlmacen, afmercadeo: rAfMercadeo, afprocura: rAfProcura, aflog: rAfLog,
       ventasmenu: rEquipo, ventasfv: rEquipo, ventasbancos: rBancos,
       org: rOrg, directorio: rDirectorio, equipo: rEquipo,
       onboarding: rOnboarding, induccionequipo: rOnboarding, pendientes: rPendientes,
@@ -1486,13 +1518,42 @@
   }
 
   function activosHtml(uid) {
-    var acts = db.activos.filter(function (a) { return a.userId === uid; });
-    if (!acts.length) return '<div class="empty" style="padding:14px 0">Sin activos fijos asignados.</div>';
-    return acts.map(function (a) {
-      return '<div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #EEF3F9;flex-wrap:wrap">' +
-        '<div style="flex:1;min-width:180px"><div style="font-weight:700;color:var(--navy);font-size:14px">' + esc(a.nombre) + '</div><div style="font-size:12.5px;color:var(--muted)">Serial: ' + esc(a.serial) + ' · ' + a.fecha + '</div></div>' +
-        (a.ingreso ? '<span class="chip b">Entrega de ingreso</span>' : '<span class="chip g">Asignado</span>') + '</div>';
-    }).join('');
+    var afList = (db.af && db.af.activos ? db.af.activos : []).filter(function (a) { return a.userId === uid && a.estado === 'Asignado'; });
+    var legacyList = (db.activos || []).filter(function (a) { return a.userId === uid; });
+    if (!afList.length && !legacyList.length) return '<div class="empty" style="padding:14px 0">Sin activos fijos asignados.</div>';
+    var html = '';
+    if (afList.length) {
+      html += afList.map(function (a) {
+        var acta = (db.af && db.af.actas ? db.af.actas : []).slice().reverse().find(function (x) { return x.activoId === a.id; });
+        return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #EEF3F9;flex-wrap:wrap">' +
+          '<div style="flex:1;min-width:200px">' +
+            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;flex-wrap:wrap">' +
+              '<b style="color:var(--navy);font-size:14px">' + esc(a.descripcion) + '</b>' +
+              '<span class="chip b" style="font-size:10.5px">' + esc(a.id) + '</span>' +
+              '<span class="chip n" style="font-size:10.5px">' + esc(a.categoria) + '</span>' +
+            '</div>' +
+            '<div style="font-size:12px;color:var(--muted)">' +
+              (a.marca ? esc(a.marca) + (a.modelo ? ' · ' + esc(a.modelo) : '') + ' · ' : '') +
+              'Serial: <b style="color:var(--navy)">' + esc(a.serial || '—') + '</b>' +
+              (a.fechaAsig ? ' · Asignado: ' + fechaCorta(a.fechaAsig) : '') +
+              (a.estadoFisico ? ' · Estado: ' + esc(a.estadoFisico) : '') +
+            '</div>' +
+          '</div>' +
+          '<div style="display:flex;gap:6px;align-items:center">' +
+            '<span class="chip g">Asignado</span>' +
+            (acta ? '<button class="btn-s" data-afactadown="' + esc(acta.id) + '" style="font-size:11.5px;padding:4px 9px">Acta ' + esc(acta.id) + '</button>' : '') +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+    if (legacyList.length) {
+      html += legacyList.map(function (a) {
+        return '<div style="display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #EEF3F9;flex-wrap:wrap">' +
+          '<div style="flex:1;min-width:180px"><div style="font-weight:700;color:var(--navy);font-size:14px">' + esc(a.nombre) + '</div><div style="font-size:12.5px;color:var(--muted)">Serial: ' + esc(a.serial) + ' · ' + (a.fecha ? fechaCorta(a.fecha) : '') + '</div></div>' +
+          (a.ingreso ? '<span class="chip b">Entrega de ingreso</span>' : '<span class="chip g">Asignado</span>') + '</div>';
+      }).join('');
+    }
+    return html;
   }
 
   function isSysManager(u) { return u && u.role === 'gerente' && /sistema/i.test(u.cargo || ''); }
@@ -1573,10 +1634,14 @@
           '<div style="min-width:0"><div style="font-size:10.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted2)">' + label + '</div><div style="font-weight:700;color:var(--navy);font-size:14.5px;word-break:break-word">' + val + '</div></div>' +
         '</div>';
       }
+      var assignedTech = (db.af && db.af.activos ? db.af.activos : []).filter(function (a) { return a.userId === u.id && a.estado === 'Asignado'; });
+      var techTxt = assignedTech.length ? assignedTech.map(function (a) { return '<div style="display:inline-flex;align-items:center;gap:6px;margin:2px 4px 2px 0"><span class="chip b" style="font-size:11.5px">' + esc(a.descripcion) + '</span><span class="chip n" style="font-size:10px">' + esc(a.id) + (a.serial ? ' · ' + esc(a.serial) : '') + '</span></div>'; }).join('') : '<span style="color:var(--muted2);font-weight:500;font-size:13.5px">Sin equipos asignados</span>';
+
       var body = cRow('<rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-10 6L2 7"></path>', 'Correo', '<a href="mailto:' + esc(u.email) + '" style="color:var(--navy)">' + esc(u.email) + '</a>') +
         cRow('<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"></path>', 'Teléfono', esc(u.telefono || '—')) +
         cRow('<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle>', 'Ciudad', esc(u.ciudad || '—')) +
-        (g ? cRow('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>', 'Reporta a', esc(g.nombre) + ' <span style="color:var(--muted);font-weight:500">· ' + esc(g.cargo) + '</span>') : '');
+        (g ? cRow('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>', 'Reporta a', esc(g.nombre) + ' <span style="color:var(--muted);font-weight:500">· ' + esc(g.cargo) + '</span>') : '') +
+        cRow('<rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M8 21h8M12 17v4"></path>', 'Equipos asignados', techTxt);
       modal(
         '<button class="mod-x"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>' +
         hero + body +
@@ -6113,7 +6178,7 @@
     $$('#modalHost [data-afacta]').forEach(function (x) { x.addEventListener('click', function () { var ac = db.af.actas.find(function (z) { return z.id === x.getAttribute('data-afacta'); }); if (ac) afActaDownload(ac); }); });
   }
 
-  function afReRenderList() { if (current === 'aftech') rAfTech(); else if (current === 'afmercadeo') rAfMercadeo(); else if (current === 'afalmacen') rAfAlmacen(); else if (current === 'afpanel' || current === 'activos') rAfPanel(); else rAfActivos(); }
+  function afReRenderList() { if (current === 'aftech') rAfTech(); else if (current === 'afmercadeo') rAfMercadeo(); else if (current === 'afalmacen') rAfAlmacen(); else if (current === 'aflog') rAfLog(); else if (current === 'afpanel' || current === 'activos') rAfPanel(); else rAfActivos(); }
   function afAddMov(a, tipo, detalle, actaId) { var m = { id: db.af.nextMov++, activoId: a.id, tipo: tipo, detalle: detalle || '', fecha: nowStamp(), por: me.nombre, actaId: actaId || null }; db.af.movs.push(m); return m; }
   function afMovSimple(a, tipo, nuevoEstado) {
     if (afBlock('activosGestionar')) return;
@@ -6231,6 +6296,15 @@
     var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
     var url = URL.createObjectURL(blob); var link = document.createElement('a'); link.href = url; link.download = acta.id + '.html'; document.body.appendChild(link); link.click(); link.remove(); setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
+  document.addEventListener('click', function (e) {
+    var ad = e.target.closest('[data-afactadown]');
+    if (ad) {
+      var actId = ad.getAttribute('data-afactadown');
+      var ac = (db.af && db.af.actas ? db.af.actas : []).find(function (z) { return z.id === actId; });
+      if (ac) afActaDownload(ac);
+      else toast('Acta ' + actId + ' no encontrada.');
+    }
+  });
   function afExportInventario() {
     var cols = ['ID', 'Categoría', 'Descripción', 'Marca', 'Modelo', 'Serial', 'Sede', 'Área', 'Departamento', 'Asignado a', 'Estado', 'Estado físico', 'Costo USD', 'Proveedor', 'Factura'];
     var rows = db.af.activos.map(function (a) { var u = a.userId ? byId(a.userId) : null; return [a.id, a.categoria, a.descripcion, a.marca, a.modelo, a.serial, a.sede, a.area, a.departamento, u ? u.nombre : '', a.estado, a.estadoFisico, a.costo, a.proveedor, a.factura]; });
@@ -6705,6 +6779,153 @@
     saveDB(db); closeModal(); refreshNav(); rAfProcura(); toast('Recepción registrada. Stock y activos actualizados.');
   }
 
+  /* ---------- M7 · LOG Y AUDITORÍA DE ACTIVOS Y PROCURA ---------- */
+  var afLogFiltro = { q: '', accion: 'todas' };
+  function afExportLog() {
+    var cols = ['ID', 'Fecha y Hora', 'Acción', 'Entidad / ID', 'Detalle del movimiento', 'Realizado por'];
+    var rows = (db.af.audit || []).map(function (h) {
+      return [h.id, fmtStamp(h.fecha), h.accion, h.entidad || '', h.detalle || '', h.por || ''];
+    });
+    var csv = [cols].concat(rows).map(function (r) {
+      return r.map(function (c) {
+        c = String(c == null ? '' : c);
+        return /[",\n]/.test(c) ? '"' + c.replace(/"/g, '""') + '"' : c;
+      }).join(',');
+    }).join('\n');
+    var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'Log_auditoria_activos_procura_VEPAGOS.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+    toast('Log de auditoría exportado a CSV.');
+  }
+
+  function rAfLog() {
+    resetContent();
+    var aud = (db.af && db.af.audit) || [];
+
+    var totalLogs = aud.length;
+    var asigRetLogs = aud.filter(function (h) { return /asigna|devolu|retiro|sustitu/i.test(h.accion || ''); }).length;
+    var altasBajasLogs = aud.filter(function (h) { return /alta|creaci|baja|elimina/i.test(h.accion || ''); }).length;
+    var almLogs = aud.filter(function (h) { return /almac|stock|entrada|salida|ajuste|carga masiva/i.test(h.accion || ''); }).length;
+    var procLogs = aud.filter(function (h) { return /solicitud|aprobaci|rechazo|orden|recepci|proveedor/i.test(h.accion || ''); }).length;
+
+    function kpi(n, l, col, ico) {
+      return '<div class="dash-kpi" style="cursor:default"><span class="dash-kpi-ic" style="background:' + col + '18;color:' + col + '"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ico + '</svg></span><div><div class="dash-kpi-n">' + n + '</div><div class="dash-kpi-l">' + l + '</div></div></div>';
+    }
+
+    var html = afHero('Auditoría y trazabilidad', 'Log de movimientos', 'Registro detallado e inmutable de cada movimiento, asignación, retiro, baja, edición y compra en Activos y procura.',
+      '<button class="btn-g" id="afExpLog" style="background:#fff;color:var(--navy)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M7 10l5 5 5-5M12 15V3"></path></svg>Exportar log a CSV</button>');
+
+    html += '<div class="dash-kpis" style="margin-bottom:16px">' +
+      kpi(totalLogs, 'Total movimientos', '#2A6FDB', '<circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path>') +
+      kpi(asigRetLogs, 'Asignaciones / Retiros', '#00CE7C', '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 11l-3 3-2-2"></path>') +
+      kpi(altasBajasLogs, 'Altas y Bajas', '#E07B1E', '<path d="M12 5v14M5 12h14"></path>') +
+      kpi(almLogs, 'Movimientos almacén', '#8A5CD1', '<path d="M17 8l4 4-4 4M7 16l-4-4 4-4"></path>') +
+      kpi(procLogs, 'Procura y compras', '#2A6FDB', '<path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path>') +
+    '</div>';
+
+    var ACCIONES = [
+      ['todas', 'Todas las acciones'],
+      ['Alta', 'Altas / Creación'],
+      ['Edición', 'Edición'],
+      ['Asignación', 'Asignaciones'],
+      ['Devolución', 'Devoluciones / Retiros'],
+      ['Sustitución', 'Sustituciones'],
+      ['Envío a reparación', 'Reparaciones'],
+      ['Baja', 'Bajas'],
+      ['Almacén', 'Almacén / Stock'],
+      ['Solicitud', 'Procura / Solicitudes'],
+      ['Orden de compra', 'Órdenes / Recepción'],
+      ['Carga masiva', 'Cargas masivas']
+    ];
+
+    html += '<div class="card" style="margin-bottom:14px"><div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">' +
+      '<div style="position:relative;flex:1;min-width:220px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" style="position:absolute;left:11px;top:50%;transform:translateY(-50%)"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg><input id="afLogQ" type="text" value="' + esc(afLogFiltro.q) + '" placeholder="Buscar por ID, bien, empleado, responsable, detalle…" style="width:100%;border:1.5px solid #D9E2EF;border-radius:10px;padding:9px 11px 9px 34px;font-family:inherit;font-size:13.5px"></div>' +
+      '<div class="doccat">' + ACCIONES.map(function (ac) { return '<button data-aflact="' + esc(ac[0]) + '" class="' + (afLogFiltro.accion === ac[0] ? 'on' : '') + '">' + esc(ac[1]) + '</button>'; }).join('') + '</div>' +
+      '</div></div>';
+
+    var q = (afLogFiltro.q || '').toLowerCase().trim();
+    var list = aud.filter(function (h) {
+      if (afLogFiltro.accion !== 'todas') {
+        var actNorm = (h.accion || '').toLowerCase();
+        var filtroNorm = afLogFiltro.accion.toLowerCase();
+        if (filtroNorm === 'alta' && actNorm.indexOf('alta') < 0 && actNorm.indexOf('creaci') < 0) return false;
+        else if (filtroNorm === 'edición' && actNorm.indexOf('edici') < 0) return false;
+        else if (filtroNorm === 'asignación' && actNorm.indexOf('asigna') < 0) return false;
+        else if (filtroNorm === 'devolución' && actNorm.indexOf('devolu') < 0 && actNorm.indexOf('retiro') < 0) return false;
+        else if (filtroNorm === 'sustitución' && actNorm.indexOf('sustitu') < 0) return false;
+        else if (filtroNorm === 'envío a reparación' && actNorm.indexOf('reparaci') < 0 && actNorm.indexOf('retorno') < 0) return false;
+        else if (filtroNorm === 'baja' && actNorm.indexOf('baja') < 0 && actNorm.indexOf('elimina') < 0) return false;
+        else if (filtroNorm === 'almacén' && actNorm.indexOf('almac') < 0 && actNorm.indexOf('stock') < 0 && actNorm.indexOf('entrada') < 0 && actNorm.indexOf('salida') < 0 && actNorm.indexOf('ajuste') < 0) return false;
+        else if (filtroNorm === 'solicitud' && actNorm.indexOf('solicitud') < 0 && actNorm.indexOf('aprobaci') < 0 && actNorm.indexOf('rechazo') < 0) return false;
+        else if (filtroNorm === 'orden de compra' && actNorm.indexOf('orden') < 0 && actNorm.indexOf('recepci') < 0) return false;
+        else if (filtroNorm === 'carga masiva' && actNorm.indexOf('carga masiva') < 0) return false;
+      }
+      if (q) {
+        var hayMatch = [h.id, h.accion, h.entidad, h.detalle, h.por, fmtStamp(h.fecha)].join(' ').toLowerCase().indexOf(q) > -1;
+        if (!hayMatch) return false;
+      }
+      return true;
+    });
+
+    function chipColor(accion) {
+      var a = (accion || '').toLowerCase();
+      if (a.indexOf('asigna') > -1) return 'b';
+      if (a.indexOf('alta') > -1 || a.indexOf('creaci') > -1 || a.indexOf('aprobaci') > -1 || a.indexOf('recepci') > -1) return 'g';
+      if (a.indexOf('devolu') > -1 || a.indexOf('retiro') > -1 || a.indexOf('edici') > -1) return 'y';
+      if (a.indexOf('sustitu') > -1) return 'p';
+      if (a.indexOf('baja') > -1 || a.indexOf('rechazo') > -1 || a.indexOf('elimina') > -1) return 'r';
+      return 'n';
+    }
+
+    html += '<div class="card" style="padding:6px 16px"><div style="overflow-x:auto"><table class="tbl"><thead><tr><th style="width:140px">Fecha y hora</th><th style="width:130px">Acción</th><th style="width:110px">ID / Entidad</th><th>Detalle del movimiento</th><th style="width:160px">Realizado por</th></tr></thead><tbody>' +
+      (list.length ? list.map(function (h) {
+        var isAct = h.entidad && /^AF-\d+/i.test(h.entidad);
+        var isSol = h.entidad && /^SC-\d+/i.test(h.entidad);
+        var isOrd = h.entidad && /^OC-\d+/i.test(h.entidad);
+        var entHtml = h.entidad ? '<b style="color:var(--navy);font-size:12.5px' + (isAct || isSol || isOrd ? ';cursor:pointer;text-decoration:underline' : '') + '"' + (isAct ? ' data-afver="' + esc(h.entidad) + '"' : (isSol ? ' data-afsol="' + esc(h.entidad) + '"' : (isOrd ? ' data-aford="' + esc(h.entidad) + '"' : ''))) + '>' + esc(h.entidad) + '</b>' : '<span style="color:var(--muted2)">—</span>';
+        return '<tr>' +
+          '<td style="font-size:12px;color:var(--muted2);white-space:nowrap"><b>' + esc(fmtStamp(h.fecha)) + '</b></td>' +
+          '<td><span class="chip ' + chipColor(h.accion) + '" style="font-size:11px">' + esc(h.accion) + '</span></td>' +
+          '<td>' + entHtml + '</td>' +
+          '<td><div style="font-size:13.5px;color:var(--navy);font-weight:600;line-height:1.4">' + esc(h.detalle) + '</div></td>' +
+          '<td style="font-size:12.5px;color:var(--muted2)">' + esc(h.por || 'Sistema') + '</td>' +
+        '</tr>';
+      }).join('') : '<tr><td colspan="5"><div class="empty">No hay registros de auditoría que coincidan con los filtros.</div></td></tr>') +
+      '</tbody></table></div></div>';
+
+    $('#content').innerHTML = html;
+    var expBtn = $('#afExpLog');
+    if (expBtn) expBtn.addEventListener('click', afExportLog);
+    var lq = $('#afLogQ');
+    if (lq) lq.addEventListener('input', function () {
+      afLogFiltro.q = lq.value;
+      var pos = lq.selectionStart;
+      rAfLog();
+      var n = $('#afLogQ');
+      if (n) { n.focus(); n.setSelectionRange(pos, pos); }
+    });
+    $$('#content [data-aflact]').forEach(function (b) {
+      b.addEventListener('click', function () {
+        afLogFiltro.accion = b.getAttribute('data-aflact');
+        rAfLog();
+      });
+    });
+    $('#content').addEventListener('click', function (e) {
+      var v = e.target.closest('[data-afver]');
+      if (v) { afFichaModal(afActById(v.getAttribute('data-afver'))); return; }
+      var so = e.target.closest('[data-afsol]');
+      if (so) { afSolModal(db.af.solicitudes.find(function (s) { return s.id === so.getAttribute('data-afsol'); })); return; }
+      var ord = e.target.closest('[data-aford]');
+      if (ord) { afOrdenModal(db.af.ordenes.find(function (o) { return o.id === ord.getAttribute('data-aford'); })); }
+    });
+  }
+
   /* ---------- EMPLEADOS (admin/rrhh) ---------- */
   function rEmpleados() {
     resetContent();
@@ -6731,6 +6952,7 @@
     $('#btnAddEmp').addEventListener('click', function () {
       var vacs = db.vacantes.filter(function (v) { return v.estado === 'abierta' && v.prioridad !== 'pausa'; });
       if (!vacs.length) { toast('No hay vacantes disponibles para cubrir. El administrador debe crear la vacante (no en pausa) en el Organigrama primero.'); return; }
+      var techDisp = (db.af && db.af.activos ? db.af.activos : []).filter(function (a) { return AF_TECH.indexOf(a.categoria) > -1 && a.estado === 'Disponible'; });
       modal('<button class="mod-x">✕</button><h3>Agregar persona</h3><p style="color:var(--muted);font-size:14px;margin:4px 0 8px">Solo se pueden crear usuarios sobre una vacante abierta. La vacante quedará cubierta.</p>' +
         '<div class="fld"><label>Vacante que ocupa</label><select id="neV">' + vacs.map(function (v) { var m = byId(v.managerId); return '<option value="' + v.id + '">' + esc(v.cargo) + ' — reporta a ' + esc(m ? m.nombre : '—') + '</option>'; }).join('') + '</select></div>' +
         '<div class="fld"><label>Nombre completo</label><input id="neN" type="text" placeholder="Nombre y apellido"></div>' +
@@ -6743,6 +6965,12 @@
         '<div class="fld"><label>Dirección</label><input id="neDir" type="text" placeholder="Urbanización, calle, ciudad"></div>' +
         '<div class="fld"><label>Persona de emergencia</label><input id="neEmN" type="text" placeholder="Nombre y parentesco"></div>' +
         '<div class="fld"><label>Contacto de emergencia</label><input id="neEmT" type="tel" placeholder="+58 412 0000000"></div>' +
+        '<div class="fld"><label>Asignar activo de tecnología <span style="color:var(--muted2)">(opcional)</span></label>' +
+        '<select id="neTechActivo"><option value="">— Sin asignación de equipo por ahora —</option>' +
+        (techDisp.length ? techDisp.map(function (a) {
+          return '<option value="' + esc(a.id) + '">' + esc(a.id) + ' · ' + esc(a.descripcion) + (a.marca ? ' (' + esc(a.marca) + (a.modelo ? ' ' + esc(a.modelo) : '') + ')' : '') + (a.serial ? ' · Serial: ' + esc(a.serial) : '') + ' [' + esc(a.categoria) + ']</option>';
+        }).join('') : '<option value="" disabled>No hay equipos de tecnología disponibles en almacén</option>') +
+        '</select><div class="note" style="margin:4px 0 0">Permite asignar inmediatamente una laptop, terminal POS o equipo audiovisual disponible. Genera su acta de entrega y registro en auditoría.</div></div>' +
         '<div class="fld"><label>Requerimientos del cargo</label><div class="note" style="margin:0 0 6px">Vienen preasignados según el <b>perfil</b>, agrupados por área responsable (RRHH, Sistemas, Mercadeo y su departamento). El sistema valida disponibilidad y enruta cada uno.</div></div>' +
         '<div class="fld" id="neTallaFld" style="display:none"><label>Talla de uniforme (franela)</label>' + afSelect('neTalla', ['XS', 'S', 'M', 'L', 'XL', 'XXL'], 'M') + '</div>' +
         '<div id="neDispBox"></div>' +
@@ -6818,9 +7046,28 @@
         }).filter(function (a) { return a.nombre && a.justificacion; });
         var accPerfil = reqAccPerfil(perfilFijo);
         var nuevoId = db.nextUserId++;
-        db.users.push({ id: nuevoId, nombre: n, cedula: ci, cargo: v.cargo, area: mgr ? mgr.area : 'Por asignar', equipo: mgr ? mgr.equipo : null, role: perfilFijo, managerId: v.managerId, email: em, emailPersonal: ($('#neEP') ? $('#neEP').value.trim() : ''), telefono: t, linkedin: l, direccion: ($('#neDir') ? $('#neDir').value.trim() : ''), emergNombre: ($('#neEmN') ? $('#neEmN').value.trim() : ''), emergTelefono: ($('#neEmT') ? $('#neEmT').value.trim() : ''), ciudad: 'Caracas', activo: true, password: 'vepagos2026', requerimientos: reqs, nextReqId: reqs.length + 1, accesosExtra: { drives: accPerfil.drives.slice(), apps: accPerfil.apps.slice(), herramientas: accPerfil.herramientas.slice(), otros: [] }, accesosSolicitados: accSolic.map(function (a, i) { return { id: i + 1, tipo: a.tipo, nombre: a.nombre, justificacion: a.justificacion, estado: 'pendiente', fecha: reqToday() }; }) });
+        var nuevoUser = { id: nuevoId, nombre: n, cedula: ci, cargo: v.cargo, area: mgr ? mgr.area : 'Por asignar', equipo: mgr ? mgr.equipo : null, role: perfilFijo, managerId: v.managerId, email: em, emailPersonal: ($('#neEP') ? $('#neEP').value.trim() : ''), telefono: t, linkedin: l, direccion: ($('#neDir') ? $('#neDir').value.trim() : ''), emergNombre: ($('#neEmN') ? $('#neEmN').value.trim() : ''), emergTelefono: ($('#neEmT') ? $('#neEmT').value.trim() : ''), ciudad: 'Caracas', activo: true, password: 'vepagos2026', requerimientos: reqs, nextReqId: reqs.length + 1, accesosExtra: { drives: accPerfil.drives.slice(), apps: accPerfil.apps.slice(), herramientas: accPerfil.herramientas.slice(), otros: [] }, accesosSolicitados: accSolic.map(function (a, i) { return { id: i + 1, tipo: a.tipo, nombre: a.nombre, justificacion: a.justificacion, estado: 'pendiente', fecha: reqToday() }; }) };
+        db.users.push(nuevoUser);
         var nuevo = byId(nuevoId);
         logHist(nuevo, 'Cuenta creada sobre la vacante "' + v.cargo + '"' + (reqs.length ? ' con ' + reqs.length + ' requerimiento(s) de equipo' : ''));
+
+        // Asignación opcional de equipo de tecnología
+        var techActId = $('#neTechActivo') ? $('#neTechActivo').value : '';
+        var actaGenerada = null;
+        var actTechObj = null;
+        if (techActId) {
+          actTechObj = afActById(techActId);
+          if (actTechObj && actTechObj.estado === 'Disponible') {
+            actTechObj.userId = nuevoId;
+            actTechObj.fechaAsig = reqToday();
+            actTechObj.estado = 'Asignado';
+            actaGenerada = afCrearActa(actTechObj, nuevo, 'Entrega', 'Asignación directa de equipo al dar de alta al empleado.');
+            afAddMov(actTechObj, 'Asignación', 'a ' + nuevo.nombre + ' (al crear cuenta de empleado)', actaGenerada.id);
+            afLog('Asignación', actTechObj.id, 'Asignó ' + actTechObj.id + ' (' + actTechObj.descripcion + ') a ' + nuevo.nombre + ' al dar de alta al empleado');
+            logHist(nuevo, 'Se le asignó el equipo tecnológico ' + actTechObj.descripcion + ' (' + actTechObj.id + ') · Serial: ' + (actTechObj.serial || '—') + ' — Acta ' + actaGenerada.id, me.nombre);
+          }
+        }
+
         var accAuto = accPerfil.drives.concat(accPerfil.apps, accPerfil.herramientas);
         if (accAuto.length) { logHist(nuevo, 'Accesos autorizados automáticamente por el perfil ' + roleLabelOf(perfilFijo) + ': ' + accAuto.join(', ')); db.pendientes.push({ id: db.nextPendId++, userId: nuevoId, tipo: 'acceso', titulo: 'Accesos autorizados: ' + accAuto.join(', '), detalle: 'Por tu perfil (' + roleLabelOf(perfilFijo) + ') se te autorizaron ' + accAuto.length + ' acceso(s): ' + accAuto.join(', ') + '.', estado: 'abierto', fecha: reqToday(), por: me.nombre, respuesta: '' }); }
         v.estado = 'cubierta'; v.cubiertaPor = n;
@@ -6861,6 +7108,10 @@
         if (areasTxt.length) msg += ' Requerimientos: ' + areasTxt.join(', ') + '.';
         if (solId) msg += ' Solicitud ' + solId + ' creada en Procura.';
         if (accCreadas) msg += ' ' + accCreadas + ' acceso(s) adicional(es) enviados a Sistemas para aprobación.';
+        if (actaGenerada && actTechObj) {
+          msg += ' Equipo ' + actTechObj.id + ' asignado (Acta ' + actaGenerada.id + ').';
+          setTimeout(function () { afActaDownload(actaGenerada); }, 600);
+        }
         toast(msg);
       });
     });
@@ -6916,20 +7167,66 @@
     function editEmpleadoModal(u) {
       if (!u) return;
       var perfilOpts = Object.keys(ROLE_LABEL).map(function (k) { return '<option value="' + k + '"' + (k === u.role ? ' selected' : '') + '>' + ROLE_LABEL[k] + '</option>'; }).join('');
-      modal('<button class="mod-x">✕</button><h3>Editar empleado</h3><p style="color:var(--muted);font-size:14px;margin:4px 0 8px">Modifica los datos de <b>' + esc(u.nombre) + '</b>. Los cambios se guardan al confirmar.</p>' +
-        '<div class="fld"><label>Nombre completo</label><input id="edNom" type="text" value="' + esc(u.nombre) + '"></div>' +
-        '<div class="fld"><label>Cédula</label><div style="display:flex;gap:8px"><span style="display:flex;align-items:center;justify-content:center;min-width:44px;border:1.5px solid #D9E2EF;border-radius:10px;background:#F1F5FB;color:var(--navy);font-weight:700">V-</span><input id="edCi" type="text" inputmode="numeric" value="' + esc(u.cedula || '') + '" placeholder="12345678" maxlength="9" style="flex:1"></div></div>' +
-        '<div class="fld"><label>Perfil / Rol</label><select id="edRol">' + perfilOpts + '</select></div>' +
-        '<div class="fld"><label>Cargo</label><input id="edCargo" type="text" value="' + esc(u.cargo || '') + '"></div>' +
-        '<div class="fld"><label>Correo corporativo</label><input id="edEmail" type="email" value="' + esc(u.email || '') + '"></div>' +
-        '<div class="fld"><label>Correo personal</label><input id="edEmailP" type="email" value="' + esc(u.emailPersonal || '') + '"></div>' +
-        '<div class="fld"><label>Teléfono</label><input id="edTel" type="tel" value="' + esc(u.telefono || '') + '"></div>' +
-        '<div class="fld"><label>LinkedIn</label><input id="edLin" type="url" value="' + esc(u.linkedin || '') + '"></div>' +
-        '<div class="fld"><label>Ciudad</label><input id="edCiudad" type="text" value="' + esc(u.ciudad || '') + '"></div>' +
-        '<div class="fld"><label>Dirección</label><input id="edDirec" type="text" value="' + esc(u.direccion || '') + '"></div>' +
-        '<div class="fld"><label>Persona de emergencia</label><input id="edEmN" type="text" value="' + esc(u.emergNombre || '') + '"></div>' +
-        '<div class="fld"><label>Contacto de emergencia</label><input id="edEmT" type="tel" value="' + esc(u.emergTelefono || '') + '"></div>' +
+      var misActivos = (db.af && db.af.activos ? db.af.activos : []).filter(function (a) { return a.userId === u.id && a.estado === 'Asignado'; });
+      var techDisp = (db.af && db.af.activos ? db.af.activos : []).filter(function (a) { return AF_TECH.indexOf(a.categoria) > -1 && a.estado === 'Disponible'; });
+
+      var activosSec = '<div style="margin-top:16px;background:#F8FAFD;border:1px solid #DFE8F4;border-radius:14px;padding:16px">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px">' +
+          '<div style="font-size:12px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--navy);display:flex;align-items:center;gap:6px">' +
+            '<span>💻 Equipos y Activos Asignados</span>' +
+            '<span class="chip b" style="font-size:11px;padding:2px 8px">' + misActivos.length + (misActivos.length === 1 ? ' asignado' : ' asignados') + '</span>' +
+          '</div>' +
+        '</div>' +
+        (misActivos.length ? misActivos.map(function (a) {
+          var acta = (db.af && db.af.actas ? db.af.actas : []).slice().reverse().find(function (x) { return x.activoId === a.id; });
+          return '<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#fff;border:1px solid #E5EDF6;border-radius:10px;margin-bottom:8px;flex-wrap:wrap">' +
+            '<div style="flex:1;min-width:180px">' +
+              '<div style="font-weight:700;color:var(--navy);font-size:13.5px">' + esc(a.descripcion) + ' <span class="chip b" style="font-size:10px">' + esc(a.id) + '</span></div>' +
+              '<div style="font-size:12px;color:var(--muted)">Serial: <b>' + esc(a.serial || '—') + '</b> · ' + esc(a.categoria) + (a.fechaAsig ? ' · Asignado: ' + fechaCorta(a.fechaAsig) : '') + '</div>' +
+            '</div>' +
+            '<div style="display:flex;gap:6px">' +
+              (acta ? '<button type="button" class="btn-s" data-afactadown="' + esc(acta.id) + '" style="font-size:11.5px;padding:5px 9px" title="Descargar acta de entrega">📄 Acta ' + esc(acta.id) + '</button>' : '') +
+              '<button type="button" class="btn-s btn-danger" data-eddevolver="' + esc(a.id) + '" style="font-size:11.5px;padding:5px 9px" title="Devolver activo a almacén">↩ Devolver</button>' +
+            '</div>' +
+          '</div>';
+        }).join('') : '<div class="empty" style="padding:10px;font-size:13px;background:#fff;border:1px dashed #D5E1F0;border-radius:10px;text-align:center">Sin equipos tecnológicos o activos fijos asignados actualmente.</div>') +
+        '<div class="fld" style="margin-top:12px;margin-bottom:0"><label style="font-weight:700;color:var(--navy)">➕ Asignar nuevo activo de tecnología <span style="color:var(--muted2);font-weight:normal">(opcional)</span></label>' +
+        '<select id="edTechActivo"><option value="">— No asignar equipo adicional —</option>' +
+        (techDisp.length ? techDisp.map(function (a) {
+          return '<option value="' + esc(a.id) + '">' + esc(a.id) + ' · ' + esc(a.descripcion) + (a.marca ? ' (' + esc(a.marca) + (a.modelo ? ' ' + esc(a.modelo) : '') + ')' : '') + (a.serial ? ' · Serial: ' + esc(a.serial) : '') + ' [' + esc(a.categoria) + ']</option>';
+        }).join('') : '<option value="" disabled>No hay equipos de tecnología disponibles en almacén</option>') +
+        '</select><div class="note" style="margin:4px 0 0">Selecciona un equipo de computación/POS disponible. Al guardar se generará su acta de entrega y registro en auditoría.</div></div>' +
+      '</div>';
+
+      modal('<button class="mod-x">✕</button><h3>Editar empleado</h3><p style="color:var(--muted);font-size:14px;margin:4px 0 12px">Modifica los datos de <b>' + esc(u.nombre) + '</b>. Los cambios se guardan al confirmar.</p>' +
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:12px">' +
+          '<div class="fld"><label>Nombre completo</label><input id="edNom" type="text" value="' + esc(u.nombre) + '"></div>' +
+          '<div class="fld"><label>Cédula</label><div style="display:flex;gap:8px"><span style="display:flex;align-items:center;justify-content:center;min-width:44px;border:1.5px solid #D9E2EF;border-radius:10px;background:#F1F5FB;color:var(--navy);font-weight:700">V-</span><input id="edCi" type="text" inputmode="numeric" value="' + esc(u.cedula || '') + '" placeholder="12345678" maxlength="9" style="flex:1"></div></div>' +
+          '<div class="fld"><label>Perfil / Rol</label><select id="edRol">' + perfilOpts + '</select></div>' +
+          '<div class="fld"><label>Cargo</label><input id="edCargo" type="text" value="' + esc(u.cargo || '') + '"></div>' +
+          '<div class="fld"><label>Correo corporativo</label><input id="edEmail" type="email" value="' + esc(u.email || '') + '"></div>' +
+          '<div class="fld"><label>Correo personal</label><input id="edEmailP" type="email" value="' + esc(u.emailPersonal || '') + '"></div>' +
+          '<div class="fld"><label>Teléfono</label><input id="edTel" type="tel" value="' + esc(u.telefono || '') + '"></div>' +
+          '<div class="fld"><label>LinkedIn</label><input id="edLin" type="url" value="' + esc(u.linkedin || '') + '"></div>' +
+          '<div class="fld"><label>Ciudad</label><input id="edCiudad" type="text" value="' + esc(u.ciudad || '') + '"></div>' +
+          '<div class="fld"><label>Dirección</label><input id="edDirec" type="text" value="' + esc(u.direccion || '') + '"></div>' +
+          '<div class="fld"><label>Persona de emergencia</label><input id="edEmN" type="text" value="' + esc(u.emergNombre || '') + '"></div>' +
+          '<div class="fld"><label>Contacto de emergencia</label><input id="edEmT" type="tel" value="' + esc(u.emergTelefono || '') + '"></div>' +
+        '</div>' +
+        activosSec +
         '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="edEmpOk">Guardar cambios</button></div>', 'wide');
+
+      $$('#modalHost [data-eddevolver]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var actId = btn.getAttribute('data-eddevolver');
+          var a = afActById(actId);
+          if (a) {
+            closeModal();
+            afDevolverModal(a);
+          }
+        });
+      });
+
       $('#edCi').addEventListener('input', function () { this.value = this.value.replace(/\D/g, ''); });
       $('#edEmpOk').addEventListener('click', function () {
         var nom = $('#edNom').value.trim();
@@ -6953,9 +7250,33 @@
         u.direccion = $('#edDirec').value.trim();
         u.emergNombre = $('#edEmN').value.trim();
         u.emergTelefono = $('#edEmT').value.trim();
+
+        // Asignación de nuevo activo si se seleccionó uno
+        var newTechId = $('#edTechActivo') ? $('#edTechActivo').value : '';
+        var actaGenerada = null;
+        var actTechObj = null;
+        if (newTechId) {
+          actTechObj = afActById(newTechId);
+          if (actTechObj && actTechObj.estado === 'Disponible') {
+            actTechObj.userId = u.id;
+            actTechObj.fechaAsig = reqToday();
+            actTechObj.estado = 'Asignado';
+            actaGenerada = afCrearActa(actTechObj, u, 'Entrega', 'Asignación de equipo desde la edición del empleado.');
+            afAddMov(actTechObj, 'Asignación', 'a ' + u.nombre + ' (desde editar empleado)', actaGenerada.id);
+            afLog('Asignación', actTechObj.id, 'Asignó ' + actTechObj.id + ' (' + actTechObj.descripcion + ') a ' + u.nombre + ' al editar el empleado');
+            logHist(u, 'Se le asignó el equipo tecnológico ' + actTechObj.descripcion + ' (' + actTechObj.id + ') · Serial: ' + (actTechObj.serial || '—') + ' — Acta ' + actaGenerada.id, me.nombre);
+            changes.push('Activo asignado: ' + actTechObj.id + ' (' + actTechObj.descripcion + ')');
+          }
+        }
+
         if (changes.length) logHist(u, 'Datos editados por ' + me.nombre + ': ' + changes.join('; '), me.nombre);
         saveDB(db); closeModal(); rEmpleados();
-        toast('Datos de ' + esc(nom) + ' actualizados.');
+        if (actaGenerada && actTechObj) {
+          setTimeout(function () { afActaDownload(actaGenerada); }, 600);
+          toast('Datos de ' + esc(nom) + ' actualizados. Equipo ' + actTechObj.id + ' asignado (Acta ' + actaGenerada.id + ').');
+        } else {
+          toast('Datos de ' + esc(nom) + ' actualizados.');
+        }
       });
     }
   }
@@ -7058,15 +7379,17 @@
   function perfilCount(key) { return db.users.filter(function (u) { return u.activo && u.role === key; }).length; }
   function rPerfiles() {
     resetContent();
-    $('#content').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Cargando perfiles...</div>';
-    /* Cargar desde API */
-    window.SV_API.getPerfiles().then(function (perfiles) {
-      if (perfiles.error) { $('#content').innerHTML = '<div class="card" style="padding:20px;color:red">Error cargando perfiles: ' + esc(perfiles.error) + '</div>'; return; }
+    function renderList(perfiles) {
+      if (!perfiles || !perfiles.length) {
+        perfiles = (db.perfiles || []).map(function (p) {
+          return { key: p.key, label: p.label, base_key: p.base || null, sistema: !!p.sistema, descripcion: p.desc || '' };
+        });
+      }
       var html = '<div class="card" style="margin-bottom:16px"><div class="toolrow" style="margin:0"><div><h3 style="margin:0">Perfiles del sistema</h3><div class="note" style="margin:4px 0 0;max-width:640px">Define los tipos de perfil y qué permisos base hereda cada uno. Los perfiles marcados como <b>del sistema</b> no se pueden eliminar. Un perfil nuevo hereda todos los permisos del perfil base que elijas; luego se afinan.</div></div><span class="sp"></span><button class="btn-g" id="pfNew"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Nuevo perfil</button></div></div>';
       html += '<div class="card" style="padding:6px 16px"><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Perfil</th><th>Hereda de</th><th>Personas</th><th>Descripción</th><th></th></tr></thead><tbody>' +
         perfiles.map(function (p) {
           var baseP = p.base_key ? perfiles.find(function (x) { return x.key === p.base_key; }) : null;
-          var base = baseP ? baseP.label : (p.base_key || '\u2014');
+          var base = baseP ? baseP.label : (p.base_key || '—');
           return '<tr><td><b style="color:var(--navy)">' + esc(p.label) + '</b>' + (p.sistema ? ' <span class="chip n" style="font-size:10px">Sistema</span>' : ' <span class="chip b" style="font-size:10px">Personalizado</span>') + '</td>' +
             '<td style="font-size:13px;color:var(--muted)">' + esc(base) + '</td>' +
             '<td>' + perfilCount(p.key) + '</td>' +
@@ -7084,13 +7407,28 @@
         var pk = b.getAttribute('data-pfdel');
         var p = perfiles.find(function (x) { return x.key === pk; });
         if (!p) return;
-        if (perfilCount(p.key) > 0) { toast('No puedes eliminar un perfil con personas asignadas. Reas\u00edgnalas primero.'); return; }
+        if (perfilCount(p.key) > 0) { toast('No puedes eliminar un perfil con personas asignadas. Reasígnalas primero.'); return; }
         window.SV_API.deletePerfil(pk).then(function (res) {
-          if (res.error) { toast(res.error); return; }
+          if (res && res.error) { toast(res.error); return; }
+          db.perfiles = db.perfiles.filter(function (x) { return x.key !== pk; });
+          saveDB(db); rPerfiles(); toast('Perfil "' + p.label + '" eliminado.');
+        }).catch(function () {
           db.perfiles = db.perfiles.filter(function (x) { return x.key !== pk; });
           saveDB(db); rPerfiles(); toast('Perfil "' + p.label + '" eliminado.');
         });
       }); });
+    }
+
+    $('#content').innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">Cargando perfiles...</div>';
+    /* Cargar desde API con fallback */
+    window.SV_API.getPerfiles().then(function (perfiles) {
+      if (!perfiles || perfiles.error || !Array.isArray(perfiles)) {
+        renderList(null);
+      } else {
+        renderList(perfiles);
+      }
+    }).catch(function () {
+      renderList(null);
     });
   }
   function perfilForm(p, apiPerfiles) {
@@ -7101,9 +7439,24 @@
       edit ? window.SV_API.getPantallasPerfil(p.key) : Promise.resolve([]),
       edit ? window.SV_API.getPermisosPerfil(p.key) : Promise.resolve([])
     ]).then(function (results) {
-      var allScreens = results[0].error ? [] : results[0];
-      var curMenuIds = results[1].error ? [] : results[1];
-      var curPermKeys = results[2].error ? [] : results[2];
+      var allScreens = (results[0] && !results[0].error && Array.isArray(results[0])) ? results[0].slice() : [];
+      NAV.forEach(function (n) {
+        if (n.id && !allScreens.some(function (s) { return s.id === n.id; })) {
+          allScreens.push({ id: n.id, titulo: n.t, grupo: n.g || 'personal', padre_id: null, orden: 99 });
+        }
+        if (n.sub) {
+          n.sub.forEach(function (sub, idx) {
+            if (!allScreens.some(function (s) { return s.id === sub.id; })) {
+              allScreens.push({ id: sub.id, titulo: sub.t, grupo: n.g || 'gestion', padre_id: n.id, orden: idx + 1 });
+            }
+          });
+        }
+      });
+      var curMenuIds = (results[1] && !results[1].error && Array.isArray(results[1])) ? results[1].slice() : [];
+      if ((p.key === 'admin' || p.key === 'rrhh' || curMenuIds.indexOf('activos') > -1 || curMenuIds.indexOf('afpanel') > -1) && curMenuIds.indexOf('aflog') < 0) {
+        curMenuIds.push('aflog');
+      }
+      var curPermKeys = (results[2] && !results[2].error && Array.isArray(results[2])) ? results[2].slice() : [];
 
       var menuParents = allScreens.filter(function (s) { return s.id !== 'inicio' && s.id !== 'perfil' && !s.padre_id; });
       var menuChildren = allScreens.filter(function (s) { return !!s.padre_id; });
@@ -7244,6 +7597,8 @@
           });
         }
       });
+    }).catch(function (err) {
+      console.warn('Error en perfilForm:', err);
     });
   }
 
