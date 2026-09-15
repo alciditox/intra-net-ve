@@ -989,6 +989,46 @@
     if (db.af.audit) db.af.audit.push({ id: db.af.nextAudit++, fecha: _invDate + ' 12:00', usuario: _invCreator, tipo: 'Carga masiva', activoId: '', detalle: 'Migración de inventario Galerías: ' + _invActivos.length + ' activos registrados, ' + _invEmps.length + ' empleados verificados/creados.' });
     saveDB(db);
   }
+  /* ===== FIX: Reasignar activos con matching de acentos y eliminar duplicados ===== */
+  if (!db._invGaleriasFix) {
+    db._invGaleriasFix = true;
+    var _norm = function (s) { return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim(); };
+    var _fixCount = 0;
+    var _delUsers = [];
+    /* Para cada usuario creado por la migración (cargo 'Equipo interno' sin teléfono), buscar original */
+    db.users.forEach(function (migUser) {
+      if (migUser.cargo !== 'Equipo interno' || migUser.password !== 'Vepagos2026') return;
+      var normName = _norm(migUser.nombre);
+      var original = db.users.find(function (u) {
+        return u.id !== migUser.id && u.activo && _norm(u.nombre) === normName && u.cargo !== 'Equipo interno';
+      });
+      if (original) {
+        /* Transferir activos del duplicado al original */
+        (db.af ? db.af.activos : []).forEach(function (a) {
+          if (a.userId === migUser.id) {
+            a.userId = original.id;
+            _fixCount++;
+          }
+        });
+        /* Marcar duplicado para eliminar */
+        _delUsers.push(migUser.id);
+        migUser.activo = false;
+        migUser.nombre = migUser.nombre + ' [DUPLICADO - migrado]';
+      }
+    });
+    /* Para activos sin userId pero con emp en obs, re-intentar match */
+    (db.af ? db.af.activos : []).forEach(function (a) {
+      if (a.creadoPor === 'Migración Inventario' && a.estado === 'Asignado' && !a.userId) {
+        /* No debería pasar, pero por seguridad */
+        a.estado = 'Disponible';
+        a.fechaAsig = null;
+      }
+    });
+    if (_fixCount > 0 && db.af && db.af.audit) {
+      db.af.audit.push({ id: db.af.nextAudit++, fecha: '2026-09-15 13:15', usuario: 'Fix Migración', tipo: 'Corrección', activoId: '', detalle: 'Reasignó ' + _fixCount + ' activos de usuarios duplicados a los originales. ' + _delUsers.length + ' usuario(s) duplicado(s) desactivados.' });
+    }
+    saveDB(db);
+  }
   if (!db.activos.some(function (a) { return a.ingreso; })) {
     db.activos.push({ id: db.nextActId++, userId: 14, nombre: 'Kit de ingreso: carnet corporativo y uniforme', serial: 'ING-2026-014', fecha: '2026-03-02', por: 'Jesús David', ingreso: true });
     db.activos.push({ id: db.nextActId++, userId: 21, nombre: 'Kit de ingreso: carnet y material de ventas', serial: 'ING-2026-021', fecha: '2026-04-18', por: 'Jesús David', ingreso: true });
@@ -7359,6 +7399,7 @@
   }
 
   /* ---------- EMPLEADOS (admin/rrhh) ---------- */
+  var empSearchQ = '';
   function rEmpleados() {
     resetContent();
     var sols = db.solicitudes.filter(function (s) { return s.estado === 'pendiente'; });
@@ -7369,18 +7410,33 @@
           '<div style="flex:1;min-width:220px"><div style="font-weight:700;color:var(--navy)">' + esc(u ? u.nombre : '—') + '</div><div style="font-size:13.5px;color:var(--muted)">' + esc(s.texto) + '</div><div style="font-size:12px;color:var(--muted2)">' + s.fecha + '</div></div>' +
           '<button class="btn-g" data-sol="' + s.id + '" style="font-size:13px;padding:8px 14px">Editar y resolver</button></div>';
       }).join('') + '</div>' : '';
+    var empQ = empSearchQ.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    var filteredUsers = db.users.filter(function (u) {
+      if (!perfilVisible(u) || u.role === 'candidato') return false;
+      if (/\[DUPLICADO/.test(u.nombre)) return false;
+      if (empQ) {
+        var haystack = [u.nombre, u.email, u.cargo || '', u.area || '', u.role || ''].join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        if (haystack.indexOf(empQ) < 0) return false;
+      }
+      return true;
+    });
     $('#content').innerHTML =
       solsCard +
       '<div class="toolrow"><span class="note" style="margin:0">Alta, baja y edición de cuentas. Toda cuenta requiere correo, teléfono y LinkedIn.</span><span class="sp"></span>' +
+      '<div style="position:relative;min-width:220px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" style="position:absolute;left:11px;top:50%;transform:translateY(-50%)"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.3-4.3"></path></svg><input id="empSearchInput" type="text" value="' + esc(empSearchQ) + '" placeholder="Buscar empleado…" style="width:100%;border:1.5px solid #D9E2EF;border-radius:10px;padding:9px 11px 9px 34px;font-family:inherit;font-size:13.5px"></div>' +
       '<button class="btn-g" id="btnAddEmp"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Agregar persona</button></div>' +
-      '<div class="card" style="padding:6px 16px"><table class="tbl"><thead><tr><th>Nombre</th><th>Cargo</th><th>Rol</th><th>Estado</th><th></th></tr></thead><tbody>' +
-      db.users.filter(function (u) { return perfilVisible(u) && u.role !== 'candidato'; }).map(function (u) {
+      '<div class="card" style="padding:6px 16px"><div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0 2px"><span style="font-size:12.5px;color:var(--muted2);font-weight:600">' + filteredUsers.length + ' empleado(s)' + (empQ ? ' encontrado(s)' : '') + '</span></div><table class="tbl"><thead><tr><th>Nombre</th><th>Cargo</th><th>Rol</th><th>Estado</th><th></th></tr></thead><tbody>' +
+      filteredUsers.map(function (u) {
         var enProceso = u.activo && u.offboard && Object.keys(u.offboard).some(function (k) { return u.offboard[k]; });
         var estadoChip = !u.activo ? '<span class="chip r">Inactivo</span>' : enProceso ? '<span class="chip y">En desincorporación</span>' : '<span class="chip g">Activo</span>';
         return '<tr><td><b style="color:var(--navy)">' + esc(u.nombre) + '</b><div style="font-size:12.5px;color:var(--muted2)">' + esc(u.email) + '</div></td><td>' + esc(u.cargo) + '</td><td>' + roleLabelOf(u.role) + '</td>' +
           '<td>' + estadoChip + '</td>' +
           '<td><div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end"><button class="btn-s" data-prof2="' + u.id + '">Perfil</button><button class="btn-s" data-editemp="' + u.id + '">Editar</button>' + (u.id !== me.id ? '<button class="btn-s' + (u.activo ? ' btn-danger' : '') + '" data-tgl="' + u.id + '">' + (!u.activo ? 'Reactivar' : (enProceso ? 'Continuar salida' : 'Desincorporar')) + '</button>' : '') + '</div></td></tr>';
       }).join('') + '</tbody></table></div>';
+    var empInput = $('#empSearchInput');
+    if (empInput) {
+      empInput.addEventListener('input', function () { empSearchQ = empInput.value; var pos = empInput.selectionStart; rEmpleados(); var n = $('#empSearchInput'); if (n) { n.focus(); n.setSelectionRange(pos, pos); } });
+    }
     $('#btnAddEmp').addEventListener('click', function () {
       var vacs = db.vacantes.filter(function (v) { return v.estado === 'abierta' && v.prioridad !== 'pausa'; });
       if (!vacs.length) { toast('No hay vacantes disponibles para cubrir. El administrador debe crear la vacante (no en pausa) en el Organigrama primero.'); return; }
