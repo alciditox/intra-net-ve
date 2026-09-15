@@ -176,6 +176,28 @@ export async function setScreensForProfile(perfilKey: string, pantallaIds: strin
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
+
+    // 1. Verificar qué pantallas existen en la tabla pantallas
+    if (pantallaIds.length > 0) {
+      const placeholders = pantallaIds.map(() => '?').join(',');
+      const [existing] = await conn.execute<RowDataPacket[]>(
+        `SELECT id FROM pantallas WHERE id IN (${placeholders})`,
+        pantallaIds
+      );
+      const existingIds = new Set((existing as RowDataPacket[]).map(r => r.id));
+
+      // 2. Auto-registrar pantallas faltantes (evita FK errors)
+      for (const pid of pantallaIds) {
+        if (!existingIds.has(pid)) {
+          await conn.execute(
+            'INSERT IGNORE INTO pantallas (id, titulo, grupo, padre_id, icono, href_externo, orden) VALUES (?, ?, ?, NULL, NULL, NULL, 99)',
+            [pid, pid, 'personal']
+          );
+        }
+      }
+    }
+
+    // 3. Reemplazar asignaciones existentes
     await conn.execute('DELETE FROM perfil_pantallas WHERE perfil_key = ?', [perfilKey]);
     for (const pid of pantallaIds) {
       await conn.execute(

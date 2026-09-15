@@ -8261,7 +8261,11 @@
             window.SV_API.setPantallasPerfil(p.key, expanded),
             window.SV_API.setPermisosPerfil(p.key, permKeys)
           ]).then(function (res) {
-            if (res[0].error) { toast(res[0].error); return; }
+            var err = null;
+            for (var i = 0; i < res.length; i++) {
+              if (res[i] && res[i].error) { err = res[i].error; break; }
+            }
+            if (err) { toast('Error al guardar: ' + err); return; }
             var lp = getPerfil(p.key);
             if (lp) { lp.label = label; if (!lp.sistema) lp.base = baseKey; lp.desc = desc; lp.menus = expanded; saveDB(db); }
             closeModal();
@@ -8282,6 +8286,9 @@
               }).catch(function (e) { console.warn(e); });
             }
             rPerfiles(); toast('Perfil actualizado en base de datos.');
+          }).catch(function (err) {
+            console.error('Error guardando perfil:', err);
+            toast('Error al guardar el perfil. Revisa la consola para más detalles.');
           });
         } else {
           var key = label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '').slice(0, 20) || ('perfil' + Date.now());
@@ -8290,12 +8297,20 @@
             return Promise.all([
               window.SV_API.setPantallasPerfil(key, expanded),
               window.SV_API.setPermisosPerfil(key, permKeys)
-            ]).then(function () {
+            ]).then(function (results) {
+              var err = null;
+              for (var i = 0; i < results.length; i++) {
+                if (results[i] && results[i].error) { err = results[i].error; break; }
+              }
+              if (err) { toast('Perfil creado pero hubo un error asignando menús/permisos: ' + err); }
               db.perfiles.push({ key: key, label: label, desc: desc, base: baseKey, sistema: false, menus: expanded, permisos: {} });
               permKeys.forEach(function (pk) { db.perfiles[db.perfiles.length - 1].permisos[pk] = true; });
               saveDB(db);
-              closeModal(); rPerfiles(); toast('Perfil creado en base de datos.');
+              closeModal(); rPerfiles(); if (!err) toast('Perfil creado en base de datos.');
             });
+          }).catch(function (err) {
+            console.error('Error creando perfil:', err);
+            toast('Error al crear el perfil. Revisa la consola.');
           });
         }
       });

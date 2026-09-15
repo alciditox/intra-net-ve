@@ -8,6 +8,38 @@ import logger from '../utils/logger';
 
 const router = Router();
 
+// POST /api/pantallas/sync - sincronizar pantallas desde el frontend
+router.post('/sync', authMiddleware, adminOnly, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const { pantallas } = req.body;
+    if (!Array.isArray(pantallas)) {
+      res.status(400).json({ error: 'pantallas debe ser un array' });
+      return;
+    }
+    const conn = await pool.getConnection();
+    try {
+      await conn.beginTransaction();
+      for (const p of pantallas) {
+        if (!p.id || !p.titulo) continue;
+        await conn.execute(
+          'INSERT IGNORE INTO pantallas (id, titulo, grupo, padre_id, icono, href_externo, orden) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [p.id, p.titulo, p.grupo || 'personal', p.padre_id || null, p.icono || null, p.href_externo || null, p.orden || 0]
+        );
+      }
+      await conn.commit();
+      res.json({ message: 'Pantallas sincronizadas' });
+    } catch (err) {
+      await conn.rollback();
+      throw err;
+    } finally {
+      conn.release();
+    }
+  } catch (err) {
+    logger.error('Pantallas sync error', { error: (err as Error).message });
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
 // GET /api/pantallas — listar todas las pantallas
 router.get('/', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   try {

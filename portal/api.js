@@ -101,6 +101,10 @@ window.SV_API = (function () {
   }
 
   // ===== PANTALLAS =====
+  async function syncPantallas(pantallas) {
+    return await request('POST', '/pantallas/sync', { pantallas: pantallas });
+  }
+
   async function getPantallas() {
     return await request('GET', '/pantallas');
   }
@@ -232,6 +236,7 @@ window.SV_API = (function () {
     createPerfil: createPerfil,
     updatePerfil: updatePerfil,
     deletePerfil: deletePerfil,
+    syncPantallas: syncPantallas,
     getPantallas: getPantallas,
     getPantallasPerfil: getPantallasPerfil,
     setPantallasPerfil: setPantallasPerfil,
