@@ -1,6 +1,8 @@
 /* ===== Somos VEPAGOS — lógica de la intranet (demo funcional) ===== */
+/* BUILD: 20260915-v3 */
 (function () {
   'use strict';
+  console.log('[SOMOS] app.js BUILD 20260915-v3 loaded');
   var DB_KEY = 'sv_db_v2', SES_KEY = 'sv_session_v2';
   var $ = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
@@ -8256,11 +8258,15 @@
         var permKeys = $$('#modalHost [data-pmperm]').filter(function (cb) { return cb.checked; }).map(function (cb) { return cb.getAttribute('data-pmperm'); });
 
         if (edit) {
+          console.log('[PERFIL SAVE] key:', p.key, 'label:', label);
+          console.log('[PERFIL SAVE] expanded menus (' + expanded.length + '):', JSON.stringify(expanded));
+          console.log('[PERFIL SAVE] permKeys (' + permKeys.length + '):', JSON.stringify(permKeys));
           Promise.all([
             window.SV_API.updatePerfil(p.key, { label: label, base_key: baseKey, descripcion: desc }),
             window.SV_API.setPantallasPerfil(p.key, expanded),
             window.SV_API.setPermisosPerfil(p.key, permKeys)
           ]).then(function (res) {
+            console.log('[PERFIL SAVE] API responses:', JSON.stringify(res));
             var err = null;
             for (var i = 0; i < res.length; i++) {
               if (res[i] && res[i].error) { err = res[i].error; break; }

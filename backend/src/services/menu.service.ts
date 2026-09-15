@@ -60,19 +60,15 @@ export async function getMenuForUser(
   // 1. Pantallas del perfil (por cadena de herencia)
   let pantallasIds: Set<string> = new Set();
 
-  if (isAdmin) {
-    // Admin ve todo
-    const [all] = await pool.execute<RowDataPacket[]>('SELECT id FROM pantallas');
-    (all as RowDataPacket[]).forEach(r => pantallasIds.add(r.id));
-  } else {
-    // Pantallas por perfil + herencia
-    const placeholders = chain.map(() => '?').join(',');
-    const [byProfile] = await pool.execute<RowDataPacket[]>(
-      `SELECT DISTINCT pantalla_id FROM perfil_pantallas WHERE perfil_key IN (${placeholders})`,
-      chain
-    );
-    (byProfile as RowDataPacket[]).forEach(r => pantallasIds.add(r.pantalla_id));
+  // Pantallas por perfil + herencia (aplica para TODOS los perfiles, incluyendo admin)
+  const placeholders = chain.map(() => '?').join(',');
+  const [byProfile] = await pool.execute<RowDataPacket[]>(
+    `SELECT DISTINCT pantalla_id FROM perfil_pantallas WHERE perfil_key IN (${placeholders})`,
+    chain
+  );
+  (byProfile as RowDataPacket[]).forEach(r => pantallasIds.add(r.pantalla_id));
 
+  if (!isAdmin) {
     // 2. Pantallas por permisos individuales del usuario
     const [userPerms] = await pool.execute<RowDataPacket[]>(
       `SELECT pc.nav FROM permisos_usuario pu 
@@ -95,11 +91,11 @@ export async function getMenuForUser(
     if (tieneReportes || esAprobador) {
       pantallasIds.add('solequipo');
     }
-
-    // Siempre incluir inicio y perfil
-    pantallasIds.add('inicio');
-    pantallasIds.add('perfil');
   }
+
+  // Siempre incluir inicio y perfil
+  pantallasIds.add('inicio');
+  pantallasIds.add('perfil');
 
   // Obtener todas las pantallas del sistema
   const [allScreens] = await pool.execute<RowDataPacket[]>(
