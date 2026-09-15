@@ -5735,7 +5735,7 @@
     var allRoles = Object.keys(ROLE_LABEL);
     $('#content').innerHTML =
       '<div class="card"><h3>Permisos del organigrama</h3>' +
-      '<div class="note" style="margin:0 0 14px">Define qué perfiles pueden editar la estructura jerárquica del organigrama (drag-and-drop para cambiar reportes).</div>' +
+      '<div class="note" style="margin:0 0 14px">Define qué perfiles pueden editar la estructura jerárquica del organigrama (reasignar supervisor de una persona).</div>' +
       '<div style="display:flex;flex-direction:column;gap:8px">' +
       allRoles.map(function (r) {
         var checked = perms.indexOf(r) > -1;
@@ -5759,9 +5759,7 @@
   }
 
   /* ---------- ORGANIGRAMA ---------- */
-  var orgView = 'tree'; /* 'cols' or 'tree' */
-  var orgZoom = 0.85;
-  var orgTreeOpen = {}; /* track collapsed nodes in tree view */
+  var orgOpen = orgOpen || {};
 
   function canEditOrg() {
     if (!db.orgPermisos) return me.role === 'admin';
@@ -5773,6 +5771,7 @@
     var scoped = (me.role === 'gerente' || me.role === 'gerenteop' || me.role === 'coordinador' || me.role === 'reclutador') ? me.id : null;
     var root = byId(scoped || 1);
     var PROF_ICO = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21v-1a8 8 0 0 1 16 0v1"></path></svg>';
+    var MOVE_ICO = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>';
     function chev(open) { return '<svg class="orgchev' + (open ? ' open' : '') + '" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>'; }
     var execs = visibleReports(root.id);
     var vacAll = db.vacantes.filter(function (v) { return v.estado === 'abierta'; });
@@ -5784,7 +5783,7 @@
         '<div style="width:28px;height:28px;border-radius:50%;background:#FBEEB8;display:flex;align-items:center;justify-content:center;color:#8a7500;font-weight:800;font-size:11px;flex:0 0 auto">V</div>' +
         '<div style="flex:1;min-width:0"><div class="oi1" style="color:#8a7500">VACANTE</div><div class="oi2">' + esc(v.cargo) + '</div></div>' +
         '<span class="chip ' + pv.chip + '" style="font-size:10px">' + pv.t + '</span>' +
-        (me.role === 'admin' ? '<button class="btn-s btn-danger" data-vdel="' + v.id + '" style="font-size:11.5px;padding:4px 9px">Eliminar</button>' : '') +
+        (canEditOrg() ? '<button class="btn-s btn-danger" data-vdel="' + v.id + '" style="font-size:11.5px;padding:4px 9px">Eliminar</button>' : '') +
       '</div>';
     }
     function vacsOf(uid) { return vacScope.filter(function (v) { return v.managerId === uid; }); }
@@ -5795,6 +5794,7 @@
       var expandable = kids.length || vacs.length;
       var html = '<div class="orgitem"' + (expandable ? ' data-tog="' + u.id + '"' : ' data-prof="' + u.id + '"') + '>' + avatarHtml(u, 28, 11) +
         '<div style="flex:1;min-width:0"><div class="oi1">' + esc(u.nombre) + '</div><div class="oi2">' + esc(u.cargo) + '</div></div>' +
+        (canEditOrg() && u.id !== root.id ? '<button class="orgmove" data-move="' + u.id + '" title="Reasignar supervisor" style="border:none;background:none;cursor:pointer;padding:4px;border-radius:6px;color:var(--muted)" onmouseover="this.style.color=\'var(--brand)\';this.style.background=\'#EBF2FF\'" onmouseout="this.style.color=\'var(--muted)\';this.style.background=\'none\'">' + MOVE_ICO + '</button>' : '') +
         '<button class="orgprof" data-prof="' + u.id + '" title="Ver perfil">' + PROF_ICO + '</button>' +
         (expandable ? '<span class="orgcount">' + subtreeVisible(u.id).length + (vacs.length ? ' +' + vacs.length + 'V' : '') + '</span>' + chev(open) : '') +
       '</div>';
@@ -5802,100 +5802,51 @@
       return html;
     }
     var totalPersonas = scoped ? subtreeVisible(root.id).length : db.users.filter(function (u) { return u.activo && u.role !== 'candidato' && perfilVisible(u); }).length;
-    var vacListCard = (me.role === 'admin' || me.role === 'rrhh' || me.role === 'gerente')
+    var vacListCard = (canEditOrg() || me.role === 'rrhh' || me.role === 'gerente')
       ? '<div class="card" style="margin-top:16px"><div class="toolrow"><h3 style="margin:0">Vacantes abiertas</h3><span class="sp"></span>' +
-        (me.role === 'admin' ? '<button class="btn-g" id="btnAddVac"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Crear vacante</button>' : '') + '</div>' +
+        (canEditOrg() ? '<button class="btn-g" id="btnAddVac"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Crear vacante</button>' : '') + '</div>' +
         (vacScope.length ? vacScope.map(function (v) {
           var m = byId(v.managerId);
           return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #EEF3F9;flex-wrap:wrap;cursor:pointer" data-vac="' + v.id + '">' +
             '<div style="flex:1;min-width:220px"><div style="font-weight:700;color:var(--navy)">' + esc(v.cargo) + '</div><div style="font-size:13px;color:var(--muted)">' + esc('Reporta a: ' + (m ? m.nombre : '—') + ' · ' + roleLabelOf(v.perfil || 'interno') + ' · Abierta desde ' + v.fecha) + '</div></div>' +
             '<span class="chip ' + (PRIOR_VAC[v.prioridad] || PRIOR_VAC.normal).chip + '">' + (PRIOR_VAC[v.prioridad] || PRIOR_VAC.normal).t + '</span>' +
-            (me.role === 'admin' ? '<button class="btn-s btn-danger" data-vdel="' + v.id + '" style="font-size:12px;padding:5px 10px">Eliminar</button>' : '') + '</div>';
+            (canEditOrg() ? '<button class="btn-s btn-danger" data-vdel="' + v.id + '" style="font-size:12px;padding:5px 10px">Eliminar</button>' : '') + '</div>';
         }).join('') : '<div class="empty">No hay vacantes abiertas.</div>') + '</div>'
       : '';
 
-    /* ===== TREE VIEW ===== */
-    function treeNode(u, isRoot, isExec) {
-      var kids = visibleReports(u.id);
-      var count = subtreeVisible(u.id).length;
-      var collapsed = kids.length > 0 && orgTreeOpen[u.id] === false;
-      var cls = 'org-node' + (isRoot ? ' org-root' : (isExec ? ' org-exec' : '')) + (collapsed ? ' org-collapsed' : '');
-      var draggable = canEditOrg() && !isRoot ? ' draggable="true" data-drag-id="' + u.id + '"' : '';
-      var dropTarget = canEditOrg() ? ' data-drop-id="' + u.id + '"' : '';
-      var toggleAttr = kids.length ? ' data-tree-tog="' + u.id + '"' : '';
-      var html = '<div class="' + cls + '"' + draggable + dropTarget + toggleAttr + ' data-prof="' + u.id + '">' +
-        avatarHtml(u, 26, 10.5) +
-        '<div style="flex:1;min-width:0;overflow:hidden"><div class="on-name">' + esc(u.nombre) + '</div><div class="on-cargo">' + esc(u.cargo) + '</div></div>' +
-        (count > 0 ? '<span class="on-count">' + count + '</span>' : '') +
-        '</div>';
-      if (kids.length && !collapsed) {
-        html += '<ul>' + kids.map(function (k) { return '<li>' + treeNode(k, false, isRoot && !isExec) + '</li>'; }).join('') + '</ul>';
-      }
-      return html;
-    }
-    var treeHtml = '<div class="org-tree">' + treeNode(root, true, false) + '</div>';
+    /* ===== Searchbar ===== */
+    var searchBar = '<div style="position:relative;margin-left:auto">' +
+      '<input type="text" id="orgSearchInput" placeholder="Buscar empleado..." class="fld" style="margin:0;padding:4px 30px 4px 10px;font-size:13px;height:30px;width:200px;border-radius:6px;border:1.5px solid #D9E2EF">' +
+      '<svg style="position:absolute;right:8px;top:7px;pointer-events:none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8496AE" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>';
 
     /* ===== BUILD PAGE ===== */
-    var viewToggle = '<div class="org-view-toggle" style="margin-left:auto;display:flex;align-items:center;gap:12px">' +
-      '<div style="position:relative"><input type="text" id="orgSearchInput" placeholder="Buscar empleado..." class="fld" style="margin:0;padding:4px 30px 4px 10px;font-size:13px;height:30px;width:180px;border-radius:6px;border:1.5px solid #D9E2EF">' + 
-      '<svg style="position:absolute;right:8px;top:7px;pointer-events:none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8496AE" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>' +
-      '<div>' +
-      '<button data-orgview="cols"' + (orgView === 'cols' ? ' class="active"' : '') + '>Columnas</button>' +
-      '<button data-orgview="tree"' + (orgView === 'tree' ? ' class="active"' : '') + '>Árbol</button>' +
-      '</div></div>';
-
-    var zoomBar = '<div class="org-zoom-bar">' +
-      '<button id="orgZoomOut" title="Alejar">−</button>' +
-      '<span id="orgZoomLbl">' + Math.round(orgZoom * 100) + '%</span>' +
-      '<button id="orgZoomIn" title="Acercar">+</button>' +
-      '<button id="orgZoomFit" title="Ajustar" style="font-size:12px;width:auto;padding:0 10px">Ajustar</button></div>';
-
-    if (orgView === 'tree') {
-      $('#content').innerHTML =
-        '<div class="grid g4" style="margin-bottom:16px">' + kpi(totalPersonas, scoped ? 'Personas en tu equipo' : 'Personas en el equipo') + kpi(vacScope.length, scoped ? 'Vacantes en tu equipo' : 'Vacantes abiertas') + '</div>' +
-        '<div class="card">' +
-        '<div class="toolrow" style="margin-bottom:10px"><h3 style="margin:0">' + (scoped ? 'Tu equipo en la estructura' : 'Estructura organizacional') + '</h3>' + viewToggle + '</div>' +
-        zoomBar +
-        '<div class="note" style="margin:0 0 10px">' + (canEditOrg() ? 'Arrastra un nodo sobre otro para cambiar la estructura jerárquica. ' : '') + 'Haz clic en un nodo para ver el perfil. Clic en el contador para expandir/colapsar.</div>' +
-        '<div class="org-tree-wrap"><div class="org-tree-inner" id="orgTreeInner" style="transform:scale(' + orgZoom + ')">' + treeHtml + '</div></div></div>' + vacListCard + orgCandCard();
-    } else {
-      /* Original column view */
-      $('#content').innerHTML =
-        '<div class="grid g4" style="margin-bottom:16px">' + kpi(totalPersonas, scoped ? 'Personas en tu equipo' : 'Personas en el equipo') + kpi(vacScope.length, scoped ? 'Vacantes en tu equipo' : 'Vacantes abiertas') + '</div>' +
-        '<div class="card"><div class="toolrow" style="margin-bottom:10px"><h3 style="margin:0">' + (scoped ? 'Tu equipo en la estructura' : 'Estructura organizacional') + '</h3>' + viewToggle + '</div>' +
-        '<div class="note" style="margin:0 0 14px">Haz clic en una gerencia o persona para desplegar su equipo. Usa el ícono de persona para ver su ficha completa.</div>' +
-        '<div class="orgroot"><div class="orgcard" data-prof="' + root.id + '">' + avatarHtml(root, 34, 12.5) + '<div><div class="on1">' + esc(root.nombre) + '</div><div class="on2">' + esc(root.cargo) + '</div></div></div></div>' +
-        '<div class="orgcols">' + execs.map(function (g2) {
-          var open = !!orgOpen[g2.id];
-          var gvacs = vacsOf(g2.id);
-          return '<div><div class="orgcol-h" data-tog="' + g2.id + '">' + avatarHtml(g2, 34, 12.5) +
-            '<div style="flex:1;min-width:0"><div class="oc1">' + esc(g2.nombre) + '</div><div class="oc2">' + esc(g2.cargo) + '</div></div>' +
-            '<button class="orgprof" data-prof="' + g2.id + '" title="Ver perfil">' + PROF_ICO + '</button>' +
-            '<span class="orgcount">' + subtreeVisible(g2.id).length + (gvacs.length ? ' +' + gvacs.length + 'V' : '') + '</span>' + chev(open) + '</div>' +
-            (open ? '<div class="orgcol-body">' + visibleReports(g2.id).map(item).join('') + gvacs.map(vacCard).join('') + '</div>' : '') +
-          '</div>';
-        }).join('') + '</div></div>' + vacListCard + orgCandCard();
-    }
+    $('#content').innerHTML =
+      '<div class="grid g4" style="margin-bottom:16px">' + kpi(totalPersonas, scoped ? 'Personas en tu equipo' : 'Personas en el equipo') + kpi(vacScope.length, scoped ? 'Vacantes en tu equipo' : 'Vacantes abiertas') + '</div>' +
+      '<div class="card"><div class="toolrow" style="margin-bottom:10px"><h3 style="margin:0">' + (scoped ? 'Tu equipo en la estructura' : 'Estructura organizacional') + '</h3>' + searchBar + '</div>' +
+      '<div class="note" style="margin:0 0 14px">Haz clic en una gerencia o persona para desplegar su equipo. Usa el ícono de persona para ver su ficha completa.' + (canEditOrg() ? ' Usa <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M17 1l4 4-4 4"></path><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><path d="M7 23l-4-4 4-4"></path><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg> para reasignar el supervisor de una persona.' : '') + '</div>' +
+      '<div class="orgroot"><div class="orgcard" data-prof="' + root.id + '">' + avatarHtml(root, 34, 12.5) + '<div><div class="on1">' + esc(root.nombre) + '</div><div class="on2">' + esc(root.cargo) + '</div></div></div></div>' +
+      '<div class="orgcols">' + execs.map(function (g2) {
+        var open = !!orgOpen[g2.id];
+        var gvacs = vacsOf(g2.id);
+        return '<div><div class="orgcol-h" data-tog="' + g2.id + '">' + avatarHtml(g2, 34, 12.5) +
+          '<div style="flex:1;min-width:0"><div class="oc1">' + esc(g2.nombre) + '</div><div class="oc2">' + esc(g2.cargo) + '</div></div>' +
+          (canEditOrg() ? '<button class="orgmove" data-move="' + g2.id + '" title="Reasignar supervisor" style="border:none;background:none;cursor:pointer;padding:4px;border-radius:6px;color:var(--muted)" onmouseover="this.style.color=\'var(--brand)\';this.style.background=\'#EBF2FF\'" onmouseout="this.style.color=\'var(--muted)\';this.style.background=\'none\'">' + MOVE_ICO + '</button>' : '') +
+          '<button class="orgprof" data-prof="' + g2.id + '" title="Ver perfil">' + PROF_ICO + '</button>' +
+          '<span class="orgcount">' + subtreeVisible(g2.id).length + (gvacs.length ? ' +' + gvacs.length + 'V' : '') + '</span>' + chev(open) + '</div>' +
+          (open ? '<div class="orgcol-body">' + visibleReports(g2.id).map(item).join('') + gvacs.map(vacCard).join('') + '</div>' : '') +
+        '</div>';
+      }).join('') + '</div></div>' + vacListCard + orgCandCard();
 
     /* ===== EVENT LISTENERS ===== */
 
-    /* View toggle */
-    $$('[data-orgview]').forEach(function (btn) {
-      btn.addEventListener('click', function () { orgView = btn.getAttribute('data-orgview'); rOrg(); });
-    });
-
-    /* Busqueda en organigrama */
+    /* Search */
     var searchInput = $('#orgSearchInput');
     if (searchInput) {
       searchInput.addEventListener('input', function(e) {
         var q = e.target.value.toLowerCase().trim();
-        $$('.orgitem, .org-node, .orgcol-h, .orgcard').forEach(function(el) {
-          if (!q) { 
-            el.style.opacity = '1'; 
-            el.style.boxShadow = 'none';
-            return; 
-          }
-          var txt = (el.querySelector('.oi1') || el.querySelector('.on-name') || el.querySelector('.oc1') || el.querySelector('.on1') || el).textContent.toLowerCase();
+        $$('.orgitem, .orgcol-h, .orgcard').forEach(function(el) {
+          if (!q) { el.style.opacity = '1'; el.style.boxShadow = 'none'; return; }
+          var txt = (el.querySelector('.oi1') || el.querySelector('.oc1') || el.querySelector('.on1') || el).textContent.toLowerCase();
           if (txt.indexOf(q) > -1) {
             el.style.opacity = '1';
             el.style.boxShadow = '0 0 0 2.5px var(--brand)';
@@ -5907,96 +5858,35 @@
       });
     }
 
-    /* Zoom controls (tree only) */
-    var zIn = $('#orgZoomIn'), zOut = $('#orgZoomOut'), zFit = $('#orgZoomFit');
-    function applyZoom() {
-      var inner = $('#orgTreeInner');
-      if (inner) inner.style.transform = 'scale(' + orgZoom + ')';
-      var lbl = $('#orgZoomLbl');
-      if (lbl) lbl.textContent = Math.round(orgZoom * 100) + '%';
-    }
-    if (zIn) zIn.addEventListener('click', function () { orgZoom = Math.min(1.5, orgZoom + 0.1); applyZoom(); });
-    if (zOut) zOut.addEventListener('click', function () { orgZoom = Math.max(0.3, orgZoom - 0.1); applyZoom(); });
-    if (zFit) zFit.addEventListener('click', function () {
-      var wrap = document.querySelector('.org-tree-wrap');
-      var inner = $('#orgTreeInner');
-      if (wrap && inner) {
-        var wW = wrap.clientWidth;
-        var iW = inner.scrollWidth / orgZoom;
-        orgZoom = Math.min(1, Math.max(0.3, (wW - 40) / iW));
-        applyZoom();
-      }
-    });
-    /* Auto-fit on first render */
-    if (zFit) {
-      requestAnimationFrame(function () {
-        var wrap = document.querySelector('.org-tree-wrap');
-        var inner = $('#orgTreeInner');
-        if (wrap && inner) {
-          var wW = wrap.clientWidth;
-          var iW = inner.scrollWidth / orgZoom;
-          if (iW > wW) { orgZoom = Math.min(1, Math.max(0.3, (wW - 40) / iW)); applyZoom(); }
-        }
-      });
-    }
-    /* Tree expand/collapse */
-    $$('[data-tree-tog]').forEach(function (el) {
-      var countEl = el.querySelector('.on-count');
-      if (countEl) {
-        countEl.addEventListener('click', function (e) {
-          e.stopPropagation();
-          var id = +el.getAttribute('data-tree-tog');
-          orgTreeOpen[id] = orgTreeOpen[id] === false ? true : false;
-          rOrg();
-        });
-      }
-    });
-
-    /* Drag and drop (tree view) */
-    if (canEditOrg() && orgView === 'tree') {
-      var dragId = null;
-      $$('[data-drag-id]').forEach(function (el) {
-        el.addEventListener('dragstart', function (e) {
-          dragId = +el.getAttribute('data-drag-id');
-          el.classList.add('dragging');
-          e.dataTransfer.effectAllowed = 'move';
-          e.dataTransfer.setData('text/plain', dragId);
-        });
-        el.addEventListener('dragend', function () { el.classList.remove('dragging'); dragId = null; $$('.drag-over').forEach(function (d) { d.classList.remove('drag-over'); }); });
-      });
-      $$('[data-drop-id]').forEach(function (el) {
-        el.addEventListener('dragover', function (e) {
-          e.preventDefault();
-          var dropId = +el.getAttribute('data-drop-id');
-          if (dropId === dragId) return;
-          /* Prevent dropping on own subtree */
-          var ids = [dragId].concat(subtree(dragId).map(function (u) { return u.id; }));
-          if (ids.indexOf(dropId) > -1) return;
-          e.dataTransfer.dropEffect = 'move';
-          el.classList.add('drag-over');
-        });
-        el.addEventListener('dragleave', function () { el.classList.remove('drag-over'); });
-        el.addEventListener('drop', function (e) {
-          e.preventDefault();
-          el.classList.remove('drag-over');
-          var dropId = +el.getAttribute('data-drop-id');
-          var srcId = +e.dataTransfer.getData('text/plain');
-          if (!srcId || srcId === dropId) return;
-          /* Prevent cycle */
-          var ids = [srcId].concat(subtree(srcId).map(function (u) { return u.id; }));
-          if (ids.indexOf(dropId) > -1) { toast('No se puede mover un nodo bajo su propia rama.'); return; }
-          var srcUser = byId(srcId);
-          var dropUser = byId(dropId);
-          if (!srcUser || !dropUser) return;
+    /* Reasignar supervisor — modal con select */
+    $$('[data-move]').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        var uid = +btn.getAttribute('data-move');
+        var srcUser = byId(uid);
+        if (!srcUser) return;
+        var subIds = [uid].concat(subtree(uid).map(function (u) { return u.id; }));
+        var mgrs = db.users.filter(function (u) { return u.activo && u.role !== 'candidato' && subIds.indexOf(u.id) < 0; });
+        modal('<button class="mod-x">✕</button><h3>Reasignar supervisor</h3>' +
+          '<p style="color:var(--muted);font-size:14px;margin:4px 0 14px">Mover a <b>' + esc(srcUser.nombre) + '</b> (' + esc(srcUser.cargo) + ') para que reporte a otro supervisor.</p>' +
+          '<div class="fld"><label>Supervisor actual</label><div style="padding:8px 12px;background:#F5F7FA;border-radius:8px;font-weight:600;color:var(--navy)">' + esc(byId(srcUser.managerId) ? byId(srcUser.managerId).nombre + ' · ' + byId(srcUser.managerId).cargo : '—') + '</div></div>' +
+          '<div class="fld"><label>Nuevo supervisor *</label><select id="mvNewMgr" style="width:100%">' +
+          mgrs.map(function (u) { return '<option value="' + u.id + '"' + (u.id === srcUser.managerId ? ' selected' : '') + '>' + esc(u.nombre) + ' · ' + esc(u.cargo) + ' (' + esc(u.area) + ')</option>'; }).join('') +
+          '</select></div>' +
+          '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="mvOk">Reasignar</button></div>');
+        $('#mvOk').addEventListener('click', function () {
+          var newMgr = +$('#mvNewMgr').value;
+          if (newMgr === srcUser.managerId) { closeModal(); return; }
           var oldMgr = byId(srcUser.managerId);
-          srcUser.managerId = dropId;
+          var newMgrUser = byId(newMgr);
+          srcUser.managerId = newMgr;
           if (!db.orgLog) db.orgLog = [];
-          db.orgLog.push({ por: me.nombre, detalle: esc(srcUser.nombre) + ' ahora reporta a ' + esc(dropUser.nombre) + ' (antes: ' + esc(oldMgr ? oldMgr.nombre : '—') + ')', fecha: new Date().toISOString().replace('T', ' ').slice(0, 16) });
-          saveDB(db); rOrg();
-          toast(srcUser.nombre.split(' ')[0] + ' ahora reporta a ' + dropUser.nombre.split(' ')[0] + '.');
+          db.orgLog.push({ por: me.nombre, detalle: esc(srcUser.nombre) + ' ahora reporta a ' + esc(newMgrUser ? newMgrUser.nombre : '—') + ' (antes: ' + esc(oldMgr ? oldMgr.nombre : '—') + ')', fecha: new Date().toISOString().replace('T', ' ').slice(0, 16) });
+          saveDB(db); closeModal(); rOrg();
+          toast(srcUser.nombre.split(' ')[0] + ' ahora reporta a ' + (newMgrUser ? newMgrUser.nombre.split(' ')[0] : '—') + '.');
         });
       });
-    }
+    });
 
     /* Vacante buttons */
     var bav = $('#btnAddVac');
@@ -6036,7 +5926,7 @@
       if (cand) { orgCandModal((db.orgCandidatos || []).filter(function (x) { return x.id === +cand.getAttribute('data-cand'); })[0]); return; }
       var vd = e.target.closest('[data-vdel]');
       if (vd) {
-        if (me.role !== 'admin') { toast('Solo el administrador puede eliminar vacantes.'); return; }
+        if (!canEditOrg()) { toast('No tienes permiso para eliminar vacantes.'); return; }
         db.vacantes = db.vacantes.filter(function (v) { return v.id !== +vd.getAttribute('data-vdel'); });
         saveDB(db); rOrg(); toast('Vacante eliminada.');
         return;

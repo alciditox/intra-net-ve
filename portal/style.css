@@ -148,52 +148,8 @@ button{font-family:var(--font)}
 .orgkids{margin:8px 0 8px 26px;padding-left:18px;border-left:2px solid #D9E2EF;display:flex;flex-direction:column;gap:8px}
 .orgtog{background:none;border:none;cursor:pointer;color:var(--muted2);font-size:11px;padding:2px 6px}
 
-/* ===== Org Tree (cascading view) ===== */
-.org-tree-wrap{overflow:auto;padding:20px 0 30px;position:relative;min-height:300px}
-.org-tree-inner{transform-origin:top center;transition:transform .25s ease}
-.org-tree{display:flex;flex-direction:column;align-items:center}
-.org-tree ul{display:flex;justify-content:center;gap:0;list-style:none;margin:0;padding:28px 0 0;position:relative}
-.org-tree ul::before{content:'';position:absolute;top:0;left:50%;border-left:2px solid #C9D5E5;height:28px}
-.org-tree li{display:flex;flex-direction:column;align-items:center;position:relative;padding:0 8px}
-/* horizontal line across siblings */
-.org-tree li::before,.org-tree li::after{content:'';position:absolute;top:0;width:50%;border-top:2px solid #C9D5E5;height:28px}
-.org-tree li::before{right:50%}
-.org-tree li::after{left:50%}
-.org-tree li:first-child::before{display:none}
-.org-tree li:last-child::after{display:none}
-.org-tree li:only-child::before,.org-tree li:only-child::after{display:none}
-/* vertical line down from parent connector to node */
-.org-tree li > .org-node::before{content:'';position:absolute;top:-28px;left:50%;border-left:2px solid #C9D5E5;height:28px}
-/* hide top connector for root */
-.org-tree > .org-node::before{display:none}
 
-.org-node{position:relative;display:inline-flex;align-items:center;gap:9px;background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:10px 14px 10px 10px;cursor:pointer;transition:all .18s;min-width:160px;max-width:240px;z-index:1;user-select:none}
-.org-node:hover{border-color:var(--green);box-shadow:0 6px 18px -8px rgba(0,31,96,.2)}
-.org-node .on-name{font-size:13px;font-weight:700;color:var(--navy);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.org-node .on-cargo{font-size:11px;color:var(--muted2);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.org-node .on-count{font-size:10px;font-weight:700;background:#E7FAF1;color:#00874f;border-radius:999px;padding:1px 7px;margin-left:auto;flex:0 0 auto}
-.org-node.org-root{background:var(--navy);color:#fff;border-color:var(--navy);min-width:200px}
-.org-node.org-root .on-name{color:#fff}
-.org-node.org-root .on-cargo{color:rgba(255,255,255,.65)}
-.org-node.org-root .on-count{background:rgba(255,255,255,.16);color:#8AF5C9}
-.org-node.org-exec{background:var(--navy);color:#fff;border-color:var(--navy)}
-.org-node.org-exec .on-name{color:#fff}
-.org-node.org-exec .on-cargo{color:rgba(255,255,255,.65)}
-.org-node.org-exec .on-count{background:rgba(255,255,255,.16);color:#8AF5C9}
-.org-node.drag-over{border-color:#FFB300;box-shadow:0 0 0 3px rgba(255,179,0,.3);background:#FFFBEB}
-.org-node.dragging{opacity:.5;border-style:dashed}
-.org-node.org-collapsed .on-count{background:#FFF3CD;color:#8a7500}
 
-/* Zoom controls */
-.org-zoom-bar{display:flex;align-items:center;gap:6px;justify-content:flex-end;margin-bottom:8px}
-.org-zoom-bar button{background:#F1F5FB;border:1.5px solid var(--line);border-radius:8px;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--navy);transition:all .15s}
-.org-zoom-bar button:hover{background:#E0E8F5;border-color:var(--green)}
-.org-zoom-bar span{font-size:12px;color:var(--muted2);min-width:40px;text-align:center}
-
-/* View toggle */
-.org-view-toggle{display:inline-flex;border:1.5px solid var(--line);border-radius:10px;overflow:hidden}
-.org-view-toggle button{background:#fff;border:none;padding:7px 14px;font-size:12.5px;font-weight:600;color:var(--muted2);cursor:pointer;transition:all .15s}
-.org-view-toggle button.active{background:var(--navy);color:#fff}
 
 /* Onboarding */
 .ob-mod{display:flex;gap:14px;padding:15px 0;border-bottom:1px solid #EEF3F9;align-items:flex-start}

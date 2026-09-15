@@ -7,8 +7,6 @@ import { getBaseChain } from './menu.service';
  * Evalúa: permisos individuales + permisos del perfil + herencia.
  */
 export async function hasPerm(userId: number, perfilKey: string, clave: string): Promise<boolean> {
-  // Admin siempre tiene todo
-  if (perfilKey === 'admin') return true;
 
   // 1. Permiso individual del usuario
   const [userPerm] = await pool.execute<RowDataPacket[]>(
@@ -31,10 +29,6 @@ export async function hasPerm(userId: number, perfilKey: string, clave: string):
  * Obtiene todos los permisos de un usuario (individuales + perfil + herencia)
  */
 export async function getAllPermsForUser(userId: number, perfilKey: string): Promise<string[]> {
-  if (perfilKey === 'admin') {
-    const [all] = await pool.execute<RowDataPacket[]>('SELECT clave FROM permisos_catalogo');
-    return (all as RowDataPacket[]).map(r => r.clave);
-  }
 
   const perms: Set<string> = new Set();
 
