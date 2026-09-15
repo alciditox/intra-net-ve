@@ -493,7 +493,7 @@
       nextProv: 4,
       solicitudes: [
         { id: 'SC-0001', solicitante: 78, departamento: 'Administración', items: [{ desc: 'Resma de papel carta', artId: 'CO-001', cant: 20 }, { desc: 'Cartucho tóner HP 26A', artId: 'CO-002', cant: 6 }], justificacion: 'Reposición de material de oficina bajo stock mínimo.', estado: 'Enviada', fecha: '2026-07-11', aprobadoPor: null, aprobadoFecha: null, ordenId: null },
-        { id: 'SC-0002', solicitante: 50, departamento: 'Tecnología', items: [{ desc: 'Laptop 14" para nuevo analista (equipo de Sistemas)', artId: null, cant: 1 }], justificacion: 'Ingreso de nuevo analista de soporte. Requerimiento enviado al equipo de Sistemas.', estado: 'Aprobada', fecha: '2026-07-09', aprobadoPor: 'Administradora VEPAGOS', aprobadoFecha: '2026-07-10', ordenId: null }
+        { id: 'SC-0002', solicitante: 50, departamento: 'Tecnología', items: [{ desc: 'Laptop 14" para nuevo analista (equipo de Sistemas)', artId: null, cant: 1 }], justificacion: 'Ingreso de nuevo analista de soporte. Requerimiento enviado al equipo de Sistemas.', estado: 'Aprobada', fecha: '2026-07-09', aprobadoPor: 'Super Administrador VEPAGOS', aprobadoFecha: '2026-07-10', ordenId: null }
       ],
       nextSol: 3,
       ordenes: [], nextOrden: 1,
@@ -545,11 +545,11 @@
     db.af.auditSeed = true;
     if (!db.af.audit || !db.af.audit.length) {
       db.af.audit = [
-        { id: db.af.nextAudit++, accion: 'Asignación', entidad: 'AF-0001', detalle: 'Asignó Laptop 14" administración (AF-0001) a Rosaura García — Acta ACTA-0001', por: 'Administradora VEPAGOS', fecha: '2026-07-10T14:30:00Z' },
+        { id: db.af.nextAudit++, accion: 'Asignación', entidad: 'AF-0001', detalle: 'Asignó Laptop 14" administración (AF-0001) a Rosaura García — Acta ACTA-0001', por: 'Super Administrador VEPAGOS', fecha: '2026-07-10T14:30:00Z' },
         { id: db.af.nextAudit++, accion: 'Alta', entidad: 'AF-0002', detalle: 'Registró el activo AF-0002 — Laptop 15" comercial (Lenovo ThinkPad E15)', por: 'Isabella M.', fecha: '2026-07-09T10:15:00Z' },
         { id: db.af.nextAudit++, accion: 'Salida', entidad: 'CO-004', detalle: 'Salida de 25 Rollo — Rollo papel térmico POS → Equipo POS (Comercial)', por: 'Isabella M.', fecha: '2026-07-09T09:40:00Z' },
         { id: db.af.nextAudit++, accion: 'Salida', entidad: 'CO-001', detalle: 'Salida de 8 Resma — Resma de papel carta → Rosaura García (Finanzas)', por: 'Isabella M.', fecha: '2026-07-08T11:20:00Z' },
-        { id: db.af.nextAudit++, accion: 'Aprobación', entidad: 'SC-0002', detalle: 'Aprobó la solicitud SC-0002 de Tecnología', por: 'Administradora VEPAGOS', fecha: '2026-07-10T16:00:00Z' },
+        { id: db.af.nextAudit++, accion: 'Aprobación', entidad: 'SC-0002', detalle: 'Aprobó la solicitud SC-0002 de Tecnología', por: 'Super Administrador VEPAGOS', fecha: '2026-07-10T16:00:00Z' },
         { id: db.af.nextAudit++, accion: 'Solicitud', entidad: 'SC-0001', detalle: 'Creó la solicitud de compra SC-0001 (2 ítem(s)) para Administración', por: 'Jesús David', fecha: '2026-07-11T08:30:00Z' },
         { id: db.af.nextAudit++, accion: 'Alta', entidad: 'AF-0004', detalle: 'Registró el activo AF-0004 — Terminal POS demo A50', por: 'Isabella M.', fecha: '2026-07-05T15:00:00Z' },
         { id: db.af.nextAudit++, accion: 'Envío a reparación', entidad: 'AF-0004', detalle: 'Envío a reparación — AF-0004 (Terminal POS demo A50): Pantalla con falla táctil', por: 'Isabella M.', fecha: '2026-07-06T09:00:00Z' },
@@ -2869,8 +2869,8 @@
               prompt: ad.prompt_texto,
               prompt_texto: ad.prompt_texto,
               fecha: ad.fecha ? String(ad.fecha).slice(0, 10) : new Date().toISOString().slice(0, 10),
-              por: ad.creado_por || 'Administradora VEPAGOS',
-              creado_por: ad.creado_por || 'Administradora VEPAGOS',
+              por: ad.creado_por || 'Super Administrador VEPAGOS',
+              creado_por: ad.creado_por || 'Super Administrador VEPAGOS',
               deptos: ad.departamento ? ad.departamento.split(',').map(function (s) { return s.trim(); }) : null,
               equipos: ad.equipo ? ad.equipo.split(',').map(function (s) { return s.trim(); }) : null
             });
@@ -5834,9 +5834,13 @@
     var treeHtml = '<div class="org-tree">' + treeNode(root, true, false) + '</div>';
 
     /* ===== BUILD PAGE ===== */
-    var viewToggle = '<div class="org-view-toggle" style="margin-left:auto">' +
+    var viewToggle = '<div class="org-view-toggle" style="margin-left:auto;display:flex;align-items:center;gap:12px">' +
+      '<div style="position:relative"><input type="text" id="orgSearchInput" placeholder="Buscar empleado..." class="fld" style="margin:0;padding:4px 30px 4px 10px;font-size:13px;height:30px;width:180px;border-radius:6px;border:1.5px solid #D9E2EF">' + 
+      '<svg style="position:absolute;right:8px;top:7px;pointer-events:none" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8496AE" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>' +
+      '<div>' +
       '<button data-orgview="cols"' + (orgView === 'cols' ? ' class="active"' : '') + '>Columnas</button>' +
-      '<button data-orgview="tree"' + (orgView === 'tree' ? ' class="active"' : '') + '>Árbol</button></div>';
+      '<button data-orgview="tree"' + (orgView === 'tree' ? ' class="active"' : '') + '>Árbol</button>' +
+      '</div></div>';
 
     var zoomBar = '<div class="org-zoom-bar">' +
       '<button id="orgZoomOut" title="Alejar">−</button>' +
@@ -5877,6 +5881,29 @@
     $$('[data-orgview]').forEach(function (btn) {
       btn.addEventListener('click', function () { orgView = btn.getAttribute('data-orgview'); rOrg(); });
     });
+
+    /* Busqueda en organigrama */
+    var searchInput = $('#orgSearchInput');
+    if (searchInput) {
+      searchInput.addEventListener('input', function(e) {
+        var q = e.target.value.toLowerCase().trim();
+        $$('.orgitem, .org-node, .orgcol-h, .orgcard').forEach(function(el) {
+          if (!q) { 
+            el.style.opacity = '1'; 
+            el.style.boxShadow = 'none';
+            return; 
+          }
+          var txt = (el.querySelector('.oi1') || el.querySelector('.on-name') || el.querySelector('.oc1') || el.querySelector('.on1') || el).textContent.toLowerCase();
+          if (txt.indexOf(q) > -1) {
+            el.style.opacity = '1';
+            el.style.boxShadow = '0 0 0 2.5px var(--brand)';
+          } else {
+            el.style.opacity = '0.25';
+            el.style.boxShadow = 'none';
+          }
+        });
+      });
+    }
 
     /* Zoom controls (tree only) */
     var zIn = $('#orgZoomIn'), zOut = $('#orgZoomOut'), zFit = $('#orgZoomFit');

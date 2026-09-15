@@ -24,7 +24,7 @@ CREATE TABLE perfiles (
 );
 
 INSERT INTO perfiles (key, label, base_key, orden) VALUES
-  ('admin',       'Administradora',           NULL,       1),
+  ('admin',       'Super Administrador',           NULL,       1),
   ('director',    'Director',                 'gerente',  2),
   ('gerente',     'Gerente Ejecutivo',        NULL,       3),
   ('gerenteop',   'Gerente Operativo',        'gerente',  4),

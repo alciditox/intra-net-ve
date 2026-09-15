@@ -3,7 +3,7 @@
   "perfiles": [
     {
       "key": "admin",
-      "label": "Administradora",
+      "label": "Super Administrador",
       "base": null
     },
     {

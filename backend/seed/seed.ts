@@ -128,6 +128,7 @@ async function seed() {
     { id: 'admindocs', g: 'personal', t: 'Biblioteca', orden: 6, padre: 'adminmenu', ico: null },
     { id: 'admincultura', g: 'personal', t: 'Cultura organizacional', orden: 7, padre: 'adminmenu', ico: null },
     { id: 'adminemergencias', g: 'personal', t: 'Emergencias', orden: 8, padre: 'adminmenu', ico: null },
+    { id: 'adminorg', g: 'personal', t: 'Organigrama', orden: 9, padre: 'adminmenu', ico: null },
   ];
 
   // Insert parent items first (no padre), then children

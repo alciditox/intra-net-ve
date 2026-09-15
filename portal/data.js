@@ -17,7 +17,7 @@ window.SV_SEED = (function () {
   }
 
   var USERS = [
-    u(1, 'Administradora VEPAGOS', 'Dirección General', 'Dirección', 'admin', null, { email: 'admin@somosvepagos.com' }),
+    u(1, 'Super Administrador VEPAGOS', 'Dirección General', 'Dirección', 'admin', null, { email: 'admin@somosvepagos.com' }),
 
     // ===== Comercial =====
     u(10, 'Antonio Palermo', 'Director Comercial', 'Comercial', 'director', 1),
@@ -108,7 +108,7 @@ window.SV_SEED = (function () {
 
   var did = 1;
   FICHAS.forEach(function (f) {
-    DOCS.push({ id: did++, cat: 'fichas', nombre: 'Ficha técnica — ' + f[0], archivo: 'fichas/' + f[1], real: true, fecha: '2026-05-10', por: 'Administradora VEPAGOS' });
+    DOCS.push({ id: did++, cat: 'fichas', nombre: 'Ficha técnica — ' + f[0], archivo: 'fichas/' + f[1], real: true, fecha: '2026-05-10', por: 'Super Administrador VEPAGOS' });
   });
   [
     ['planes', 'Plan de servicio — Estándar 2026'], ['planes', 'Plan de servicio — Alto volumen 2026'], ['planes', 'Tabla de comisiones por switch 2026'],
@@ -117,7 +117,7 @@ window.SV_SEED = (function () {
     ['contratos', 'Modelo de contrato — Afiliación de comercio'], ['contratos', 'Modelo de contrato — Fuerza de ventas independiente'], ['contratos', 'Acuerdo de confidencialidad (NDA)'],
     ['rrhh', 'Manual del empleado 2026'], ['rrhh', 'Código de ética'], ['rrhh', 'Formato de solicitud de vacaciones']
   ].forEach(function (d) {
-    DOCS.push({ id: did++, cat: d[0], nombre: d[1], archivo: null, real: false, fecha: '2026-06-01', por: 'Administradora VEPAGOS' });
+    DOCS.push({ id: did++, cat: d[0], nombre: d[1], archivo: null, real: false, fecha: '2026-06-01', por: 'Super Administrador VEPAGOS' });
   });
   // Marca (archivos reales)
   [['Logo color (PNG)', 'assets/marca/logo-color.png'], ['Logo blanco (PNG)', 'assets/marca/logo-blanco.png'], ['Isotipo verde (PNG)', 'assets/marca/iso-verde.png']].forEach(function (m) {
@@ -131,7 +131,7 @@ window.SV_SEED = (function () {
     ['presentaciones', 'Roadmap de sistemas 2026', { depto: 'Sistemas' }],
     ['rrhh', 'Presupuesto y cierres contables', { depto: 'Administración' }]
   ].forEach(function (d) {
-    DOCS.push({ id: did++, cat: d[0], nombre: d[1], archivo: null, real: false, fecha: '2026-06-20', por: 'Administradora VEPAGOS', depto: d[2].depto || null, equipo: d[2].equipo || null });
+    DOCS.push({ id: did++, cat: d[0], nombre: d[1], archivo: null, real: false, fecha: '2026-06-20', por: 'Super Administrador VEPAGOS', depto: d[2].depto || null, equipo: d[2].equipo || null });
   });
 
   var POS_CATALOGO = [
