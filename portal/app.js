@@ -1322,7 +1322,8 @@
       { id: 'admininducciones', t: 'Inducciones' },
       { id: 'admindocs', t: 'Biblioteca' },
       { id: 'admincultura', t: 'Cultura organizacional' },
-      { id: 'adminemergencias', t: 'Emergencias' }
+      { id: 'adminemergencias', t: 'Emergencias' },
+      { id: 'adminorg', t: 'Organigrama' }
     ] },
     { id: 'metas', g: 'personal', t: 'Metas', roles: ['admin', 'gerente'], ico: '<circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1"></circle>', sub: [
       { id: 'metas2026', t: 'Metas 2026' },
@@ -1676,10 +1677,10 @@
     $$('#sbNav a').forEach(function (a) { a.classList.toggle('on', a.getAttribute('data-go') === id); });
     var item = null;
     NAV.forEach(function (n) { if (n.id === id) item = n; if (n.sub) n.sub.forEach(function (c) { if (c.id === id) item = c; }); });
-    $('#pageTitle').textContent = item ? (id === 'adminfrec' || id === 'adminsomos' || id === 'adminenc' || id === 'admincom' || id === 'admininducciones' || id === 'admindocs' || id === 'admincultura' || id === 'adminemergencias' ? 'Administración · ' + item.t : (item.t === 'Metas 2026' || item.t === 'Visión' || item.t === 'Histórico' ? 'Metas · ' + item.t : ((id === 'afpanel' || id === 'afactivos' || id === 'aftech' || id === 'afalmacen' || id === 'afmercadeo' || id === 'afprocura' || id === 'aflog') ? 'Activos y procura · ' + item.t : ((id === 'ventasfv' || id === 'ventasbancos') ? 'Ventas · ' + item.t : ((id === 'sol_tec' || id === 'sol_th' || id === 'sol_procura' || id === 'sol_servicios' || id === 'sol_nomina') ? 'Gestión solicitudes · ' + item.t : navLabel(item)))))) : '';
+    $('#pageTitle').textContent = item ? (id === 'adminfrec' || id === 'adminsomos' || id === 'adminenc' || id === 'admincom' || id === 'admininducciones' || id === 'admindocs' || id === 'admincultura' || id === 'adminemergencias' || id === 'adminorg' ? 'Administración · ' + item.t : (item.t === 'Metas 2026' || item.t === 'Visión' || item.t === 'Histórico' ? 'Metas · ' + item.t : ((id === 'afpanel' || id === 'afactivos' || id === 'aftech' || id === 'afalmacen' || id === 'afmercadeo' || id === 'afprocura' || id === 'aflog') ? 'Activos y procura · ' + item.t : ((id === 'ventasfv' || id === 'ventasbancos') ? 'Ventas · ' + item.t : ((id === 'sol_tec' || id === 'sol_th' || id === 'sol_procura' || id === 'sol_servicios' || id === 'sol_nomina') ? 'Gestión solicitudes · ' + item.t : navLabel(item)))))) : '';
     var R = {
       inicio: rInicio,
-      adminmenu: rAdminFrec, adminfrec: rAdminFrec, adminsomos: rAdminSomos, adminenc: rEncuestas, admincom: rAdminCom, admininducciones: rAdminInducciones, admindocs: rAdminDocs, admincultura: rAdminCultura, adminemergencias: rAdminEmergencias,
+      adminmenu: rAdminFrec, adminfrec: rAdminFrec, adminsomos: rAdminSomos, adminenc: rEncuestas, admincom: rAdminCom, admininducciones: rAdminInducciones, admindocs: rAdminDocs, admincultura: rAdminCultura, adminemergencias: rAdminEmergencias, adminorg: rAdminOrg,
       metas: rMetas, metas2026: rMetas, metasvision: rMetas, metashist: rMetas,
       somos: rSomos, cultura: rCultura, docs: rDocs,
       solicitudes: rSolicitudes,
@@ -5723,6 +5724,48 @@
       saveDB(db); orgCandModal(c); toast('Datos actualizados.');
     });
   }
+
+  /* ---------- ADMIN: ORGANIGRAMA (permisos) ---------- */
+  function rAdminOrg() {
+    resetContent();
+    if (!db.orgPermisos) db.orgPermisos = { editarOrganigrama: ['admin'] };
+    var perms = db.orgPermisos.editarOrganigrama || [];
+    var allRoles = Object.keys(ROLE_LABEL);
+    $('#content').innerHTML =
+      '<div class="card"><h3>Permisos del organigrama</h3>' +
+      '<div class="note" style="margin:0 0 14px">Define qué perfiles pueden editar la estructura jerárquica del organigrama (drag-and-drop para cambiar reportes).</div>' +
+      '<div style="display:flex;flex-direction:column;gap:8px">' +
+      allRoles.map(function (r) {
+        var checked = perms.indexOf(r) > -1;
+        return '<label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;border-radius:10px;border:1.5px solid ' + (checked ? 'var(--green)' : 'var(--line)') + ';background:' + (checked ? '#E7FAF1' : '#fff') + '">' +
+          '<input type="checkbox" data-orgperm="' + r + '"' + (checked ? ' checked' : '') + ' style="width:18px;height:18px;accent-color:var(--green)">' +
+          '<span style="font-weight:600;color:var(--navy)">' + esc(ROLE_LABEL[r]) + '</span></label>';
+      }).join('') +
+      '</div>' +
+      '<div class="mod-actions" style="margin-top:16px"><button class="btn-g" id="orgPermSave">Guardar permisos</button></div></div>' +
+      '<div class="card" style="margin-top:16px"><h3>Log de cambios de jerarquía</h3>' +
+      ((db.orgLog && db.orgLog.length) ? '<div style="max-height:300px;overflow-y:auto">' +
+        db.orgLog.slice().reverse().map(function (l) {
+          return '<div style="padding:8px 0;border-bottom:1px solid #EEF3F9;font-size:13px"><b style="color:var(--navy)">' + esc(l.por) + '</b> ' + esc(l.detalle) + '<div style="font-size:11.5px;color:var(--muted2)">' + l.fecha + '</div></div>';
+        }).join('') + '</div>' : '<div class="empty">Sin cambios registrados.</div>') + '</div>';
+    $('#orgPermSave').addEventListener('click', function () {
+      var selected = [];
+      $$('[data-orgperm]').forEach(function (cb) { if (cb.checked) selected.push(cb.getAttribute('data-orgperm')); });
+      db.orgPermisos.editarOrganigrama = selected;
+      saveDB(db); rAdminOrg(); toast('Permisos del organigrama actualizados.');
+    });
+  }
+
+  /* ---------- ORGANIGRAMA ---------- */
+  var orgView = 'tree'; /* 'cols' or 'tree' */
+  var orgZoom = 0.85;
+  var orgTreeOpen = {}; /* track collapsed nodes in tree view */
+
+  function canEditOrg() {
+    if (!db.orgPermisos) return me.role === 'admin';
+    return (db.orgPermisos.editarOrganigrama || ['admin']).indexOf(me.role) > -1;
+  }
+
   function rOrg() {
     resetContent();
     var scoped = (me.role === 'gerente' || me.role === 'gerenteop' || me.role === 'coordinador' || me.role === 'reclutador') ? me.id : null;
@@ -5763,26 +5806,170 @@
         (vacScope.length ? vacScope.map(function (v) {
           var m = byId(v.managerId);
           return '<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #EEF3F9;flex-wrap:wrap;cursor:pointer" data-vac="' + v.id + '">' +
-            '<div style="flex:1;min-width:220px"><div style="font-weight:700;color:var(--navy)">' + esc(v.cargo) + '</div><div style="font-size:13px;color:var(--muted)">Reporta a: ' + esc(m ? m.nombre : '—') + ' · ' + esc(roleLabelOf(v.perfil || 'interno')) + ' · Abierta desde ' + v.fecha + '</div></div>' +
+            '<div style="flex:1;min-width:220px"><div style="font-weight:700;color:var(--navy)">' + esc(v.cargo) + '</div><div style="font-size:13px;color:var(--muted)">' + esc('Reporta a: ' + (m ? m.nombre : '—') + ' · ' + roleLabelOf(v.perfil || 'interno') + ' · Abierta desde ' + v.fecha) + '</div></div>' +
             '<span class="chip ' + (PRIOR_VAC[v.prioridad] || PRIOR_VAC.normal).chip + '">' + (PRIOR_VAC[v.prioridad] || PRIOR_VAC.normal).t + '</span>' +
             (me.role === 'admin' ? '<button class="btn-s btn-danger" data-vdel="' + v.id + '" style="font-size:12px;padding:5px 10px">Eliminar</button>' : '') + '</div>';
         }).join('') : '<div class="empty">No hay vacantes abiertas.</div>') + '</div>'
       : '';
-    $('#content').innerHTML =
-      '<div class="grid g4" style="margin-bottom:16px">' + kpi(totalPersonas, scoped ? 'Personas en tu equipo' : 'Personas en el equipo') + kpi(vacScope.length, scoped ? 'Vacantes en tu equipo' : 'Vacantes abiertas') + '</div>' +
-      '<div class="card"><h3>' + (scoped ? 'Tu equipo en la estructura' : 'Estructura organizacional') + '</h3>' +
-      '<div class="note" style="margin:0 0 14px">Haz clic en una gerencia o persona para desplegar su equipo. Usa el ícono de persona para ver su ficha completa.</div>' +
-      '<div class="orgroot"><div class="orgcard" data-prof="' + root.id + '">' + avatarHtml(root, 34, 12.5) + '<div><div class="on1">' + esc(root.nombre) + '</div><div class="on2">' + esc(root.cargo) + '</div></div></div></div>' +
-      '<div class="orgcols">' + execs.map(function (g2) {
-        var open = !!orgOpen[g2.id];
-        var gvacs = vacsOf(g2.id);
-        return '<div><div class="orgcol-h" data-tog="' + g2.id + '">' + avatarHtml(g2, 34, 12.5) +
-          '<div style="flex:1;min-width:0"><div class="oc1">' + esc(g2.nombre) + '</div><div class="oc2">' + esc(g2.cargo) + '</div></div>' +
-          '<button class="orgprof" data-prof="' + g2.id + '" title="Ver perfil">' + PROF_ICO + '</button>' +
-          '<span class="orgcount">' + subtreeVisible(g2.id).length + (gvacs.length ? ' +' + gvacs.length + 'V' : '') + '</span>' + chev(open) + '</div>' +
-          (open ? '<div class="orgcol-body">' + visibleReports(g2.id).map(item).join('') + gvacs.map(vacCard).join('') + '</div>' : '') +
+
+    /* ===== TREE VIEW ===== */
+    function treeNode(u, isRoot, isExec) {
+      var kids = visibleReports(u.id);
+      var count = subtreeVisible(u.id).length;
+      var collapsed = kids.length > 0 && orgTreeOpen[u.id] === false;
+      var cls = 'org-node' + (isRoot ? ' org-root' : (isExec ? ' org-exec' : '')) + (collapsed ? ' org-collapsed' : '');
+      var draggable = canEditOrg() && !isRoot ? ' draggable="true" data-drag-id="' + u.id + '"' : '';
+      var dropTarget = canEditOrg() ? ' data-drop-id="' + u.id + '"' : '';
+      var toggleAttr = kids.length ? ' data-tree-tog="' + u.id + '"' : '';
+      var html = '<div class="' + cls + '"' + draggable + dropTarget + toggleAttr + ' data-prof="' + u.id + '">' +
+        avatarHtml(u, 26, 10.5) +
+        '<div style="flex:1;min-width:0;overflow:hidden"><div class="on-name">' + esc(u.nombre) + '</div><div class="on-cargo">' + esc(u.cargo) + '</div></div>' +
+        (count > 0 ? '<span class="on-count">' + count + '</span>' : '') +
         '</div>';
-      }).join('') + '</div></div>' + vacListCard + orgCandCard();
+      if (kids.length && !collapsed) {
+        html += '<ul>' + kids.map(function (k) { return '<li>' + treeNode(k, false, isRoot && !isExec) + '</li>'; }).join('') + '</ul>';
+      }
+      return html;
+    }
+    var treeHtml = '<div class="org-tree">' + treeNode(root, true, false) + '</div>';
+
+    /* ===== BUILD PAGE ===== */
+    var viewToggle = '<div class="org-view-toggle" style="margin-left:auto">' +
+      '<button data-orgview="cols"' + (orgView === 'cols' ? ' class="active"' : '') + '>Columnas</button>' +
+      '<button data-orgview="tree"' + (orgView === 'tree' ? ' class="active"' : '') + '>Árbol</button></div>';
+
+    var zoomBar = '<div class="org-zoom-bar">' +
+      '<button id="orgZoomOut" title="Alejar">−</button>' +
+      '<span id="orgZoomLbl">' + Math.round(orgZoom * 100) + '%</span>' +
+      '<button id="orgZoomIn" title="Acercar">+</button>' +
+      '<button id="orgZoomFit" title="Ajustar" style="font-size:12px;width:auto;padding:0 10px">Ajustar</button></div>';
+
+    if (orgView === 'tree') {
+      $('#content').innerHTML =
+        '<div class="grid g4" style="margin-bottom:16px">' + kpi(totalPersonas, scoped ? 'Personas en tu equipo' : 'Personas en el equipo') + kpi(vacScope.length, scoped ? 'Vacantes en tu equipo' : 'Vacantes abiertas') + '</div>' +
+        '<div class="card">' +
+        '<div class="toolrow" style="margin-bottom:10px"><h3 style="margin:0">' + (scoped ? 'Tu equipo en la estructura' : 'Estructura organizacional') + '</h3>' + viewToggle + '</div>' +
+        zoomBar +
+        '<div class="note" style="margin:0 0 10px">' + (canEditOrg() ? 'Arrastra un nodo sobre otro para cambiar la estructura jerárquica. ' : '') + 'Haz clic en un nodo para ver el perfil. Clic en el contador para expandir/colapsar.</div>' +
+        '<div class="org-tree-wrap"><div class="org-tree-inner" id="orgTreeInner" style="transform:scale(' + orgZoom + ')">' + treeHtml + '</div></div></div>' + vacListCard + orgCandCard();
+    } else {
+      /* Original column view */
+      $('#content').innerHTML =
+        '<div class="grid g4" style="margin-bottom:16px">' + kpi(totalPersonas, scoped ? 'Personas en tu equipo' : 'Personas en el equipo') + kpi(vacScope.length, scoped ? 'Vacantes en tu equipo' : 'Vacantes abiertas') + '</div>' +
+        '<div class="card"><div class="toolrow" style="margin-bottom:10px"><h3 style="margin:0">' + (scoped ? 'Tu equipo en la estructura' : 'Estructura organizacional') + '</h3>' + viewToggle + '</div>' +
+        '<div class="note" style="margin:0 0 14px">Haz clic en una gerencia o persona para desplegar su equipo. Usa el ícono de persona para ver su ficha completa.</div>' +
+        '<div class="orgroot"><div class="orgcard" data-prof="' + root.id + '">' + avatarHtml(root, 34, 12.5) + '<div><div class="on1">' + esc(root.nombre) + '</div><div class="on2">' + esc(root.cargo) + '</div></div></div></div>' +
+        '<div class="orgcols">' + execs.map(function (g2) {
+          var open = !!orgOpen[g2.id];
+          var gvacs = vacsOf(g2.id);
+          return '<div><div class="orgcol-h" data-tog="' + g2.id + '">' + avatarHtml(g2, 34, 12.5) +
+            '<div style="flex:1;min-width:0"><div class="oc1">' + esc(g2.nombre) + '</div><div class="oc2">' + esc(g2.cargo) + '</div></div>' +
+            '<button class="orgprof" data-prof="' + g2.id + '" title="Ver perfil">' + PROF_ICO + '</button>' +
+            '<span class="orgcount">' + subtreeVisible(g2.id).length + (gvacs.length ? ' +' + gvacs.length + 'V' : '') + '</span>' + chev(open) + '</div>' +
+            (open ? '<div class="orgcol-body">' + visibleReports(g2.id).map(item).join('') + gvacs.map(vacCard).join('') + '</div>' : '') +
+          '</div>';
+        }).join('') + '</div></div>' + vacListCard + orgCandCard();
+    }
+
+    /* ===== EVENT LISTENERS ===== */
+
+    /* View toggle */
+    $$('[data-orgview]').forEach(function (btn) {
+      btn.addEventListener('click', function () { orgView = btn.getAttribute('data-orgview'); rOrg(); });
+    });
+
+    /* Zoom controls (tree only) */
+    var zIn = $('#orgZoomIn'), zOut = $('#orgZoomOut'), zFit = $('#orgZoomFit');
+    function applyZoom() {
+      var inner = $('#orgTreeInner');
+      if (inner) inner.style.transform = 'scale(' + orgZoom + ')';
+      var lbl = $('#orgZoomLbl');
+      if (lbl) lbl.textContent = Math.round(orgZoom * 100) + '%';
+    }
+    if (zIn) zIn.addEventListener('click', function () { orgZoom = Math.min(1.5, orgZoom + 0.1); applyZoom(); });
+    if (zOut) zOut.addEventListener('click', function () { orgZoom = Math.max(0.3, orgZoom - 0.1); applyZoom(); });
+    if (zFit) zFit.addEventListener('click', function () {
+      var wrap = document.querySelector('.org-tree-wrap');
+      var inner = $('#orgTreeInner');
+      if (wrap && inner) {
+        var wW = wrap.clientWidth;
+        var iW = inner.scrollWidth / orgZoom;
+        orgZoom = Math.min(1, Math.max(0.3, (wW - 40) / iW));
+        applyZoom();
+      }
+    });
+    /* Auto-fit on first render */
+    if (zFit) {
+      requestAnimationFrame(function () {
+        var wrap = document.querySelector('.org-tree-wrap');
+        var inner = $('#orgTreeInner');
+        if (wrap && inner) {
+          var wW = wrap.clientWidth;
+          var iW = inner.scrollWidth / orgZoom;
+          if (iW > wW) { orgZoom = Math.min(1, Math.max(0.3, (wW - 40) / iW)); applyZoom(); }
+        }
+      });
+    }
+    /* Tree expand/collapse */
+    $$('[data-tree-tog]').forEach(function (el) {
+      var countEl = el.querySelector('.on-count');
+      if (countEl) {
+        countEl.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var id = +el.getAttribute('data-tree-tog');
+          orgTreeOpen[id] = orgTreeOpen[id] === false ? true : false;
+          rOrg();
+        });
+      }
+    });
+
+    /* Drag and drop (tree view) */
+    if (canEditOrg() && orgView === 'tree') {
+      var dragId = null;
+      $$('[data-drag-id]').forEach(function (el) {
+        el.addEventListener('dragstart', function (e) {
+          dragId = +el.getAttribute('data-drag-id');
+          el.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', dragId);
+        });
+        el.addEventListener('dragend', function () { el.classList.remove('dragging'); dragId = null; $$('.drag-over').forEach(function (d) { d.classList.remove('drag-over'); }); });
+      });
+      $$('[data-drop-id]').forEach(function (el) {
+        el.addEventListener('dragover', function (e) {
+          e.preventDefault();
+          var dropId = +el.getAttribute('data-drop-id');
+          if (dropId === dragId) return;
+          /* Prevent dropping on own subtree */
+          var ids = [dragId].concat(subtree(dragId).map(function (u) { return u.id; }));
+          if (ids.indexOf(dropId) > -1) return;
+          e.dataTransfer.dropEffect = 'move';
+          el.classList.add('drag-over');
+        });
+        el.addEventListener('dragleave', function () { el.classList.remove('drag-over'); });
+        el.addEventListener('drop', function (e) {
+          e.preventDefault();
+          el.classList.remove('drag-over');
+          var dropId = +el.getAttribute('data-drop-id');
+          var srcId = +e.dataTransfer.getData('text/plain');
+          if (!srcId || srcId === dropId) return;
+          /* Prevent cycle */
+          var ids = [srcId].concat(subtree(srcId).map(function (u) { return u.id; }));
+          if (ids.indexOf(dropId) > -1) { toast('No se puede mover un nodo bajo su propia rama.'); return; }
+          var srcUser = byId(srcId);
+          var dropUser = byId(dropId);
+          if (!srcUser || !dropUser) return;
+          var oldMgr = byId(srcUser.managerId);
+          srcUser.managerId = dropId;
+          if (!db.orgLog) db.orgLog = [];
+          db.orgLog.push({ por: me.nombre, detalle: esc(srcUser.nombre) + ' ahora reporta a ' + esc(dropUser.nombre) + ' (antes: ' + esc(oldMgr ? oldMgr.nombre : '—') + ')', fecha: new Date().toISOString().replace('T', ' ').slice(0, 16) });
+          saveDB(db); rOrg();
+          toast(srcUser.nombre.split(' ')[0] + ' ahora reporta a ' + dropUser.nombre.split(' ')[0] + '.');
+        });
+      });
+    }
+
+    /* Vacante buttons */
     var bav = $('#btnAddVac');
     if (bav) bav.addEventListener('click', function () {
       var mgrs = db.users.filter(function (u) { return u.activo && u.role !== 'candidato'; });
@@ -5832,7 +6019,7 @@
       var tg = e.target.closest('[data-tog]');
       if (tg) { var id = +tg.getAttribute('data-tog'); orgOpen[id] = !orgOpen[id]; rOrg(); return; }
       var c = e.target.closest('[data-prof]');
-      if (c) profileModal(byId(+c.getAttribute('data-prof')));
+      if (c && !c.closest('.on-count')) profileModal(byId(+c.getAttribute('data-prof')));
     });
   }
 
