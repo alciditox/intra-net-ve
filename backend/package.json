@@ -4,9 +4,9 @@
   "description": "Backend TypeScript para el Portal Somos VEPAGOS",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "start": "tsx src/index.ts",
-    "seed": "tsx seed/seed.ts",
+    "dev": "tsx watch --env-file=.env src/index.ts",
+    "start": "tsx --env-file=.env src/index.ts",
+    "seed": "tsx --env-file=.env seed/seed.ts",
     "build": "tsc"
   },
   "dependencies": {
