@@ -6638,42 +6638,33 @@
     var w = String(desc || cat || 'EQP').replace(/[^a-zA-Z]/g, '').toUpperCase();
     return (w + 'EQP').slice(0, 3);
   }
-  function afSerialCod(serial, fallbackNum) {
-    var raw = String(serial || '').trim();
-    if (raw && raw.toUpperCase() !== 'N/A' && raw !== '—' && raw !== '-') {
-      var clean = raw.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-      if (clean) return clean;
-    }
-    return fallbackNum || '00001';
-  }
   function afGenNumAleatorio() {
     var usados = {};
     ((db.af && db.af.activos) || []).forEach(function (x) {
-      if (x.numAleatorio) usados[String(x.numAleatorio)] = true;
+      if (x.numAleatorio && x.numAleatorioRnd) usados[String(x.numAleatorio)] = true;
     });
     var cand = '';
     for (var i = 0; i < 5000; i++) {
-      cand = afPad(Math.floor(1 + Math.random() * 99999), 5);
+      cand = afPad(Math.floor(100000 + Math.random() * 900000), 6);
       if (!usados[cand]) return cand;
     }
-    return afPad(Date.now() % 100000, 5);
+    return afPad(100000 + (Date.now() % 900000), 6);
   }
   function afEnsureCodigo(a) {
     if (!a) return '';
-    if (!a.numAleatorio) {
-      var m = String(a.id || '').match(/(\d+)$/);
-      a.numAleatorio = m ? afPad(m[1], 5) : afGenNumAleatorio();
+    if (!a.numAleatorio || !a.numAleatorioRnd) {
+      a.numAleatorio = afGenNumAleatorio();
+      a.numAleatorioRnd = true;
     }
     var depCod = afDeptoCod(a.departamento);
     var tipCod = afTipoCod(a.descripcion, a.categoria, a.telefono);
-    var serCod = afSerialCod(a.serial, a.numAleatorio);
-    a.codigoEtiqueta = depCod + '-' + tipCod + '-' + serCod;
+    a.codigoEtiqueta = depCod + '-' + tipCod + '-' + a.numAleatorio;
     return a.codigoEtiqueta;
   }
   function afNewActivoId(dep, desc, cat, serial, tel, preNum) {
     db.af.nextActivo = (db.af.nextActivo || 1) + 1;
     var num = preNum || afGenNumAleatorio();
-    return afDeptoCod(dep || 'Tecnología') + '-' + afTipoCod(desc, cat, tel) + '-' + afSerialCod(serial, num);
+    return afDeptoCod(dep || 'Tecnología') + '-' + afTipoCod(desc, cat, tel) + '-' + num;
   }
   function afPcIconSvg(size, col) {
     size = size || 22;
@@ -6944,7 +6935,7 @@
     saveDB(db);
     var cardHtml = afEtiquetaHtmlCard(a);
     modal('<button class="mod-x">✕</button><h3>Etiqueta de activo · ' + esc(cod) + '</h3>' +
-      '<p style="color:var(--muted);font-size:13.5px;margin:2px 0 10px">Depto: <b>' + esc(afDeptoCod(a.departamento)) + '</b> (' + esc(a.departamento || '—') + ') · Tipo: <b>' + esc(afTipoCod(a.descripcion, a.categoria, a.telefono)) + '</b> · Serial: <b>' + esc(afSerialCod(a.serial, a.numAleatorio)) + '</b></p>' +
+      '<p style="color:var(--muted);font-size:13.5px;margin:2px 0 10px">Depto: <b>' + esc(afDeptoCod(a.departamento)) + '</b> (' + esc(a.departamento || '—') + ') · Tipo: <b>' + esc(afTipoCod(a.descripcion, a.categoria, a.telefono)) + '</b> · Serial único: <b>' + esc(a.numAleatorio) + '</b></p>' +
       cardHtml +
       '<div class="note" style="margin:10px 0 6px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><span>El QR abre la ficha pública de este artículo sin requerir inicio de sesión.</span><a href="' + esc(pubUrl) + '" target="_blank" rel="noopener" style="font-weight:700;color:var(--navy)">Abrir link público del QR ↗</a></div>' +
       '<div class="mod-actions"><button class="btn-s" id="etqEdit">Editar activo</button><button class="btn-s" id="etqOpenWeb">Ver ficha web (QR)</button><button class="btn-g" id="etqPrint">Imprimir etiqueta</button></div>', 'wide');
@@ -7064,13 +7055,13 @@
     var edit = !!a; a = a || {};
     if (!edit && preCat) a.categoria = preCat;
     var C = db.af.cat;
-    var numRand = a.numAleatorio || afGenNumAleatorio();
+    var numRand = (a.numAleatorio && a.numAleatorioRnd) ? a.numAleatorio : afGenNumAleatorio();
     var imgData = a.imagen || '';
     modal('<button class="mod-x">✕</button><h3>' + (edit ? 'Editar activo ' + esc(a.id) : 'Nuevo activo fijo') + '</h3>' +
       '<div class="fld"><label>Categoría *</label>' + afSelect('faCat', C.categorias, a.categoria) + '</div>' +
       '<div class="fld"><label>Descripción del bien *</label><input id="faDesc" type="text" value="' + esc(a.descripcion || '') + '" placeholder="Ej: Laptop 14 pulgadas administración"></div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap"><div class="fld" style="flex:1;min-width:130px"><label>Marca</label><input id="faMarca" type="text" value="' + esc(a.marca || '') + '"></div><div class="fld" style="flex:1;min-width:130px"><label>Modelo</label><input id="faModelo" type="text" value="' + esc(a.modelo || '') + '"></div></div>' +
-      '<div class="fld"><label>Serial del fabricante <span style="color:var(--muted2)">(obligatorio para electrónicos · define el tramo final del código)</span></label><input id="faSerial" type="text" value="' + esc(a.serial || '') + '"></div>' +
+      '<div class="fld"><label>Serial del fabricante <span style="color:var(--muted2)">(obligatorio para electrónicos)</span></label><input id="faSerial" type="text" value="' + esc(a.serial || '') + '"></div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap"><div class="fld" style="flex:1;min-width:120px"><label>Fecha de compra</label><input id="faFC" type="date" value="' + esc(a.fechaCompra || '') + '"></div><div class="fld" style="flex:1;min-width:110px"><label>Costo (USD)</label><input id="faCosto" type="number" min="0" step="1" value="' + esc(a.costo != null ? a.costo : '') + '"></div></div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap"><div class="fld" style="flex:1;min-width:150px"><label>Proveedor</label><input id="faProv" type="text" value="' + esc(a.proveedor || '') + '" list="afProvList"><datalist id="afProvList">' + db.af.proveedores.map(function (p) { return '<option value="' + esc(p.razon) + '">'; }).join('') + '</datalist></div><div class="fld" style="flex:1;min-width:110px"><label>N° factura</label><input id="faFact" type="text" value="' + esc(a.factura || '') + '"></div></div>' +
       '<div class="fld"><label>Número de teléfono <span style="color:var(--muted2)">(opcional · cambia el código a CORP y se muestra bajo el código de barra)</span></label><input id="faTel" type="tel" value="' + esc(a.telefono || '') + '" placeholder="Ej: 0414-0000000"></div>' +
@@ -7085,7 +7076,7 @@
       '</div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap"><div class="fld" style="flex:1;min-width:130px"><label>Sede *</label>' + afSelect('faSede', C.sedes, a.sede) + '</div><div class="fld" style="flex:1;min-width:130px"><label>Piso / Área</label>' + afSelect('faArea', C.areas, a.area) + '</div></div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap"><div class="fld" style="flex:1;min-width:130px"><label>Departamento</label>' + afSelect('faDep', C.departamentos, a.departamento) + '</div><div class="fld" style="flex:1;min-width:130px"><label>Estado físico</label>' + afSelect('faEF', C.estadoFisico, a.estadoFisico || 'Bueno') + '</div></div>' +
-      '<div class="note" style="margin:2px 0 8px;display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Código de etiqueta (Depto - Tipo/CORP - Serial):</span><b id="faCodPrev" style="color:var(--navy);font-size:14px;letter-spacing:0.6px"></b></div>' +
+      '<div class="note" style="margin:2px 0 8px;display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Código de etiqueta (Depto - Tipo/CORP - Serial aleatorio único):</span><b id="faCodPrev" style="color:var(--navy);font-size:14px;letter-spacing:0.6px"></b></div>' +
       '<div class="fld"><label>Observaciones</label><textarea id="faObs" style="min-height:52px">' + esc(a.obs || '') + '</textarea></div>' +
       '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="faOk">' + (edit ? 'Guardar cambios' : 'Registrar activo') + '</button></div>', 'wide');
     function refreshImgPrev() {
@@ -7124,14 +7115,14 @@
       refreshImgPrev();
     });
     function buildCurrCode() {
-      return afDeptoCod($('#faDep').value) + '-' + afTipoCod($('#faDesc').value, $('#faCat').value, $('#faTel').value) + '-' + afSerialCod($('#faSerial').value, numRand);
+      return afDeptoCod($('#faDep').value) + '-' + afTipoCod($('#faDesc').value, $('#faCat').value, $('#faTel').value) + '-' + numRand;
     }
     function updCodPrev() {
       var pEl = $('#faCodPrev');
       if (pEl) pEl.textContent = buildCurrCode();
     }
     updCodPrev();
-    ['faDep', 'faCat', 'faDesc', 'faSerial', 'faTel'].forEach(function (id) {
+    ['faDep', 'faCat', 'faDesc', 'faTel'].forEach(function (id) {
       var el = $('#' + id);
       if (el) { el.addEventListener('input', updCodPrev); el.addEventListener('change', updCodPrev); }
     });
@@ -7140,8 +7131,8 @@
       var cat = $('#faCat').value, serial = $('#faSerial').value.trim();
       if (cat === 'Computación' || cat === 'POS / Terminales' || cat === 'Audiovisual') { if (!serial) { toast('El serial es obligatorio para equipos electrónicos.'); return; } }
       var areaVal = $('#faArea').value, depVal = $('#faDep').value, telVal = $('#faTel').value.trim();
-      var codEtq = afDeptoCod(depVal) + '-' + afTipoCod(desc, cat, telVal) + '-' + afSerialCod(serial, numRand);
-      var data = { categoria: cat, descripcion: desc, marca: $('#faMarca').value.trim(), modelo: $('#faModelo').value.trim(), serial: serial, fechaCompra: $('#faFC').value, costo: +$('#faCosto').value || 0, proveedor: $('#faProv').value.trim(), factura: $('#faFact').value.trim(), telefono: telVal, imagen: imgData, sede: $('#faSede').value, area: areaVal, departamento: depVal, estadoFisico: $('#faEF').value, obs: $('#faObs').value.trim(), numAleatorio: numRand, codigoEtiqueta: codEtq };
+      var codEtq = afDeptoCod(depVal) + '-' + afTipoCod(desc, cat, telVal) + '-' + numRand;
+      var data = { categoria: cat, descripcion: desc, marca: $('#faMarca').value.trim(), modelo: $('#faModelo').value.trim(), serial: serial, fechaCompra: $('#faFC').value, costo: +$('#faCosto').value || 0, proveedor: $('#faProv').value.trim(), factura: $('#faFact').value.trim(), telefono: telVal, imagen: imgData, sede: $('#faSede').value, area: areaVal, departamento: depVal, estadoFisico: $('#faEF').value, obs: $('#faObs').value.trim(), numAleatorio: numRand, numAleatorioRnd: true, codigoEtiqueta: codEtq };
       var targetAct = null;
       if (edit) { Object.assign(a, data); targetAct = a; afLog('Edición', a.id, 'Editó el activo ' + a.id + ' (' + desc + ')'); toast('Activo actualizado.'); }
       else { var id = codEtq; targetAct = Object.assign({ id: id, userId: null, fechaAsig: null, estado: 'Disponible', ultimoInv: null, creadoPor: me.nombre }, data); db.af.activos.push(targetAct); afLog('Alta', id, 'Registró el activo ' + id + ' — ' + desc); toast('Activo ' + id + ' registrado.'); }
