@@ -556,8 +556,16 @@
       ];
     }
   }
-  /* ===== MIGRACIÓN INVENTARIO GALERÍAS — one-time seed ===== */
-  if (!db._invGaleriasSeed) {
+  /* ===== MIGRACIÓN INVENTARIO GALERÍAS — catálogo base garantizado (AF-0001..AF-0339) ===== */
+  var _masterBaseActivos = [
+    { id: 'AF-0001', categoria: 'Computación', descripcion: 'Laptop 14" administración', marca: 'Dell', modelo: 'Latitude 3440', serial: 'DL-3440-4821', fechaCompra: '2025-11-12', costo: 650, proveedor: 'Distribuidora TecnoZulia', factura: 'F-00821', sede: 'Sede Principal', area: 'Piso 1 - Finanzas', departamento: 'Finanzas', userId: 74, fechaAsig: '2025-11-20', estado: 'Asignado', estadoFisico: 'Bueno', ultimoInv: '2026-07-10', creadoPor: 'Isabella M.', obs: '' },
+    { id: 'AF-0002', categoria: 'Computación', descripcion: 'Laptop 15" comercial', marca: 'Lenovo', modelo: 'ThinkPad E15', serial: 'LNV-E15-1190', fechaCompra: '2025-09-03', costo: 720, proveedor: 'Distribuidora TecnoZulia', factura: 'F-00655', sede: 'Sede Principal', area: 'Piso 2 - Comercial', departamento: 'Comercial', userId: null, fechaAsig: null, estado: 'Disponible', estadoFisico: 'Bueno', ultimoInv: '2026-07-10', creadoPor: 'Isabella M.', obs: '' },
+    { id: 'AF-0003', categoria: 'Climatización', descripcion: 'Aire acondicionado split 12.000 BTU', marca: 'LG', modelo: 'Dual Inverter', serial: 'LG-DI-77120', fechaCompra: '2024-05-20', costo: 480, proveedor: 'ClimaCentro C.A.', factura: 'F-00190', sede: 'Sede Principal', area: 'Sala de reuniones', departamento: 'Administración', userId: null, fechaAsig: null, estado: 'Disponible', estadoFisico: 'Regular', ultimoInv: '2026-07-10', creadoPor: 'Isabella M.', obs: 'Requiere mantenimiento anual.' },
+    { id: 'AF-0004', categoria: 'POS / Terminales', descripcion: 'Terminal POS demo A50', marca: 'PAX', modelo: 'A50', serial: 'PAX-A50-0219', fechaCompra: '2026-01-15', costo: 210, proveedor: 'VEPAGOS Importaciones', factura: 'F-01002', sede: 'Depósito', area: 'PB - Almacén', departamento: 'Comercial', userId: null, fechaAsig: null, estado: 'En reparación', estadoFisico: 'Malo', ultimoInv: '2026-07-10', creadoPor: 'Isabella M.', obs: 'Pantalla con falla táctil.' },
+    { id: 'AF-0005', categoria: 'Mobiliario', descripcion: 'Escritorio ejecutivo en L', marca: 'Oficenter', modelo: 'Ejecutivo L', serial: '—', fechaCompra: '2023-08-01', costo: 180, proveedor: 'Muebles Maracaibo', factura: 'F-00044', sede: 'Sede Principal', area: 'Piso 1 - Administración', departamento: 'Administración', userId: 77, fechaAsig: '2023-08-05', estado: 'Asignado', estadoFisico: 'Bueno', ultimoInv: '2026-07-10', creadoPor: 'Isabella M.', obs: '' }
+  ];
+  (function _buildGaleriasBase() {
+    var _invFirstTime = !db._invGaleriasSeed;
     db._invGaleriasSeed = true;
     var _invDate = '2026-09-15';
     var _invCreator = 'Migración Inventario';
@@ -978,16 +986,32 @@
       { id: 'AF-0338', cat: 'Computación', desc: 'Desktop COMPAQ', marca: 'HP', modelo: 'COMPAQ', serial: '00186154894554', emp: null, est: 'Dañado', ef: 'Inoperativo', obs: 'Importado desde inventario Excel. Ubicación original: ALMACEN SERVIDOR- no funcional' },
       { id: 'AF-0339', cat: 'Computación', desc: 'Desktop COMPAQ', marca: 'HP', modelo: 'COMPAQ', serial: 'MXL2070W7W', emp: null, est: 'Dañado', ef: 'Inoperativo', obs: 'Importado desde inventario Excel. Ubicación original: ALMACEN SERVIDOR- no funcional' },
     ];
+    var _existingAfIds = {};
+    (db.af.activos || []).forEach(function (x) { if (x && x.id) _existingAfIds[x.id] = true; });
+    var _restoredAny = false;
+    _masterBaseActivos.forEach(function (b) {
+      if (!_existingAfIds[b.id]) {
+        db.af.activos.push(Object.assign({}, b));
+        _existingAfIds[b.id] = true;
+        _restoredAny = true;
+      }
+    });
     _invActivos.forEach(function (a) {
       var uid = _invFindUser(a.emp);
-      db.af.activos.push({ id: a.id, categoria: a.cat, descripcion: a.desc, marca: a.marca, modelo: a.modelo, serial: a.serial, fechaCompra: '', costo: 0, proveedor: '', factura: '', sede: 'Sede Principal', area: 'Piso 2 - Tecnología', departamento: 'Tecnología', userId: uid, fechaAsig: uid ? _invDate : null, estado: uid ? 'Asignado' : a.est, estadoFisico: a.ef, ultimoInv: _invDate, creadoPor: _invCreator, obs: a.obs });
+      var obj = { id: a.id, categoria: a.cat, descripcion: a.desc, marca: a.marca, modelo: a.modelo, serial: a.serial, fechaCompra: '', costo: 0, proveedor: '', factura: '', sede: 'Sede Principal', area: 'Piso 2 - Tecnología', departamento: 'Tecnología', userId: uid, fechaAsig: uid ? _invDate : null, estado: uid ? 'Asignado' : a.est, estadoFisico: a.ef, ultimoInv: _invDate, creadoPor: _invCreator, obs: a.obs };
+      _masterBaseActivos.push(obj);
+      if (!_existingAfIds[a.id]) {
+        db.af.activos.push(Object.assign({}, obj));
+        _existingAfIds[a.id] = true;
+        _restoredAny = true;
+      }
     });
-    db.af.nextActivo = 340;
-
-    /* — Log de auditoría — */
-    if (db.af.audit) db.af.audit.push({ id: db.af.nextAudit++, fecha: _invDate + ' 12:00', usuario: _invCreator, tipo: 'Carga masiva', activoId: '', detalle: 'Migración de inventario Galerías: ' + _invActivos.length + ' activos registrados, ' + _invEmps.length + ' empleados verificados/creados.' });
-    saveDB(db);
-  }
+    if (_invFirstTime) {
+      db.af.nextActivo = 340;
+      if (db.af.audit) db.af.audit.push({ id: db.af.nextAudit++, fecha: _invDate + ' 12:00', usuario: _invCreator, tipo: 'Carga masiva', activoId: '', detalle: 'Migración de inventario Galerías: ' + _invActivos.length + ' activos registrados, ' + _invEmps.length + ' empleados verificados/creados.' });
+    }
+    if (_invFirstTime || _restoredAny) saveDB(db);
+  })();
   /* ===== FIX: Reasignar activos con matching de acentos y eliminar duplicados ===== */
   if (!db._invGaleriasFix) {
     db._invGaleriasFix = true;
@@ -6635,6 +6659,18 @@
     var obs = String(a.obs || '');
     return a.categoria === 'Mercadeo' && /Activo de mercadeo \(no consumible\)/i.test(obs) && (a.proveedor === 'BrandLab C.A.' || a.creadoPor === 'Isabella M.');
   }
+  function afCustomSig(a) {
+    if (!a) return '';
+    var ser = String(a.serial || '').trim().toLowerCase();
+    if (ser) {
+      return 'ser:' + [a.categoria, a.descripcion, a.marca, a.modelo, ser]
+        .map(function (s) { return String(s || '').trim().toLowerCase(); })
+        .join('|');
+    }
+    return [a.categoria, a.descripcion, a.marca, a.modelo, a.sede, a.area, a.telefono]
+      .map(function (s) { return String(s || '').trim().toLowerCase(); })
+      .join('|');
+  }
   function afExtractSeqNum(a) {
     if (!a) return 999999;
     var mAf = String(a.id || '').match(/^AF-(\d+)$/i);
@@ -6647,79 +6683,171 @@
     return 999999;
   }
   var _afInBarrido = false;
+  var _afDupDbIdsToDelete = [];
   function afBarridoCorrelativos() {
     if (_afInBarrido || !db || !db.af || !Array.isArray(db.af.activos)) return false;
     _afInBarrido = true;
     var changed = false;
     var rawList = db.af.activos;
-    // 1. Retirar los 3 registros demo de mercActSeed que colisionaban con AF-0006..AF-0008 de Galerías
-    var filtered = rawList.filter(function (a) {
-      if (!a || afIsMercadeoGhostSeed(a)) { changed = true; return false; }
-      return true;
+    var masterMap = {};
+    if (typeof _masterBaseActivos !== 'undefined' && Array.isArray(_masterBaseActivos)) {
+      _masterBaseActivos.forEach(function (b) { masterMap[b.id.toUpperCase()] = b; });
+    }
+    // 1. Retirar los 3 registros demo de mercActSeed y separar cualquier custom que haya pisado un _dbId AF-0001..AF-0339
+    var filtered = [];
+    var healedAfSlots = {};
+    rawList.forEach(function (a) {
+      if (!a || afIsMercadeoGhostSeed(a)) { changed = true; return; }
+      var idStr = String(a.id || '');
+      var dbIdStr = String(a._dbId || '').toUpperCase();
+      if (!/^AF-\d+$/i.test(idStr) && /^AF-(\d+)$/i.test(dbIdStr)) {
+        var dbN = parseInt(dbIdStr.split('-')[1], 10);
+        if (dbN >= 1 && dbN <= 339) {
+          // Este activo personalizado había pisado una ranura base (ej. AF-0295, AF-0302, AF-0303)
+          healedAfSlots[dbIdStr] = true;
+          a._dbId = null;
+          changed = true;
+        }
+      }
+      filtered.push(a);
     });
-    // 2. Deduplicar si existen dos objetos con el mismo AF-XXXX o el mismo ID
-    var seenKey = {};
-    var deduped = [];
+    // 2. Separar activos base AF-0001..AF-0339 de activos nuevos personalizados
+    var baseById = {};
+    var customRaw = [];
     filtered.forEach(function (a) {
-      var k = String(a.id || a._dbId || '');
-      if (!k) { deduped.push(a); return; }
-      if (seenKey[k] !== undefined) {
+      var mAf = String(a.id || '').match(/^AF-(\d+)$/i);
+      if (mAf) {
+        var nAf = parseInt(mAf[1], 10);
+        if (nAf >= 1 && nAf <= 339) {
+          var k = 'AF-' + afPad(nAf, 4);
+          if (!baseById[k]) {
+            baseById[k] = a;
+          } else {
+            changed = true;
+          }
+          return;
+        }
+      }
+      customRaw.push(a);
+    });
+    // 3. Garantizar que los 339 activos base (AF-0001..AF-0339) estén completos siempre
+    if (typeof _masterBaseActivos !== 'undefined' && Array.isArray(_masterBaseActivos)) {
+      _masterBaseActivos.forEach(function (b) {
+        var k = b.id.toUpperCase();
+        if (!baseById[k]) {
+          var copy = Object.assign({}, b);
+          if (healedAfSlots[k]) copy._needsSync = true;
+          baseById[k] = copy;
+          changed = true;
+        } else if (healedAfSlots[k]) {
+          baseById[k]._needsSync = true;
+        }
+      });
+    }
+    var baseAf = Object.keys(baseById).map(function (k) { return baseById[k]; });
+    baseAf.sort(function (x, y) { return afExtractSeqNum(x) - afExtractSeqNum(y); });
+    // 4. Deduplicar activos personalizados (ej. si Teléfono Android se duplicó como 00302 y 00303)
+    var seenCustomSig = {};
+    var customAf = [];
+    customRaw.forEach(function (a) {
+      var sig = afCustomSig(a);
+      if (sig && seenCustomSig[sig] !== undefined) {
         changed = true;
-        var prev = deduped[seenKey[k]];
-        // Preferir el registro que tenga más datos o sea de Galerías / usuario
-        if (prev.creadoPor === 'Isabella M.' && a.creadoPor !== 'Isabella M.') {
-          deduped[seenKey[k]] = a;
+        var prev = customAf[seenCustomSig[sig]];
+        if (!prev.imagen && a.imagen) prev.imagen = a.imagen;
+        if (!prev.telefono && a.telefono) prev.telefono = a.telefono;
+        var aNum = parseInt(a.numAleatorio, 10) || 0;
+        var pNum = parseInt(prev.numAleatorio, 10) || 0;
+        if (a.numFixed6 && aNum >= 340 && (!prev.numFixed6 || pNum < 340)) {
+          prev.numAleatorio = a.numAleatorio;
+          prev.numSeq5 = true;
+          prev.numSeq6 = true;
+          prev.numFixed = true;
+          prev.numFixed6 = true;
+        }
+        if (a._dbId && /^AF-(\d+)$/i.test(a._dbId)) {
+          var dn = parseInt(a._dbId.split('-')[1], 10);
+          if (dn >= 340 && _afDupDbIdsToDelete.indexOf(a._dbId) < 0) _afDupDbIdsToDelete.push(a._dbId);
         }
         return;
       }
-      seenKey[k] = deduped.length;
-      deduped.push(a);
+      if (sig) seenCustomSig[sig] = customAf.length;
+      customAf.push(a);
     });
-    // 3. Ordenar: primero los AF-0001..AF-0339 por su número fijo, luego los nuevos en orden ascendente
-    var baseAf = [], customAf = [];
-    deduped.forEach(function (a) {
-      if (/^AF-\d+$/i.test(String(a.id || ''))) baseAf.push(a);
-      else customAf.push(a);
-    });
-    baseAf.sort(function (x, y) { return afExtractSeqNum(x) - afExtractSeqNum(y); });
     customAf.sort(function (x, y) { return afExtractSeqNum(x) - afExtractSeqNum(y); });
-    var ordered = baseAf.concat(customAf);
-    // 4. Recorrido secuencial estricto 00001 .. 0000N sin saltos
-    ordered.forEach(function (a, idx) {
-      var seqNum = idx + 1;
-      var seq5 = afPad(seqNum, 5);
-      var depCod = afDeptoCod(a.departamento);
-      var tipCod = afTipoCod(a.descripcion, a.categoria, a.telefono);
-      var expectedCod = depCod + '-' + tipCod + '-' + seq5;
-      var expectedDbId = 'AF-' + afPad(seqNum, 4);
-      if (a.numAleatorio !== seq5 || !a.numSeq5) {
-        a.numAleatorio = seq5;
+    // 5. Fijar correlativo de 6 dígitos (000001..000339) a cada activo base AF-0001..AF-0339
+    var usedSeq = {};
+    var maxBaseSeq = 339;
+    baseAf.forEach(function (a) {
+      var seqNum = afExtractSeqNum(a);
+      if (seqNum > maxBaseSeq) maxBaseSeq = seqNum;
+      var seq6 = afPad(seqNum, 6);
+      usedSeq[seq6] = true;
+      var expectedCod = afDeptoCod(a.departamento) + '-' + afTipoCod(a.descripcion, a.categoria, a.telefono) + '-' + seq6;
+      if (a.numAleatorio !== seq6 || !a.numSeq6 || !a.numFixed6) {
+        a.numAleatorio = seq6;
         a.numSeq5 = true;
+        a.numSeq6 = true;
+        a.numFixed = true;
+        a.numFixed6 = true;
         changed = true;
       }
-      delete a.numAleatorioRnd;
       if (a.codigoEtiqueta !== expectedCod) {
         a.codigoEtiqueta = expectedCod;
         changed = true;
       }
-      if (!/^AF-\d+$/i.test(String(a.id || ''))) {
-        var oldId = a.id;
-        var oldDbId = a._dbId;
-        if (oldId !== expectedCod) {
-          a.id = expectedCod;
-          changed = true;
-          if (db.af.movs) db.af.movs.forEach(function (m) { if (m.activoId === oldId) m.activoId = expectedCod; });
-          if (db.af.actas) db.af.actas.forEach(function (ac) { if (ac.activoId === oldId) ac.activoId = expectedCod; });
-          if (db.af.audit) db.af.audit.forEach(function (au) { if (au.entidad === oldId) au.entidad = expectedCod; });
-        }
-        if (oldDbId && oldDbId !== expectedDbId) {
-          a._oldDbId = oldDbId;
-        }
-        a._dbId = expectedDbId;
-      } else {
-        a._dbId = a.id;
-      }
+      a._dbId = a.id;
     });
+    // 6. Fijar correlativo de 6 dígitos (desde 000340 en adelante) a los activos nuevos registrados.
+    //    Una vez que tiene numFixed6 === true y número >= 340, QUEDA FIJO PARA SIEMPRE y no se mueve nunca.
+    var nextCustomSeq = maxBaseSeq + 1;
+    customAf.forEach(function (a) {
+      var currNum = parseInt(a.numAleatorio, 10) || 0;
+      var currSeq6 = currNum > 0 ? afPad(currNum, 6) : '';
+      var seqNum;
+      if (a.numFixed6 && currNum > maxBaseSeq && !usedSeq[currSeq6]) {
+        seqNum = currNum;
+      } else {
+        while (usedSeq[afPad(nextCustomSeq, 6)]) nextCustomSeq++;
+        seqNum = nextCustomSeq;
+      }
+      var seq6 = afPad(seqNum, 6);
+      usedSeq[seq6] = true;
+      var expectedCod = afDeptoCod(a.departamento) + '-' + afTipoCod(a.descripcion, a.categoria, a.telefono) + '-' + seq6;
+      var expectedDbId = 'AF-' + afPad(seqNum, 4);
+      var dupIdx = _afDupDbIdsToDelete.indexOf(expectedDbId);
+      if (dupIdx > -1) _afDupDbIdsToDelete.splice(dupIdx, 1);
+      if (a.numAleatorio !== seq6 || !a.numSeq6 || !a.numFixed6) {
+        a.numAleatorio = seq6;
+        a.numSeq5 = true;
+        a.numSeq6 = true;
+        a.numFixed = true;
+        a.numFixed6 = true;
+        a._needsSync = true;
+        changed = true;
+      }
+      if (a.codigoEtiqueta !== expectedCod) {
+        a.codigoEtiqueta = expectedCod;
+        changed = true;
+      }
+      var oldId = a.id;
+      var oldDbId = a._dbId;
+      if (oldId !== expectedCod) {
+        a.id = expectedCod;
+        a._needsSync = true;
+        changed = true;
+        if (db.af.movs) db.af.movs.forEach(function (m) { if (m.activoId === oldId) m.activoId = expectedCod; });
+        if (db.af.actas) db.af.actas.forEach(function (ac) { if (ac.activoId === oldId) ac.activoId = expectedCod; });
+        if (db.af.audit) db.af.audit.forEach(function (au) { if (au.entidad === oldId) au.entidad = expectedCod; });
+      }
+      if (oldDbId && oldDbId !== expectedDbId && /^AF-(\d+)$/i.test(oldDbId)) {
+        var oldN = parseInt(oldDbId.split('-')[1], 10);
+        if (oldN >= 340) a._oldDbId = oldDbId;
+        a._needsSync = true;
+      }
+      a._dbId = expectedDbId;
+    });
+    var ordered = baseAf.concat(customAf);
     db.af.activos = ordered;
     db.af.nextActivo = ordered.length + 1;
     _afInBarrido = false;
@@ -6728,31 +6856,35 @@
   function afGenNumAleatorio(excludeAsset) {
     afBarridoCorrelativos();
     var usados = {};
-    var max = 0;
+    var max = 339;
     ((db.af && db.af.activos) || []).forEach(function (x) {
       if (x === excludeAsset) return;
-      if (x.numAleatorio && x.numSeq5) {
+      if (x.numAleatorio && x.numSeq6) {
         usados[String(x.numAleatorio)] = true;
         var n = parseInt(x.numAleatorio, 10);
         if (n > max) max = n;
       }
     });
-    for (var i = 1; i <= max + 1; i++) {
-      var cand = afPad(i, 5);
+    for (var i = 340; i <= max + 1; i++) {
+      var cand = afPad(i, 6);
       if (!usados[cand]) return cand;
     }
-    return afPad(max + 1, 5);
+    return afPad(max + 1, 6);
   }
   function afEnsureCodigo(a) {
     if (!a) return '';
-    if (!a.numAleatorio || !a.numSeq5) {
+    if (!a.numAleatorio || !a.numSeq6 || String(a.numAleatorio).length !== 6) {
       var seq = afExtractSeqNum(a);
-      var fromId = (seq > 0 && seq < 999999) ? afPad(seq, 5) : '';
+      var isBaseAf = /^AF-\d+$/i.test(String(a.id || ''));
+      var fromId = (seq > 0 && seq < 999999 && (isBaseAf || seq >= 340)) ? afPad(seq, 6) : '';
       var taken = fromId && ((db.af && db.af.activos) || []).some(function (x) {
-        return x !== a && x.id !== a.id && (!a._dbId || x._dbId !== a._dbId) && x.numSeq5 && x.numAleatorio === fromId;
+        return x !== a && x.id !== a.id && (!a._dbId || x._dbId !== a._dbId) && x.numSeq6 && x.numAleatorio === fromId;
       });
       a.numAleatorio = (fromId && !taken) ? fromId : afGenNumAleatorio(a);
       a.numSeq5 = true;
+      a.numSeq6 = true;
+      a.numFixed = true;
+      a.numFixed6 = true;
       delete a.numAleatorioRnd;
     }
     var depCod = afDeptoCod(a.departamento);
@@ -6814,11 +6946,14 @@
   }
   function afDbKey(a) {
     if (!a) return '';
-    if (a._dbId && String(a._dbId).length <= 10) return String(a._dbId);
     var rawId = String(a.id || '');
-    if (rawId && rawId.length <= 10) return rawId;
+    if (/^AF-\d+$/i.test(rawId)) return rawId.toUpperCase();
+    if (a._dbId && /^AF-(\d+)$/i.test(String(a._dbId))) {
+      var dbN = parseInt(String(a._dbId).split('-')[1], 10);
+      if (dbN >= 340) return 'AF-' + afPad(dbN, 4);
+    }
     afEnsureCodigo(a);
-    var n = parseInt(a.numAleatorio, 10) || 999;
+    var n = Math.max(340, parseInt(a.numAleatorio, 10) || 340);
     return 'AF-' + afPad(n, 4);
   }
   function afPackActivoForApi(a) {
@@ -6831,6 +6966,9 @@
       telefono: a.telefono || '',
       codigoEtiqueta: a.codigoEtiqueta || '',
       numAleatorio: a.numAleatorio || '',
+      numFixed: !!a.numFixed,
+      numFixed6: !!a.numFixed6,
+      userId: a.userId || null,
       imagen: a.imagen || ''
     };
     var obsPacked = (cleanObs ? cleanObs + '\n' : '') + '<!--AFMETA:' + JSON.stringify(meta) + '-->';
@@ -6883,7 +7021,7 @@
       sede: row.sede || 'Sede Principal',
       area: row.area || '',
       departamento: row.departamento || 'Tecnología',
-      userId: row.usuario_id ? Number(row.usuario_id) : null,
+      userId: row.usuario_id ? Number(row.usuario_id) : (meta && meta.userId ? Number(meta.userId) : null),
       fechaAsig: row.fecha_asig ? String(row.fecha_asig).slice(0, 10) : null,
       estado: row.estado || 'Disponible',
       estadoFisico: row.estado_fisico || 'Bueno',
@@ -6891,17 +7029,34 @@
       creadoPor: row.creado_por || '',
       obs: cleanObs
     };
-      if (numAle && /^\d{5}$/.test(numAle)) {
-      item.numAleatorio = numAle;
+    var isBaseAf = /^AF-(\d+)$/i.test(String(item.id || ''));
+    if (isBaseAf) {
+      var bSeq = parseInt(String(item.id).split('-')[1], 10);
+      item.numAleatorio = afPad(bSeq, 6);
       item.numSeq5 = true;
+      item.numSeq6 = true;
+      item.numFixed = true;
+      item.numFixed6 = true;
+    } else if (numAle && /^\d{5,6}$/.test(numAle)) {
+      var parsedN = parseInt(numAle, 10);
+      if (parsedN >= 340) {
+        item.numAleatorio = afPad(parsedN, 6);
+        item.numSeq5 = true;
+        item.numSeq6 = true;
+        if (meta && (meta.numFixed6 || (meta.numFixed && parsedN !== 343))) {
+          item.numFixed = true;
+          item.numFixed6 = true;
+        }
+      }
     } else {
       var seq = afExtractSeqNum(item);
-      if (seq > 0 && seq < 999999) {
-        item.numAleatorio = afPad(seq, 5);
+      if (seq >= 340 && seq < 999999) {
+        item.numAleatorio = afPad(seq, 6);
         item.numSeq5 = true;
+        item.numSeq6 = true;
       }
     }
-    item.codigoEtiqueta = afDeptoCod(item.departamento) + '-' + afTipoCod(item.descripcion, item.categoria, item.telefono) + '-' + (item.numAleatorio || '00001');
+    item.codigoEtiqueta = afDeptoCod(item.departamento) + '-' + afTipoCod(item.descripcion, item.categoria, item.telefono) + '-' + (item.numAleatorio || '000001');
     return item;
   }
   function afSaveActivoToDB(a, isNew) {
@@ -6909,15 +7064,24 @@
     var oldDbId = a._oldDbId;
     delete a._oldDbId;
     var payload = afPackActivoForApi(a);
-    var p = isNew
-      ? SV_API.createActivo(payload).then(function (res) {
-          if (res && res.error) return SV_API.updateActivo(payload.id, payload);
-          return res;
-        })
-      : SV_API.updateActivo(payload.id, payload).then(function (res) {
-          if (res && res.error) return SV_API.createActivo(payload);
+    function trySave(pl) {
+      if (isNew) {
+        return SV_API.createActivo(pl).then(function (res) {
+          if (res && res.error) return SV_API.updateActivo(pl.id, pl);
           return res;
         });
+      }
+      return SV_API.updateActivo(pl.id, pl).then(function (res) {
+        if (res && res.error) return SV_API.createActivo(pl);
+        return res;
+      });
+    }
+    var p = trySave(payload).then(function (res) {
+      if (res && res.error && payload.usuario_id != null) {
+        return trySave(Object.assign({}, payload, { usuario_id: null }));
+      }
+      return res;
+    });
     if (oldDbId && oldDbId !== payload.id && typeof SV_API.deleteActivo === 'function') {
       p = p.then(function (res) {
         SV_API.deleteActivo(oldDbId).catch(function () {});
@@ -6940,24 +7104,33 @@
       var remoteList = rows.map(afUnpackActivoFromApi).filter(function (r) {
         return !afIsMercadeoGhostSeed(r);
       });
-      var byId = {}, byDbId = {};
+      var byId = {}, byDbId = {}, byCustomSig = {}, validRemoteBaseDb = {};
       remoteList.forEach(function (r) {
         byId[r.id] = r;
         if (r._dbId) byDbId[r._dbId] = r;
+        if (/^AF-\d+$/i.test(r.id)) {
+          validRemoteBaseDb[r.id.toUpperCase()] = true;
+        } else {
+          var cs = afCustomSig(r);
+          if (cs && !byCustomSig[cs]) byCustomSig[cs] = r;
+        }
       });
       var localExtras = [];
       ((db.af && db.af.activos) || []).forEach(function (loc) {
         if (afIsMercadeoGhostSeed(loc)) return;
         var dbk = afDbKey(loc);
-        var rem = byId[loc.id] || byDbId[dbk];
+        var isLocCustom = !/^AF-\d+$/i.test(String(loc.id || ''));
+        var rem = byId[loc.id] || byDbId[dbk] || (isLocCustom ? byCustomSig[afCustomSig(loc)] : null);
         if (!rem) {
           localExtras.push(loc);
-        } else if ((loc.telefono && !rem.telefono) || (loc.imagen && !rem.imagen) || (loc.id !== rem.id && !/^AF-/i.test(loc.id))) {
-          rem.id = loc.id;
+        } else if ((loc.telefono && !rem.telefono) || (loc.imagen && !rem.imagen) || (loc.numFixed6 && !rem.numFixed6)) {
           rem.telefono = loc.telefono || rem.telefono;
           rem.imagen = loc.imagen || rem.imagen;
-          rem.numAleatorio = loc.numAleatorio || rem.numAleatorio;
-          rem.numSeq5 = true;
+          if (loc.numFixed6 && parseInt(loc.numAleatorio, 10) >= 340) {
+            rem.numAleatorio = loc.numAleatorio;
+            rem.numSeq6 = true;
+            rem.numFixed6 = true;
+          }
           rem._needsSync = true;
         }
       });
@@ -6965,12 +7138,25 @@
       var prevSig = db.af.activos.map(function (x) { return x.id + ':' + x.numAleatorio + ':' + x.estado + ':' + (x.telefono || ''); }).join('|');
       db.af.activos = remoteList.concat(localExtras);
       afBarridoCorrelativos();
+      if (_afDupDbIdsToDelete.length && typeof SV_API.deleteActivo === 'function') {
+        var toDel = _afDupDbIdsToDelete.slice();
+        _afDupDbIdsToDelete = [];
+        toDel.forEach(function (dupId) {
+          SV_API.deleteActivo(dupId).catch(function () {});
+        });
+      }
+      var syncQueue = [];
       db.af.activos.forEach(function (a) {
         afEnsureCodigo(a);
-        if (localExtras.indexOf(a) > -1 || a._needsSync || a._oldDbId) {
+        var isBase = /^AF-\d+$/i.test(String(a.id || ''));
+        var missingBaseInRemote = isBase && !validRemoteBaseDb[String(a.id).toUpperCase()];
+        if (localExtras.indexOf(a) > -1 || a._needsSync || a._oldDbId || missingBaseInRemote) {
           delete a._needsSync;
-          afSaveActivoToDB(a, true);
+          syncQueue.push(a);
         }
+      });
+      syncQueue.forEach(function (a, i) {
+        setTimeout(function () { afSaveActivoToDB(a, true); }, i * 35);
       });
       var newSig = db.af.activos.map(function (x) { return x.id + ':' + x.numAleatorio + ':' + x.estado + ':' + (x.telefono || ''); }).join('|');
       saveDB(db);
@@ -7609,7 +7795,7 @@
     var edit = !!a; a = a || {};
     if (!edit && preCat) a.categoria = preCat;
     var C = db.af.cat;
-    var numRand = (a.numAleatorio && a.numSeq5) ? a.numAleatorio : afGenNumAleatorio(edit ? a : null);
+    var numRand = (a.numAleatorio && a.numSeq6) ? a.numAleatorio : afGenNumAleatorio(edit ? a : null);
     var imgData = a.imagen || '';
     modal('<button class="mod-x">✕</button><h3>' + (edit ? 'Editar activo ' + esc(a.id) : 'Nuevo activo fijo') + '</h3>' +
       '<div class="fld"><label>Categoría *</label>' + afSelect('faCat', C.categorias, a.categoria) + '</div>' +
@@ -7686,10 +7872,10 @@
       if (cat === 'Computación' || cat === 'POS / Terminales' || cat === 'Audiovisual') { if (!serial) { toast('El serial es obligatorio para equipos electrónicos.'); return; } }
       var areaVal = $('#faArea').value, depVal = $('#faDep').value, telVal = $('#faTel').value.trim();
       var codEtq = afDeptoCod(depVal) + '-' + afTipoCod(desc, cat, telVal) + '-' + numRand;
-      var data = { categoria: cat, descripcion: desc, marca: $('#faMarca').value.trim(), modelo: $('#faModelo').value.trim(), serial: serial, fechaCompra: $('#faFC').value, costo: +$('#faCosto').value || 0, proveedor: $('#faProv').value.trim(), factura: $('#faFact').value.trim(), telefono: telVal, imagen: imgData, sede: $('#faSede').value, area: areaVal, departamento: depVal, estadoFisico: $('#faEF').value, obs: $('#faObs').value.trim(), numAleatorio: numRand, numSeq5: true, codigoEtiqueta: codEtq };
+      var data = { categoria: cat, descripcion: desc, marca: $('#faMarca').value.trim(), modelo: $('#faModelo').value.trim(), serial: serial, fechaCompra: $('#faFC').value, costo: +$('#faCosto').value || 0, proveedor: $('#faProv').value.trim(), factura: $('#faFact').value.trim(), telefono: telVal, imagen: imgData, sede: $('#faSede').value, area: areaVal, departamento: depVal, estadoFisico: $('#faEF').value, obs: $('#faObs').value.trim(), numAleatorio: numRand, numSeq5: true, numSeq6: true, numFixed: true, numFixed6: true, codigoEtiqueta: codEtq };
       var targetAct = null;
       if (edit) { Object.assign(a, data); targetAct = a; afSaveActivoToDB(targetAct, false); afLog('Edición', a.id, 'Editó el activo ' + a.id + ' (' + desc + ')'); toast('Activo actualizado en base de datos.'); }
-      else { var id = codEtq; targetAct = Object.assign({ id: id, _dbId: 'AF-' + afPad(parseInt(numRand, 10) || 999, 4), userId: null, fechaAsig: null, estado: 'Disponible', ultimoInv: null, creadoPor: me.nombre }, data); db.af.activos.push(targetAct); afSaveActivoToDB(targetAct, true); afLog('Alta', id, 'Registró el activo ' + id + ' — ' + desc); toast('Activo ' + id + ' guardado en base de datos.'); }
+      else { var id = codEtq; targetAct = Object.assign({ id: id, _dbId: 'AF-' + afPad(Math.max(340, parseInt(numRand, 10) || 340), 4), userId: null, fechaAsig: null, estado: 'Disponible', ultimoInv: null, creadoPor: me.nombre }, data); db.af.activos.push(targetAct); afSaveActivoToDB(targetAct, true); afLog('Alta', id, 'Registró el activo ' + id + ' — ' + desc); toast('Activo ' + id + ' guardado en base de datos.'); }
       saveDB(db); closeModal(); refreshNav(); afReRenderList();
       if (!edit && targetAct) afEtiquetaModal(targetAct);
     });
@@ -8135,7 +8321,7 @@
     });
     $('#baOk').addEventListener('click', function () {
       if (!parsed || !parsed.length) return;
-      parsed.forEach(function (it) { var num = afGenNumAleatorio(); var id = afNewActivoId(it.departamento, it.descripcion, it.categoria, it.serial, it.telefono, num); var newAct = Object.assign({ id: id, _dbId: 'AF-' + afPad(parseInt(num, 10) || 999, 4), numAleatorio: num, numSeq5: true, codigoEtiqueta: id, userId: null, fechaAsig: null, estado: 'Disponible', ultimoInv: null, creadoPor: me.nombre }, it); db.af.activos.push(newAct); afSaveActivoToDB(newAct, true); });
+      parsed.forEach(function (it) { var num = afGenNumAleatorio(); var id = afNewActivoId(it.departamento, it.descripcion, it.categoria, it.serial, it.telefono, num); var newAct = Object.assign({ id: id, _dbId: 'AF-' + afPad(Math.max(340, parseInt(num, 10) || 340), 4), numAleatorio: num, numSeq5: true, numSeq6: true, numFixed: true, numFixed6: true, codigoEtiqueta: id, userId: null, fechaAsig: null, estado: 'Disponible', ultimoInv: null, creadoPor: me.nombre }, it); db.af.activos.push(newAct); afSaveActivoToDB(newAct, true); });
       afLog('Carga masiva', '', 'Carga masiva de activos: ' + parsed.length + ' equipo(s) registrado(s)');
       saveDB(db); closeModal(); refreshNav(); afReRenderList(); toast(parsed.length + ' equipo(s) registrado(s).');
     });
@@ -8339,7 +8525,7 @@
     o.items.forEach(function (it) {
       if (it.artId) { db.af.stock.push({ id: db.af.nextStock++, artId: it.artId, tipo: 'Entrada', cant: it.cant, fecha: reqToday(), ref: 'Recepción ' + o.id, por: me.nombre }); creados.push(it.cant + ' → ' + it.artId); }
       else {
-        for (var i = 0; i < it.cant; i++) { var num = afGenNumAleatorio(); var id = afNewActivoId('Administración', it.desc, 'Otros', '', '', num); var newAct = { id: id, _dbId: 'AF-' + afPad(parseInt(num, 10) || 999, 4), numAleatorio: num, numSeq5: true, codigoEtiqueta: id, categoria: 'Otros', descripcion: it.desc, marca: '', modelo: '', serial: '', fechaCompra: reqToday(), costo: it.precio || 0, proveedor: o.proveedor, factura: '', sede: 'Depósito', area: 'PB - Almacén', departamento: 'Administración', userId: null, fechaAsig: null, estado: 'Disponible', estadoFisico: 'Nuevo', ultimoInv: null, creadoPor: me.nombre, obs: 'Alta automática por recepción ' + o.id }; db.af.activos.push(newAct); afSaveActivoToDB(newAct, true); creados.push('activo ' + id); }
+        for (var i = 0; i < it.cant; i++) { var num = afGenNumAleatorio(); var id = afNewActivoId('Administración', it.desc, 'Otros', '', '', num); var newAct = { id: id, _dbId: 'AF-' + afPad(Math.max(340, parseInt(num, 10) || 340), 4), numAleatorio: num, numSeq5: true, numSeq6: true, numFixed: true, numFixed6: true, codigoEtiqueta: id, categoria: 'Otros', descripcion: it.desc, marca: '', modelo: '', serial: '', fechaCompra: reqToday(), costo: it.precio || 0, proveedor: o.proveedor, factura: '', sede: 'Depósito', area: 'PB - Almacén', departamento: 'Administración', userId: null, fechaAsig: null, estado: 'Disponible', estadoFisico: 'Nuevo', ultimoInv: null, creadoPor: me.nombre, obs: 'Alta automática por recepción ' + o.id }; db.af.activos.push(newAct); afSaveActivoToDB(newAct, true); creados.push('activo ' + id); }
       }
     });
     o.estado = 'Recibida'; o.recibidaFecha = reqToday();

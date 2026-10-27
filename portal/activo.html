@@ -466,8 +466,10 @@
     var raw = localStorage.getItem('sv_portal_db_v9');
     if (raw) {
       var db = JSON.parse(raw);
+      var cod6 = cod ? cod.replace(/-(\d{5})$/, '-0$1') : '';
+      var id6 = id ? id.replace(/-(\d{5})$/, '-0$1') : '';
       var act = ((db.af && db.af.activos) || []).find(function (a) {
-        return (id && a.id === id) || (cod && a.codigoEtiqueta === cod);
+        return (id && (a.id === id || a.id === id6)) || (cod && (a.codigoEtiqueta === cod || a.codigoEtiqueta === cod6));
       });
       if (act) {
         desc = act.descripcion || desc;
