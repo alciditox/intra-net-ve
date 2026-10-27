@@ -530,14 +530,6 @@
   }
   if (!db.af.mercActSeed) {
     db.af.mercActSeed = true;
-    [
-      { descripcion: 'Stand modular para feria', marca: 'PopExpo', modelo: 'Modular 3x3', costo: 900 },
-      { descripcion: 'Televisor 55" para punto de venta', marca: 'Samsung', modelo: 'Crystal UHD', costo: 520 },
-      { descripcion: 'Counter/mostrador de activación', marca: 'BrandLab', modelo: 'Counter Pro', costo: 340 }
-    ].forEach(function (x) {
-      var id = afNewActivoId('Comercial', x.descripcion, 'Mercadeo', '', '');
-      db.af.activos.push({ id: id, codigoEtiqueta: id, categoria: 'Mercadeo', descripcion: x.descripcion, marca: x.marca, modelo: x.modelo, serial: '', fechaCompra: '2026-02-10', costo: x.costo, proveedor: 'BrandLab C.A.', factura: '', sede: 'Depósito', area: 'PB - Almacén', departamento: 'Comercial', userId: null, fechaAsig: null, estado: 'Disponible', estadoFisico: 'Bueno', ultimoInv: '2026-07-10', creadoPor: 'Isabella M.', obs: 'Activo de mercadeo (no consumible).' });
-    });
   }
   if (!db.af.actasSeed) {
     db.af.actasSeed = true;
@@ -6638,7 +6630,103 @@
     var w = String(desc || cat || 'EQP').replace(/[^a-zA-Z]/g, '').toUpperCase();
     return (w + 'EQP').slice(0, 3);
   }
+  function afIsMercadeoGhostSeed(a) {
+    if (!a) return false;
+    var obs = String(a.obs || '');
+    return a.categoria === 'Mercadeo' && /Activo de mercadeo \(no consumible\)/i.test(obs) && (a.proveedor === 'BrandLab C.A.' || a.creadoPor === 'Isabella M.');
+  }
+  function afExtractSeqNum(a) {
+    if (!a) return 999999;
+    var mAf = String(a.id || '').match(/^AF-(\d+)$/i);
+    if (mAf) return parseInt(mAf[1], 10);
+    if (a.numAleatorio && /^\d+$/.test(String(a.numAleatorio))) return parseInt(a.numAleatorio, 10);
+    var mTail = String(a.codigoEtiqueta || a.id || '').match(/-(\d+)$/);
+    if (mTail) return parseInt(mTail[1], 10);
+    var mDb = String(a._dbId || '').match(/^AF-(\d+)$/i);
+    if (mDb) return parseInt(mDb[1], 10);
+    return 999999;
+  }
+  var _afInBarrido = false;
+  function afBarridoCorrelativos() {
+    if (_afInBarrido || !db || !db.af || !Array.isArray(db.af.activos)) return false;
+    _afInBarrido = true;
+    var changed = false;
+    var rawList = db.af.activos;
+    // 1. Retirar los 3 registros demo de mercActSeed que colisionaban con AF-0006..AF-0008 de Galerías
+    var filtered = rawList.filter(function (a) {
+      if (!a || afIsMercadeoGhostSeed(a)) { changed = true; return false; }
+      return true;
+    });
+    // 2. Deduplicar si existen dos objetos con el mismo AF-XXXX o el mismo ID
+    var seenKey = {};
+    var deduped = [];
+    filtered.forEach(function (a) {
+      var k = String(a.id || a._dbId || '');
+      if (!k) { deduped.push(a); return; }
+      if (seenKey[k] !== undefined) {
+        changed = true;
+        var prev = deduped[seenKey[k]];
+        // Preferir el registro que tenga más datos o sea de Galerías / usuario
+        if (prev.creadoPor === 'Isabella M.' && a.creadoPor !== 'Isabella M.') {
+          deduped[seenKey[k]] = a;
+        }
+        return;
+      }
+      seenKey[k] = deduped.length;
+      deduped.push(a);
+    });
+    // 3. Ordenar: primero los AF-0001..AF-0339 por su número fijo, luego los nuevos en orden ascendente
+    var baseAf = [], customAf = [];
+    deduped.forEach(function (a) {
+      if (/^AF-\d+$/i.test(String(a.id || ''))) baseAf.push(a);
+      else customAf.push(a);
+    });
+    baseAf.sort(function (x, y) { return afExtractSeqNum(x) - afExtractSeqNum(y); });
+    customAf.sort(function (x, y) { return afExtractSeqNum(x) - afExtractSeqNum(y); });
+    var ordered = baseAf.concat(customAf);
+    // 4. Recorrido secuencial estricto 00001 .. 0000N sin saltos
+    ordered.forEach(function (a, idx) {
+      var seqNum = idx + 1;
+      var seq5 = afPad(seqNum, 5);
+      var depCod = afDeptoCod(a.departamento);
+      var tipCod = afTipoCod(a.descripcion, a.categoria, a.telefono);
+      var expectedCod = depCod + '-' + tipCod + '-' + seq5;
+      var expectedDbId = 'AF-' + afPad(seqNum, 4);
+      if (a.numAleatorio !== seq5 || !a.numSeq5) {
+        a.numAleatorio = seq5;
+        a.numSeq5 = true;
+        changed = true;
+      }
+      delete a.numAleatorioRnd;
+      if (a.codigoEtiqueta !== expectedCod) {
+        a.codigoEtiqueta = expectedCod;
+        changed = true;
+      }
+      if (!/^AF-\d+$/i.test(String(a.id || ''))) {
+        var oldId = a.id;
+        var oldDbId = a._dbId;
+        if (oldId !== expectedCod) {
+          a.id = expectedCod;
+          changed = true;
+          if (db.af.movs) db.af.movs.forEach(function (m) { if (m.activoId === oldId) m.activoId = expectedCod; });
+          if (db.af.actas) db.af.actas.forEach(function (ac) { if (ac.activoId === oldId) ac.activoId = expectedCod; });
+          if (db.af.audit) db.af.audit.forEach(function (au) { if (au.entidad === oldId) au.entidad = expectedCod; });
+        }
+        if (oldDbId && oldDbId !== expectedDbId) {
+          a._oldDbId = oldDbId;
+        }
+        a._dbId = expectedDbId;
+      } else {
+        a._dbId = a.id;
+      }
+    });
+    db.af.activos = ordered;
+    db.af.nextActivo = ordered.length + 1;
+    _afInBarrido = false;
+    return changed;
+  }
   function afGenNumAleatorio(excludeAsset) {
+    afBarridoCorrelativos();
     var usados = {};
     var max = 0;
     ((db.af && db.af.activos) || []).forEach(function (x) {
@@ -6658,10 +6746,10 @@
   function afEnsureCodigo(a) {
     if (!a) return '';
     if (!a.numAleatorio || !a.numSeq5) {
-      var m = String(a.id || '').match(/^AF-(\d+)$/i);
-      var fromId = m ? afPad(parseInt(m[1], 10), 5) : '';
+      var seq = afExtractSeqNum(a);
+      var fromId = (seq > 0 && seq < 999999) ? afPad(seq, 5) : '';
       var taken = fromId && ((db.af && db.af.activos) || []).some(function (x) {
-        return x !== a && x.numSeq5 && x.numAleatorio === fromId;
+        return x !== a && x.id !== a.id && (!a._dbId || x._dbId !== a._dbId) && x.numSeq5 && x.numAleatorio === fromId;
       });
       a.numAleatorio = (fromId && !taken) ? fromId : afGenNumAleatorio(a);
       a.numSeq5 = true;
@@ -6712,7 +6800,7 @@
     return base + '?' + params.join('&');
   }
   (function afInitCodigos() {
-    var changed = false;
+    var changed = afBarridoCorrelativos();
     ((db.af && db.af.activos) || []).forEach(function (a) {
       var prev = a.codigoEtiqueta;
       afEnsureCodigo(a);
@@ -6803,30 +6891,40 @@
       creadoPor: row.creado_por || '',
       obs: cleanObs
     };
-    if (numAle && /^\d{5}$/.test(numAle)) {
+      if (numAle && /^\d{5}$/.test(numAle)) {
       item.numAleatorio = numAle;
       item.numSeq5 = true;
+    } else {
+      var seq = afExtractSeqNum(item);
+      if (seq > 0 && seq < 999999) {
+        item.numAleatorio = afPad(seq, 5);
+        item.numSeq5 = true;
+      }
     }
-    afEnsureCodigo(item);
+    item.codigoEtiqueta = afDeptoCod(item.departamento) + '-' + afTipoCod(item.descripcion, item.categoria, item.telefono) + '-' + (item.numAleatorio || '00001');
     return item;
   }
   function afSaveActivoToDB(a, isNew) {
     if (!window.SV_API || typeof SV_API.createActivo !== 'function' || !SV_API.isLoggedIn()) return Promise.resolve();
+    var oldDbId = a._oldDbId;
+    delete a._oldDbId;
     var payload = afPackActivoForApi(a);
-    if (isNew) {
-      return SV_API.createActivo(payload).then(function (res) {
-        if (res && res.error) {
-          return SV_API.updateActivo(payload.id, payload);
-        }
+    var p = isNew
+      ? SV_API.createActivo(payload).then(function (res) {
+          if (res && res.error) return SV_API.updateActivo(payload.id, payload);
+          return res;
+        })
+      : SV_API.updateActivo(payload.id, payload).then(function (res) {
+          if (res && res.error) return SV_API.createActivo(payload);
+          return res;
+        });
+    if (oldDbId && oldDbId !== payload.id && typeof SV_API.deleteActivo === 'function') {
+      p = p.then(function (res) {
+        SV_API.deleteActivo(oldDbId).catch(function () {});
         return res;
       });
     }
-    return SV_API.updateActivo(payload.id, payload).then(function (res) {
-      if (res && res.error) {
-        return SV_API.createActivo(payload);
-      }
-      return res;
-    });
+    return p;
   }
   var _afSyncInFlight = false;
   var _afLastSyncTs = 0;
@@ -6839,7 +6937,9 @@
       _afSyncInFlight = false;
       _afLastSyncTs = Date.now();
       if (!Array.isArray(rows) || !rows.length) return;
-      var remoteList = rows.map(afUnpackActivoFromApi);
+      var remoteList = rows.map(afUnpackActivoFromApi).filter(function (r) {
+        return !afIsMercadeoGhostSeed(r);
+      });
       var byId = {}, byDbId = {};
       remoteList.forEach(function (r) {
         byId[r.id] = r;
@@ -6847,26 +6947,32 @@
       });
       var localExtras = [];
       ((db.af && db.af.activos) || []).forEach(function (loc) {
+        if (afIsMercadeoGhostSeed(loc)) return;
         var dbk = afDbKey(loc);
         var rem = byId[loc.id] || byDbId[dbk];
         if (!rem) {
           localExtras.push(loc);
-          afSaveActivoToDB(loc, true);
         } else if ((loc.telefono && !rem.telefono) || (loc.imagen && !rem.imagen) || (loc.id !== rem.id && !/^AF-/i.test(loc.id))) {
           rem.id = loc.id;
           rem.telefono = loc.telefono || rem.telefono;
           rem.imagen = loc.imagen || rem.imagen;
           rem.numAleatorio = loc.numAleatorio || rem.numAleatorio;
           rem.numSeq5 = true;
-          afEnsureCodigo(rem);
-          afSaveActivoToDB(rem, false);
+          rem._needsSync = true;
         }
       });
       var prevCount = db.af.activos.length;
-      var prevSig = db.af.activos.map(function (x) { return x.id + ':' + x.estado + ':' + (x.telefono || ''); }).join('|');
+      var prevSig = db.af.activos.map(function (x) { return x.id + ':' + x.numAleatorio + ':' + x.estado + ':' + (x.telefono || ''); }).join('|');
       db.af.activos = remoteList.concat(localExtras);
-      db.af.activos.forEach(function (a) { afEnsureCodigo(a); });
-      var newSig = db.af.activos.map(function (x) { return x.id + ':' + x.estado + ':' + (x.telefono || ''); }).join('|');
+      afBarridoCorrelativos();
+      db.af.activos.forEach(function (a) {
+        afEnsureCodigo(a);
+        if (localExtras.indexOf(a) > -1 || a._needsSync || a._oldDbId) {
+          delete a._needsSync;
+          afSaveActivoToDB(a, true);
+        }
+      });
+      var newSig = db.af.activos.map(function (x) { return x.id + ':' + x.numAleatorio + ':' + x.estado + ':' + (x.telefono || ''); }).join('|');
       saveDB(db);
       if (prevCount !== db.af.activos.length || prevSig !== newSig) {
         refreshNav();
@@ -7178,54 +7284,53 @@
   function afThermalPrintDoc(a, sizeKey, qrTargetUrl) {
     var cod = afEnsureCodigo(a);
     var dims = {
-      '50x25': { w: 50, h: 25, qr: 62, barH: 22, title: 11, sub: 6.5, cod: 10.5, tel: 7.5, foot: 5.8, pad: '1.8mm 2.2mm' },
-      '50x30': { w: 50, h: 30, qr: 74, barH: 26, title: 12, sub: 7, cod: 11.5, tel: 8, foot: 6.2, pad: '2.2mm 2.5mm' },
-      '60x40': { w: 60, h: 40, qr: 96, barH: 32, title: 14, sub: 8, cod: 13.5, tel: 9.5, foot: 7.2, pad: '3mm 3.5mm' }
+      '50x25': { w: 50, h: 25 },
+      '50x30': { w: 50, h: 30 },
+      '60x40': { w: 60, h: 40 }
     }[sizeKey];
     var absAssetBase = location.origin + location.pathname.replace(/[^/]*$/, '') + 'assets/';
     if (!dims) {
       var stdCard = afEtiquetaHtmlCard(a, qrTargetUrl).replace('src="assets/', 'src="' + absAssetBase);
       return '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Etiqueta ' + esc(cod) + '</title><link href="https://fonts.googleapis.com/css2?family=Barlow:wght@600;700;800&display=swap" rel="stylesheet"><style>body{margin:24px;background:#fff;display:flex;justify-content:center;align-items:center}@media print{body{margin:0}#afStickerCard{box-shadow:none!important;border:1.5px solid #000!important}}</style></head><body>' + stdCard + '<script>window.onload=function(){setTimeout(function(){window.print();},250);};<\/script></body></html>';
     }
-    var qrSvg = afQrSvg(qrTargetUrl, dims.qr);
-    var barSvg = afBarcodeSvg(cod, dims.barH);
-    var telHtml = (a.telefono && String(a.telefono).trim())
-      ? '<div style="font-size:' + dims.tel + 'pt;font-weight:800;color:#000;margin-top:1px;letter-spacing:0.3px">' + esc(String(a.telefono).trim()) + '</div>'
+    var tel = (a.telefono && String(a.telefono).trim()) ? String(a.telefono).trim() : '';
+    var qrInner = afQrSvg(qrTargetUrl, 156)
+      .replace(/^<svg /, '<svg x="16" y="12" ')
+      .replace(/style="[^"]*"/, '');
+    var barH = tel ? 46 : 56;
+    var barY = tel ? 82 : 84;
+    var barInner = afBarcodeSvg(cod, barH)
+      .replace(/^<svg /, '<svg x="200" y="' + barY + '" ')
+      .replace(/width="100%"/, 'width="278"')
+      .replace(/style="[^"]*"/, '');
+    var codLenAttr = cod.length > 13 ? ' textLength="276" lengthAdjust="spacingAndGlyphs"' : '';
+    var telSvg = tel
+      ? '<text x="339" y="150" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="17" font-weight="900" fill="#000" letter-spacing="0.6">' + esc(tel) + '</text>'
       : '';
+    var labelSvg =
+      '<svg viewBox="0 0 500 250" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" shape-rendering="crispEdges" style="display:block;width:100%;height:100%;background:#fff">' +
+        '<rect width="500" height="250" fill="#fff"/>' +
+        qrInner +
+        '<image href="' + absAssetBase + 'marca/iso-gradient.png" x="242" y="13" width="28" height="28" preserveAspectRatio="xMidYMid meet"/>' +
+        '<text x="278" y="31" font-family="Arial,Helvetica,sans-serif" font-size="22" font-weight="900" fill="#000" letter-spacing="0.5">VE PAGOS</text>' +
+        '<text x="278" y="45" font-family="Arial,Helvetica,sans-serif" font-size="10.5" font-weight="800" fill="#000" letter-spacing="2.2">ACTIVOS FIJOS</text>' +
+        '<text x="339" y="73" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="23" font-weight="900" fill="#000" letter-spacing="0.4"' + codLenAttr + '>' + esc(cod) + '</text>' +
+        barInner +
+        telSvg +
+        '<line x1="16" y1="176" x2="484" y2="176" stroke="#000" stroke-width="2"/>' +
+        '<text x="16" y="200" font-family="Arial,Helvetica,sans-serif" font-size="13" font-weight="900" fill="#000" letter-spacing="0.2">ESCANEA EL QR</text>' +
+        '<text x="16" y="218" font-family="Arial,Helvetica,sans-serif" font-size="13" font-weight="900" fill="#000" letter-spacing="0.2">PARA MÁS INFORMACIÓN</text>' +
+        '<line x1="238" y1="184" x2="238" y2="226" stroke="#000" stroke-width="2.2"/>' +
+        '<text x="252" y="200" font-family="Arial,Helvetica,sans-serif" font-size="13" font-weight="900" fill="#000" letter-spacing="0.2">PROPIEDAD DE LA EMPRESA</text>' +
+        '<text x="252" y="218" font-family="Arial,Helvetica,sans-serif" font-size="13" font-weight="900" fill="#000" letter-spacing="0.2">NO REMOVER</text>' +
+      '</svg>';
     return '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Zebra ' + esc(cod) + '</title>' +
       '<style>' +
         '@page{size:' + dims.w + 'mm ' + dims.h + 'mm;margin:0;}' +
         '*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}' +
-        'html,body{width:' + dims.w + 'mm;height:' + dims.h + 'mm;margin:0;padding:0;background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif;overflow:hidden;}' +
-        'svg{shape-rendering:crispEdges;image-rendering:pixelated;display:block;}' +
-        '.z-wrap{width:' + dims.w + 'mm;height:' + dims.h + 'mm;padding:' + dims.pad + ';display:flex;flex-direction:column;justify-content:space-between;}' +
-        '.z-top{display:flex;align-items:center;gap:2.2mm;flex:1;min-height:0;}' +
-        '.z-right{flex:1;min-width:0;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;}' +
-        '.z-brand{font-size:' + dims.title + 'pt;font-weight:900;line-height:1;letter-spacing:0.3px;color:#000;}' +
-        '.z-sub{font-size:' + dims.sub + 'pt;font-weight:800;line-height:1.1;letter-spacing:1.1px;color:#000;margin-bottom:1px;}' +
-        '.z-cod{font-size:' + dims.cod + 'pt;font-weight:900;line-height:1.05;color:#000;margin:1px 0;white-space:nowrap;}' +
-        '.z-bar{width:100%;max-width:29mm;overflow:hidden;}' +
-        '.z-bar svg{width:100%;height:' + dims.barH + 'px;}' +
-        '.z-foot{display:flex;align-items:center;justify-content:space-between;border-top:1.2px solid #000;padding-top:0.8mm;font-size:' + dims.foot + 'pt;font-weight:800;line-height:1.1;color:#000;}' +
-        '.z-sep{width:1.2px;height:3.2mm;background:#000;margin:0 1.5mm;flex:0 0 auto;}' +
+        'html,body{width:' + dims.w + 'mm;height:' + dims.h + 'mm;margin:0;padding:0;background:#fff;overflow:hidden;}' +
       '</style></head><body>' +
-      '<div class="z-wrap">' +
-        '<div class="z-top">' +
-          '<div style="flex:0 0 auto">' + qrSvg + '</div>' +
-          '<div class="z-right">' +
-            '<div class="z-brand">VE PAGOS</div>' +
-            '<div class="z-sub">ACTIVOS FIJOS</div>' +
-            '<div class="z-cod">' + esc(cod) + '</div>' +
-            '<div class="z-bar">' + barSvg + '</div>' +
-            telHtml +
-          '</div>' +
-        '</div>' +
-        '<div class="z-foot">' +
-          '<div style="flex:1">ESCANEA EL QR<br>PARA MÁS INFO</div>' +
-          '<div class="z-sep"></div>' +
-          '<div style="flex:1;text-align:right">PROPIEDAD EMPRESA<br>NO REMOVER</div>' +
-        '</div>' +
-      '</div>' +
+      labelSvg +
       '<script>window.onload=function(){setTimeout(function(){window.print();},200);};<\/script></body></html>';
   }
   function afEtiquetaModal(a) {
@@ -8030,7 +8135,7 @@
     });
     $('#baOk').addEventListener('click', function () {
       if (!parsed || !parsed.length) return;
-      parsed.forEach(function (it) { var id = afNewActivoId(it.departamento, it.descripcion, it.categoria, it.serial, it.telefono); var newAct = Object.assign({ id: id, codigoEtiqueta: id, userId: null, fechaAsig: null, estado: 'Disponible', ultimoInv: null, creadoPor: me.nombre }, it); db.af.activos.push(newAct); afSaveActivoToDB(newAct, true); });
+      parsed.forEach(function (it) { var num = afGenNumAleatorio(); var id = afNewActivoId(it.departamento, it.descripcion, it.categoria, it.serial, it.telefono, num); var newAct = Object.assign({ id: id, _dbId: 'AF-' + afPad(parseInt(num, 10) || 999, 4), numAleatorio: num, numSeq5: true, codigoEtiqueta: id, userId: null, fechaAsig: null, estado: 'Disponible', ultimoInv: null, creadoPor: me.nombre }, it); db.af.activos.push(newAct); afSaveActivoToDB(newAct, true); });
       afLog('Carga masiva', '', 'Carga masiva de activos: ' + parsed.length + ' equipo(s) registrado(s)');
       saveDB(db); closeModal(); refreshNav(); afReRenderList(); toast(parsed.length + ' equipo(s) registrado(s).');
     });
@@ -8234,7 +8339,7 @@
     o.items.forEach(function (it) {
       if (it.artId) { db.af.stock.push({ id: db.af.nextStock++, artId: it.artId, tipo: 'Entrada', cant: it.cant, fecha: reqToday(), ref: 'Recepción ' + o.id, por: me.nombre }); creados.push(it.cant + ' → ' + it.artId); }
       else {
-        for (var i = 0; i < it.cant; i++) { var id = afNewActivoId('Administración', it.desc, 'Otros', '', ''); db.af.activos.push({ id: id, codigoEtiqueta: id, categoria: 'Otros', descripcion: it.desc, marca: '', modelo: '', serial: '', fechaCompra: reqToday(), costo: it.precio || 0, proveedor: o.proveedor, factura: '', sede: 'Depósito', area: 'PB - Almacén', departamento: 'Administración', userId: null, fechaAsig: null, estado: 'Disponible', estadoFisico: 'Nuevo', ultimoInv: null, creadoPor: me.nombre, obs: 'Alta automática por recepción ' + o.id }); creados.push('activo ' + id); }
+        for (var i = 0; i < it.cant; i++) { var num = afGenNumAleatorio(); var id = afNewActivoId('Administración', it.desc, 'Otros', '', '', num); var newAct = { id: id, _dbId: 'AF-' + afPad(parseInt(num, 10) || 999, 4), numAleatorio: num, numSeq5: true, codigoEtiqueta: id, categoria: 'Otros', descripcion: it.desc, marca: '', modelo: '', serial: '', fechaCompra: reqToday(), costo: it.precio || 0, proveedor: o.proveedor, factura: '', sede: 'Depósito', area: 'PB - Almacén', departamento: 'Administración', userId: null, fechaAsig: null, estado: 'Disponible', estadoFisico: 'Nuevo', ultimoInv: null, creadoPor: me.nombre, obs: 'Alta automática por recepción ' + o.id }; db.af.activos.push(newAct); afSaveActivoToDB(newAct, true); creados.push('activo ' + id); }
       }
     });
     o.estado = 'Recibida'; o.recibidaFecha = reqToday();
