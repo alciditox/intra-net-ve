@@ -47,10 +47,12 @@ services:
     image: ${DOCKER_IMAGE:-intranet-node:latest}
     container_name: intranet-app
     restart: unless-stopped
+    volumes:
+      - ./portal:/app/portal
+      - ./datos:/app/datos
     env_file:
       - .env
     networks:
       - proxy
       - database
     logging: *default-logging
-
