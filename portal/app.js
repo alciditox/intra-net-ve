@@ -456,7 +456,7 @@
         categorias: ['Computación', 'Climatización', 'Mobiliario', 'Electrodomésticos', 'Audiovisual', 'Herramientas', 'Seguridad', 'POS / Terminales', 'Otros'],
         sedes: ['Sede Principal', 'Depósito', 'Remoto / Casa del empleado'],
         areas: ['PB - Recepción', 'PB - Almacén', 'Piso 1 - Administración', 'Piso 1 - Finanzas', 'Piso 2 - Tecnología', 'Piso 2 - Comercial', 'Sala de reuniones', 'Cocina / Comedor'],
-        departamentos: ['Administración', 'Finanzas', 'RRHH', 'Tecnología', 'Operaciones', 'Comercial', 'Legal'],
+        departamentos: ['Administración', 'Finanzas', 'RRHH', 'Tecnología', 'Operaciones', 'Comercial', 'Legal', 'Ventas', 'Marketing'],
         estadoFisico: ['Nuevo', 'Bueno', 'Regular', 'Malo', 'Inoperativo'],
         unidades: ['Unidad', 'Resma', 'Caja', 'Paquete', 'Cartucho', 'Litro', 'Rollo']
       },
@@ -505,6 +505,11 @@
   db.af.consumibles.forEach(function (c) { if (!c.almacen) c.almacen = 'consumibles'; });
   if (!db.af.nextMerc) db.af.nextMerc = 1;
   if (db.af.cat && db.af.cat.categorias.indexOf('Mercadeo') < 0) db.af.cat.categorias.push('Mercadeo');
+  if (db.af.cat && db.af.cat.departamentos) {
+    ['Ventas', 'Marketing'].forEach(function (d) {
+      if (db.af.cat.departamentos.indexOf(d) < 0) db.af.cat.departamentos.push(d);
+    });
+  }
   if (!db.af.reglas) db.af.reglas = { factor: 2, margen: 0, autoSolicitud: false };
   if (!db.af.mercadeoSeed) {
     db.af.mercadeoSeed = true;
@@ -530,8 +535,8 @@
       { descripcion: 'Televisor 55" para punto de venta', marca: 'Samsung', modelo: 'Crystal UHD', costo: 520 },
       { descripcion: 'Counter/mostrador de activación', marca: 'BrandLab', modelo: 'Counter Pro', costo: 340 }
     ].forEach(function (x) {
-      var id = afNewActivoId();
-      db.af.activos.push({ id: id, categoria: 'Mercadeo', descripcion: x.descripcion, marca: x.marca, modelo: x.modelo, serial: '', fechaCompra: '2026-02-10', costo: x.costo, proveedor: 'BrandLab C.A.', factura: '', sede: 'Depósito', area: 'PB - Almacén', departamento: 'Comercial', userId: null, fechaAsig: null, estado: 'Disponible', estadoFisico: 'Bueno', ultimoInv: '2026-07-10', creadoPor: 'Isabella M.', obs: 'Activo de mercadeo (no consumible).' });
+      var id = afNewActivoId('Comercial', x.descripcion, 'Mercadeo', '', '');
+      db.af.activos.push({ id: id, codigoEtiqueta: id, categoria: 'Mercadeo', descripcion: x.descripcion, marca: x.marca, modelo: x.modelo, serial: '', fechaCompra: '2026-02-10', costo: x.costo, proveedor: 'BrandLab C.A.', factura: '', sede: 'Depósito', area: 'PB - Almacén', departamento: 'Comercial', userId: null, fechaAsig: null, estado: 'Disponible', estadoFisico: 'Bueno', ultimoInv: '2026-07-10', creadoPor: 'Isabella M.', obs: 'Activo de mercadeo (no consumible).' });
     });
   }
   if (!db.af.actasSeed) {
@@ -6597,7 +6602,361 @@
 
   /* ================= ACTIVOS FIJOS, ALMACÉN Y PROCURA ================= */
   function afPad(n, w) { n = String(n); while (n.length < w) n = '0' + n; return n; }
-  function afNewActivoId() { return 'AF-' + afPad(db.af.nextActivo++, 4); }
+  function afDeptoCod(dep) {
+    var d = String(dep || '').trim().toLowerCase();
+    var map = {
+      'tecnología': 'TEC', 'tecnologia': 'TEC',
+      'administración': 'ADM', 'administracion': 'ADM',
+      'finanzas': 'FIN',
+      'rrhh': 'RRH',
+      'operaciones': 'OPE',
+      'comercial': 'COM',
+      'legal': 'LEG',
+      'ventas': 'VEN',
+      'marketing': 'MKT', 'marqueting': 'MKT', 'mercadeo': 'MKT'
+    };
+    if (map[d]) return map[d];
+    var clean = d.replace(/[^a-z]/g, '').toUpperCase();
+    return clean ? clean.slice(0, 3) : 'TEC';
+  }
+  function afTipoCod(desc, cat, tel) {
+    if (tel && String(tel).trim()) return 'CORP';
+    var s = (String(desc || '') + ' ' + String(cat || '')).toLowerCase();
+    if (/laptop|port[aá]til|notebook|chromebook|chrome book|thinkpad|ideapad/.test(s)) return 'LAP';
+    if (/desktop|optiplex|prodesk|elitedesk|elite desk|thinkcentre|compaq|clon|pc\b|cpu\b|computador/.test(s)) return 'PC';
+    if (/monitor|pantalla/.test(s)) return 'MON';
+    if (/mouse|rat[oó]n/.test(s)) return 'MOU';
+    if (/teclado|keyboard/.test(s)) return 'TEC';
+    if (/aud[ií]fono|auricular|headset/.test(s)) return 'AUD';
+    if (/impresora|xerox|multifuncional|scanner/.test(s)) return 'IMP';
+    if (/servidor|server|proliant|proilant|poweredge/.test(s)) return 'SRV';
+    if (/swiche|switch|router|modem|access point/.test(s)) return 'SWI';
+    if (/\bpos\b|terminal/.test(s)) return 'POS';
+    if (/aire|split|climatizaci/.test(s)) return 'AIR';
+    if (/televisor|\btv\b|proyector/.test(s)) return 'TV';
+    if (/escritorio|silla|mesa|stand|counter|mobiliario/.test(s)) return 'MOB';
+    var w = String(desc || cat || 'EQP').replace(/[^a-zA-Z]/g, '').toUpperCase();
+    return (w + 'EQP').slice(0, 3);
+  }
+  function afSerialCod(serial, fallbackNum) {
+    var raw = String(serial || '').trim();
+    if (raw && raw.toUpperCase() !== 'N/A' && raw !== '—' && raw !== '-') {
+      var clean = raw.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+      if (clean) return clean;
+    }
+    return fallbackNum || '00001';
+  }
+  function afGenNumAleatorio() {
+    var usados = {};
+    ((db.af && db.af.activos) || []).forEach(function (x) {
+      if (x.numAleatorio) usados[String(x.numAleatorio)] = true;
+    });
+    var cand = '';
+    for (var i = 0; i < 5000; i++) {
+      cand = afPad(Math.floor(1 + Math.random() * 99999), 5);
+      if (!usados[cand]) return cand;
+    }
+    return afPad(Date.now() % 100000, 5);
+  }
+  function afEnsureCodigo(a) {
+    if (!a) return '';
+    if (!a.numAleatorio) {
+      var m = String(a.id || '').match(/(\d+)$/);
+      a.numAleatorio = m ? afPad(m[1], 5) : afGenNumAleatorio();
+    }
+    var depCod = afDeptoCod(a.departamento);
+    var tipCod = afTipoCod(a.descripcion, a.categoria, a.telefono);
+    var serCod = afSerialCod(a.serial, a.numAleatorio);
+    a.codigoEtiqueta = depCod + '-' + tipCod + '-' + serCod;
+    return a.codigoEtiqueta;
+  }
+  function afNewActivoId(dep, desc, cat, serial, tel, preNum) {
+    db.af.nextActivo = (db.af.nextActivo || 1) + 1;
+    var num = preNum || afGenNumAleatorio();
+    return afDeptoCod(dep || 'Tecnología') + '-' + afTipoCod(desc, cat, tel) + '-' + afSerialCod(serial, num);
+  }
+  function afPcIconSvg(size, col) {
+    size = size || 22;
+    col = col || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + col + '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"></rect><path d="M8 21h8M12 17v4"></path></svg>';
+  }
+  function afThumbHtml(a, sz) {
+    sz = sz || 36;
+    if (a && a.imagen) {
+      return '<img src="' + esc(a.imagen) + '" alt="" style="width:' + sz + 'px;height:' + sz + 'px;border-radius:9px;object-fit:cover;border:1px solid #D9E2EF;background:#fff;flex:0 0 auto">';
+    }
+    return '<span style="width:' + sz + 'px;height:' + sz + 'px;border-radius:9px;background:#EEF3F9;color:var(--navy);display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto">' + afPcIconSvg(Math.round(sz * 0.54), 'var(--navy)') + '</span>';
+  }
+  function afPublicUrl(a) {
+    var cod = afEnsureCodigo(a);
+    var base = location.origin + location.pathname.replace(/[^/]*$/, '') + 'activo.html';
+    var params = [
+      'id=' + encodeURIComponent(a.id || ''),
+      'c=' + encodeURIComponent(cod),
+      'd=' + encodeURIComponent(a.descripcion || ''),
+      'cat=' + encodeURIComponent(a.categoria || ''),
+      'm=' + encodeURIComponent(((a.marca || '') + (a.modelo ? ' · ' + a.modelo : '')).trim()),
+      's=' + encodeURIComponent(a.serial || ''),
+      'dp=' + encodeURIComponent(a.departamento || ''),
+      'u=' + encodeURIComponent(((a.sede || '') + (a.area ? ' · ' + a.area : '')).trim())
+    ];
+    if (a.telefono && String(a.telefono).trim()) params.push('t=' + encodeURIComponent(String(a.telefono).trim()));
+    if (a.imagen && /^https?:\/\//i.test(a.imagen)) params.push('img=' + encodeURIComponent(a.imagen));
+    return base + '?' + params.join('&');
+  }
+  (function afInitCodigos() {
+    var changed = false;
+    ((db.af && db.af.activos) || []).forEach(function (a) {
+      var prev = a.codigoEtiqueta;
+      afEnsureCodigo(a);
+      if (a.codigoEtiqueta !== prev) changed = true;
+    });
+    if (changed) saveDB(db);
+  })();
+  function afBarcodeSvg(text, h) {
+    h = h || 44;
+    var s = String(text || 'ACT-IT-000125');
+    var bars = ['11010010000'];
+    var PATS = [
+      '11011001100','11001101100','11001100110','10010011000','10010001100','10001001100','10011001000','10011000100','10001100100','11001001000',
+      '11001000100','11000100100','10110011100','10011011100','10011001110','10111001100','10011101100','10011100110','11001110010','11001011100',
+      '11001001110','11011100100','11001110100','11101101110','11101001100','11100101100','11100100110','11101100100','11100110100','11100110010',
+      '11011011000','11011000110','11000110110','10100011000','10001011000','10001000110','10110001000','10001101000','10001100010','11010001000',
+      '11000101000','11000100010','10110111000','10110001110','10001101110','10111011000','10111000110','10001110110','11101110110','11010001110',
+      '11000101110','11011101000','11011100010','11011101110','11101011000','11101000110','11100010110','11101101000','11101100010','11100011010',
+      '11101111010','11001000010','11110001010','10100110000','10100001100','10010110000','10010000110','10000101100','10000100110','10110010000',
+      '10110000100','10011010000','10011000010','10000110100','10000110010','11000010010','11001010000','11110111010','11000010100','10001111010',
+      '10100111100','10010111100','10010011110','10111100100','10011110100','10011110010','11110100100','11110010100','11110010010','11011011110',
+      '11011110110','11110110110','10101111000','10100011110','10001011110','10111101000','10111100010','11110101000','11110100010','10111011110',
+      '10111101110','11101011110','11110101110'
+    ];
+    var chk = 104;
+    for (var i = 0; i < s.length; i++) {
+      var code = s.charCodeAt(i) - 32;
+      if (code < 0 || code >= 95) code = 13;
+      bars.push(PATS[code]);
+      chk += code * (i + 1);
+    }
+    bars.push(PATS[chk % 103]);
+    bars.push('1100011101011');
+    var bits = bars.join('');
+    var rects = '';
+    var x = 0;
+    while (x < bits.length) {
+      if (bits[x] === '1') {
+        var w = 1;
+        while (x + w < bits.length && bits[x + w] === '1') w++;
+        rects += '<rect x="' + x + '" y="0" width="' + w + '" height="' + h + '" fill="#000"/>';
+        x += w;
+      } else x++;
+    }
+    return '<svg viewBox="0 0 ' + bits.length + ' ' + h + '" width="100%" height="' + h + '" preserveAspectRatio="none" style="display:block;max-width:250px;margin:0 auto">' + rects + '</svg>';
+  }
+  function afQrSvg(text, sz) {
+    sz = sz || 148;
+    // Standard QR Matrix generator (Version 1-15, ECC-L, Byte mode)
+    var bytes = [];
+    for (var i = 0; i < text.length; i++) {
+      var c = text.charCodeAt(i);
+      if (c < 0x80) bytes.push(c);
+      else if (c < 0x800) bytes.push(0xc0 | (c >> 6), 0x80 | (c & 0x3f));
+      else bytes.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 0x3f), 0x80 | (c & 0x3f));
+    }
+    var CAPS =  [0, 17, 32, 53, 78, 106, 134, 154, 192, 230, 271, 321, 367, 425, 458, 520];
+    var TOTAL = [0, 26, 44, 70, 100, 134, 172, 196, 242, 292, 346, 404, 466, 532, 581, 655];
+    var ECC =   [0, 7,  10, 15, 20,  26,  18,  20,  24,  30,  18,  20,  24,  26,  30,  22];
+    var BLKS =  [0, 1,  1,  1,  1,   1,   2,   2,   2,   2,   4,   4,   4,   4,   4,   6];
+    var ver = 1;
+    while (ver < 15 && bytes.length > CAPS[ver]) ver++;
+    if (bytes.length > CAPS[ver]) bytes = bytes.slice(0, CAPS[ver]);
+    var totalCw = TOTAL[ver], ecPerBlk = ECC[ver], numBlks = BLKS[ver];
+    var dataCw = totalCw - ecPerBlk * numBlks;
+    var bits = [];
+    function pushBits(val, len) { for (var b = len - 1; b >= 0; b--) bits.push((val >> b) & 1); }
+    pushBits(4, 4);
+    pushBits(bytes.length, ver < 10 ? 8 : 16);
+    for (var j = 0; j < bytes.length; j++) pushBits(bytes[j], 8);
+    for (var t = 0; t < 4 && bits.length < dataCw * 8; t++) bits.push(0);
+    while (bits.length % 8 !== 0) bits.push(0);
+    var data = [];
+    for (var k = 0; k < bits.length; k += 8) {
+      var byte = 0;
+      for (var bit = 0; bit < 8; bit++) byte = (byte << 1) | bits[k + bit];
+      data.push(byte);
+    }
+    var pad = [0xec, 0x11], pi = 0;
+    while (data.length < dataCw) data.push(pad[pi++ % 2]);
+    var exp = new Array(512), log = new Array(256), v = 1;
+    for (var gi = 0; gi < 255; gi++) { exp[gi] = v; log[v] = gi; v <<= 1; if (v & 256) v ^= 0x11d; }
+    for (var gi2 = 255; gi2 < 512; gi2++) exp[gi2] = exp[gi2 - 255];
+    function gfMul(a, b) { return (a === 0 || b === 0) ? 0 : exp[log[a] + log[b]]; }
+    var gen = [1];
+    for (var deg = 0; deg < ecPerBlk; deg++) {
+      var next = new Array(gen.length + 1).fill(0);
+      for (var gx = 0; gx < gen.length; gx++) {
+        next[gx] ^= gen[gx];
+        next[gx + 1] ^= gfMul(gen[gx], exp[deg]);
+      }
+      gen = next;
+    }
+    var dataBlks = [], ecBlks = [], offset = 0;
+    var baseLen = Math.floor(dataCw / numBlks), extra = dataCw % numBlks;
+    for (var bi = 0; bi < numBlks; bi++) {
+      var bLen = baseLen + (bi >= numBlks - extra ? 1 : 0);
+      var blk = data.slice(offset, offset + bLen);
+      offset += bLen;
+      dataBlks.push(blk);
+      var msg = blk.concat(new Array(ecPerBlk).fill(0));
+      for (var mi = 0; mi < blk.length; mi++) {
+        var coef = msg[mi];
+        if (coef !== 0) {
+          for (var gj = 0; gj < gen.length; gj++) msg[mi + gj] ^= gfMul(gen[gj], coef);
+        }
+      }
+      ecBlks.push(msg.slice(blk.length));
+    }
+    var finalCw = [];
+    var maxDLen = baseLen + (extra > 0 ? 1 : 0);
+    for (var ci = 0; ci < maxDLen; ci++) {
+      for (var b1 = 0; b1 < numBlks; b1++) if (ci < dataBlks[b1].length) finalCw.push(dataBlks[b1][ci]);
+    }
+    for (var ei = 0; ei < ecPerBlk; ei++) {
+      for (var b2 = 0; b2 < numBlks; b2++) finalCw.push(ecBlks[b2][ei]);
+    }
+    var dim = 17 + ver * 4;
+    var mat = [], isFunc = [];
+    for (var r = 0; r < dim; r++) { mat.push(new Array(dim).fill(0)); isFunc.push(new Array(dim).fill(false)); }
+    function setFunc(rr, cc, val) {
+      if (rr >= 0 && rr < dim && cc >= 0 && cc < dim) { mat[rr][cc] = val ? 1 : 0; isFunc[rr][cc] = true; }
+    }
+    function finder(r0, c0) {
+      for (var dr = -1; dr <= 7; dr++) {
+        for (var dc = -1; dc <= 7; dc++) {
+          var inOuter = dr >= 0 && dr <= 6 && dc >= 0 && dc <= 6 && (dr === 0 || dr === 6 || dc === 0 || dc === 6);
+          var inInner = dr >= 2 && dr <= 4 && dc >= 2 && dc <= 4;
+          setFunc(r0 + dr, c0 + dc, inOuter || inInner);
+        }
+      }
+    }
+    finder(0, 0); finder(0, dim - 7); finder(dim - 7, 0);
+    for (var ti = 8; ti < dim - 8; ti++) { setFunc(6, ti, ti % 2 === 0); setFunc(ti, 6, ti % 2 === 0); }
+    if (ver >= 2) {
+      var APOS = [[], [], [6, 18], [6, 22], [6, 26], [6, 30], [6, 34], [6, 22, 38], [6, 24, 42], [6, 26, 46], [6, 28, 50], [6, 30, 54], [6, 32, 58], [6, 34, 62], [6, 26, 46, 66], [6, 26, 48, 70]][ver];
+      for (var ai = 0; ai < APOS.length; ai++) {
+        for (var aj = 0; aj < APOS.length; aj++) {
+          var ar = APOS[ai], ac = APOS[aj];
+          if ((ar === 6 && ac === 6) || (ar === 6 && ac === dim - 7) || (ar === dim - 7 && ac === 6)) continue;
+          for (var adr = -2; adr <= 2; adr++) {
+            for (var adc = -2; adc <= 2; adc++) {
+              setFunc(ar + adr, ac + adc, Math.max(Math.abs(adr), Math.abs(adc)) !== 1);
+            }
+          }
+        }
+      }
+    }
+    for (var fi = 0; fi < 9; fi++) {
+      if (fi !== 6) { setFunc(8, fi, false); setFunc(fi, 8, false); }
+      if (fi < 8) { setFunc(8, dim - 1 - fi, false); setFunc(dim - 1 - fi, 8, false); }
+    }
+    setFunc(dim - 8, 8, true);
+    if (ver >= 7) {
+      var vRem = ver;
+      for (var vi = 0; vi < 12; vi++) vRem = (vRem << 1) ^ ((vRem >> 11) * 0x1f25);
+      var vBits = (ver << 12) | vRem;
+      for (var vb = 0; vb < 18; vb++) {
+        var vVal = ((vBits >> vb) & 1) !== 0;
+        var vr = Math.floor(vb / 3), vc = dim - 11 + (vb % 3);
+        setFunc(vr, vc, vVal); setFunc(vc, vr, vVal);
+      }
+    }
+    var bitIdx = 0, totalBits = finalCw.length * 8;
+    for (var col = dim - 1; col >= 1; col -= 2) {
+      if (col === 6) col = 5;
+      for (var vert = 0; vert < dim; vert++) {
+        for (var j2 = 0; j2 < 2; j2++) {
+          var cc2 = col - j2;
+          var upward = ((col + 1) & 2) === 0;
+          var rr2 = upward ? dim - 1 - vert : vert;
+          if (!isFunc[rr2][cc2]) {
+            var dark = false;
+            if (bitIdx < totalBits) {
+              dark = ((finalCw[bitIdx >> 3] >> (7 - (bitIdx & 7))) & 1) !== 0;
+              bitIdx++;
+            }
+            if ((rr2 + cc2) % 2 === 0) dark = !dark;
+            mat[rr2][cc2] = dark ? 1 : 0;
+          }
+        }
+      }
+    }
+    // Format bits for ECC-L (01) and Mask 0 (000) -> 0x77c4
+    var fmtBits = 0x77c4;
+    for (var fb = 0; fb <= 5; fb++) mat[8][fb] = (fmtBits >> (14 - fb)) & 1;
+    mat[8][7] = (fmtBits >> 8) & 1;
+    mat[8][8] = (fmtBits >> 7) & 1;
+    mat[7][8] = (fmtBits >> 6) & 1;
+    for (var fb2 = 9; fb2 < 15; fb2++) mat[14 - fb2][8] = (fmtBits >> (14 - fb2)) & 1;
+    for (var fb3 = 0; fb3 < 8; fb3++) mat[8][dim - 1 - fb3] = (fmtBits >> fb3) & 1;
+    for (var fb4 = 8; fb4 < 15; fb4++) mat[dim - 15 + fb4][8] = (fmtBits >> fb4) & 1;
+    var path = '';
+    for (var ry = 0; ry < dim; ry++) {
+      for (var rx = 0; rx < dim; rx++) {
+        if (mat[ry][rx]) path += 'M' + rx + ',' + ry + 'h1v1h-1z';
+      }
+    }
+    return '<svg viewBox="0 0 ' + dim + ' ' + dim + '" width="' + sz + '" height="' + sz + '" shape-rendering="crispEdges" style="display:block"><rect width="' + dim + '" height="' + dim + '" fill="#fff"/><path d="' + path + '" fill="#000"/></svg>';
+  }
+  function afEtiquetaHtmlCard(a) {
+    var cod = afEnsureCodigo(a);
+    var pubUrl = afPublicUrl(a);
+    var qrSvg = afQrSvg(pubUrl, 148);
+    var barSvg = afBarcodeSvg(cod, 42);
+    var telHtml = (a.telefono && String(a.telefono).trim())
+      ? '<div style="font-size:13.5px;font-weight:800;color:#0b1528;margin-top:5px;letter-spacing:0.8px">' + esc(String(a.telefono).trim()) + '</div>'
+      : '';
+    return '<div id="afStickerCard" style="background:#fff;border:1.5px solid #D9E2EF;border-radius:18px;padding:22px 26px 18px;max-width:500px;margin:6px auto;box-shadow:0 6px 20px rgba(0,31,96,.08);font-family:Barlow,Arial,sans-serif;color:#0b1528">' +
+      '<div style="display:flex;align-items:center;gap:22px">' +
+        '<div style="flex:0 0 auto">' + qrSvg + '</div>' +
+        '<div style="flex:1;min-width:0;text-align:center">' +
+          '<div style="display:inline-flex;align-items:center;gap:8px;justify-content:center">' +
+            '<img src="assets/marca/iso-gradient.png" alt="VEPAGOS" style="width:32px;height:32px;object-fit:contain">' +
+            '<div style="text-align:left;line-height:1.05">' +
+              '<div style="font-size:22px;font-weight:800;color:#001F60;letter-spacing:0.8px">VE PAGOS</div>' +
+              '<div style="font-size:11px;font-weight:600;color:#1e293b;letter-spacing:2.4px">ACTIVOS FIJOS</div>' +
+            '</div>' +
+          '</div>' +
+          '<div style="font-size:23px;font-weight:800;color:#000;letter-spacing:0.6px;margin:10px 0 6px;word-break:break-all">' + esc(cod) + '</div>' +
+          '<div style="padding:0 4px">' + barSvg + '</div>' +
+          telHtml +
+        '</div>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:16px;padding-top:10px">' +
+        '<div style="flex:1;font-size:11.5px;font-weight:700;color:#1e293b;line-height:1.35;letter-spacing:0.3px">ESCANEA EL QR<br>PARA MÁS INFORMACIÓN</div>' +
+        '<div style="width:1.5px;height:28px;background:#33415C;flex:0 0 auto"></div>' +
+        '<div style="flex:1;font-size:11.5px;font-weight:700;color:#1e293b;line-height:1.35;letter-spacing:0.3px;padding-left:6px">PROPIEDAD DE LA EMPRESA<br>NO REMOVER</div>' +
+      '</div>' +
+    '</div>';
+  }
+  function afEtiquetaModal(a) {
+    if (!a) return;
+    var cod = afEnsureCodigo(a);
+    var pubUrl = afPublicUrl(a);
+    saveDB(db);
+    var cardHtml = afEtiquetaHtmlCard(a);
+    modal('<button class="mod-x">✕</button><h3>Etiqueta de activo · ' + esc(cod) + '</h3>' +
+      '<p style="color:var(--muted);font-size:13.5px;margin:2px 0 10px">Depto: <b>' + esc(afDeptoCod(a.departamento)) + '</b> (' + esc(a.departamento || '—') + ') · Tipo: <b>' + esc(afTipoCod(a.descripcion, a.categoria, a.telefono)) + '</b> · Serial: <b>' + esc(afSerialCod(a.serial, a.numAleatorio)) + '</b></p>' +
+      cardHtml +
+      '<div class="note" style="margin:10px 0 6px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><span>El QR abre la ficha pública de este artículo sin requerir inicio de sesión.</span><a href="' + esc(pubUrl) + '" target="_blank" rel="noopener" style="font-weight:700;color:var(--navy)">Abrir link público del QR ↗</a></div>' +
+      '<div class="mod-actions"><button class="btn-s" id="etqEdit">Editar activo</button><button class="btn-s" id="etqOpenWeb">Ver ficha web (QR)</button><button class="btn-g" id="etqPrint">Imprimir etiqueta</button></div>', 'wide');
+    $('#etqEdit').addEventListener('click', function () { closeModal(); afActivoForm(a); });
+    $('#etqOpenWeb').addEventListener('click', function () { window.open(pubUrl, '_blank', 'noopener'); });
+    $('#etqPrint').addEventListener('click', function () {
+      var w = window.open('', '_blank', 'width=640,height=420');
+      if (!w) { toast('Permite las ventanas emergentes para imprimir.'); return; }
+      var docHtml = '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Etiqueta ' + esc(cod) + '</title><link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700;800&display=swap" rel="stylesheet"><style>body{margin:24px;background:#fff;display:flex;justify-content:center;align-items:center}@media print{body{margin:0}#afStickerCard{box-shadow:none!important}}</style></head><body>' + cardHtml.replace('src="assets/', 'src="' + location.origin + location.pathname.replace(/[^/]*$/, '') + 'assets/') + '<script>window.onload=function(){setTimeout(function(){window.print();},250);};<\/script></body></html>';
+      w.document.open(); w.document.write(docHtml); w.document.close();
+    });
+  }
   function afNewConsId() { return 'CO-' + afPad(db.af.nextCons++, 3); }
   function afNewSolId() { return 'SC-' + afPad(db.af.nextSol++, 4); }
   function afNewOrdenId() { return 'OC-' + afPad(db.af.nextOrden++, 4); }
@@ -6683,18 +7042,21 @@
     var list = db.af.activos.filter(function (a) {
       if (afFiltro.estado !== 'todos' && a.estado !== afFiltro.estado) return false;
       if (afFiltro.cat !== 'todas' && a.categoria !== afFiltro.cat) return false;
-      if (q && [a.id, a.descripcion, a.serial, a.marca, a.modelo, a.departamento].join(' ').toLowerCase().indexOf(q) < 0) return false;
+      if (q && [a.id, afEnsureCodigo(a), a.descripcion, a.serial, a.marca, a.modelo, a.departamento, a.telefono].join(' ').toLowerCase().indexOf(q) < 0) return false;
       return true;
     });
-    html += '<div class="card" style="padding:6px 16px"><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>ID</th><th>Descripción</th><th>Categoría</th><th>Ubicación</th><th>Asignado a</th><th>Estado</th><th></th></tr></thead><tbody>' +
-      (list.length ? list.map(function (a) { var u = a.userId ? byId(a.userId) : null; return '<tr data-afver="' + a.id + '" style="cursor:pointer"><td><b style="color:var(--navy)">' + esc(a.id) + '</b></td><td>' + esc(a.descripcion) + '<div style="font-size:12px;color:var(--muted2)">' + esc(a.marca || '') + (a.modelo ? ' · ' + esc(a.modelo) : '') + '</div></td><td>' + esc(a.categoria) + '</td><td style="font-size:12.5px">' + esc(a.sede) + '<div style="color:var(--muted2)">' + esc(a.area || '') + '</div></td><td>' + (u ? esc(u.nombre) : '<span style="color:var(--muted2)">—</span>') + '</td><td>' + afEstChip(a.estado) + '</td><td><button class="btn-s" data-afver="' + a.id + '" style="font-size:12.5px;padding:6px 11px">Ver ficha</button></td></tr>'; }).join('') : '<tr><td colspan="7"><div class="empty">No hay activos con estos filtros.</div></td></tr>') +
+    html += '<div class="card" style="padding:6px 16px"><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>ID</th><th>Descripción</th><th>Categoría</th><th>Ubicación</th><th>Asignado a</th><th>Estado</th><th>Etiqueta / QR</th><th></th></tr></thead><tbody>' +
+      (list.length ? list.map(function (a) { var u = a.userId ? byId(a.userId) : null; var cod = afEnsureCodigo(a); return '<tr data-afver="' + a.id + '" style="cursor:pointer"><td><b style="color:var(--navy)">' + esc(a.id) + '</b></td><td><div style="display:flex;align-items:center;gap:10px">' + afThumbHtml(a, 36) + '<div>' + esc(a.descripcion) + '<div style="font-size:12px;color:var(--muted2)">' + esc(a.marca || '') + (a.modelo ? ' · ' + esc(a.modelo) : '') + '</div></div></div></td><td>' + esc(a.categoria) + '</td><td style="font-size:12.5px">' + esc(a.sede) + '<div style="color:var(--muted2)">' + esc(a.area || '') + '</div></td><td>' + (u ? esc(u.nombre) : '<span style="color:var(--muted2)">—</span>') + '</td><td>' + afEstChip(a.estado) + '</td><td><button class="btn-s" data-afetq="' + a.id + '" style="font-size:12px;padding:5px 10px;display:inline-flex;align-items:center;gap:5px;font-weight:700;color:var(--navy)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><path d="M14 14h3v3h-3zM18 18h3v3h-3z"></path></svg>' + esc(cod) + '</button></td><td><button class="btn-s" data-afver="' + a.id + '" style="font-size:12.5px;padding:6px 11px">Ver ficha</button></td></tr>'; }).join('') : '<tr><td colspan="8"><div class="empty">No hay activos con estos filtros.</div></td></tr>') +
       '</tbody></table></div></div>';
     $('#content').innerHTML = html;
     var afAddBtn = $('#afAdd'); if (afAddBtn) afAddBtn.addEventListener('click', function () { afActivoForm(null); });
     var qi = $('#afQ'); qi.addEventListener('input', function () { afFiltro.q = qi.value; var pos = qi.selectionStart; rAfActivos(); var n = $('#afQ'); if (n) { n.focus(); n.setSelectionRange(pos, pos); } });
     $$('#content [data-afest]').forEach(function (b) { b.addEventListener('click', function () { afFiltro.estado = b.getAttribute('data-afest'); rAfActivos(); }); });
     $$('#content [data-afcat]').forEach(function (b) { b.addEventListener('click', function () { afFiltro.cat = b.getAttribute('data-afcat'); rAfActivos(); }); });
-    $('#content').addEventListener('click', function (e) { var v = e.target.closest('[data-afver]'); if (v) afFichaModal(afActById(v.getAttribute('data-afver'))); });
+    $('#content').addEventListener('click', function (e) {
+      var etq = e.target.closest('[data-afetq]'); if (etq) { e.stopPropagation(); afEtiquetaModal(afActById(etq.getAttribute('data-afetq'))); return; }
+      var v = e.target.closest('[data-afver]'); if (v) afFichaModal(afActById(v.getAttribute('data-afver')));
+    });
   }
 
   function afActivoForm(a, preCat) {
@@ -6702,31 +7064,97 @@
     var edit = !!a; a = a || {};
     if (!edit && preCat) a.categoria = preCat;
     var C = db.af.cat;
+    var numRand = a.numAleatorio || afGenNumAleatorio();
+    var imgData = a.imagen || '';
     modal('<button class="mod-x">✕</button><h3>' + (edit ? 'Editar activo ' + esc(a.id) : 'Nuevo activo fijo') + '</h3>' +
       '<div class="fld"><label>Categoría *</label>' + afSelect('faCat', C.categorias, a.categoria) + '</div>' +
       '<div class="fld"><label>Descripción del bien *</label><input id="faDesc" type="text" value="' + esc(a.descripcion || '') + '" placeholder="Ej: Laptop 14 pulgadas administración"></div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap"><div class="fld" style="flex:1;min-width:130px"><label>Marca</label><input id="faMarca" type="text" value="' + esc(a.marca || '') + '"></div><div class="fld" style="flex:1;min-width:130px"><label>Modelo</label><input id="faModelo" type="text" value="' + esc(a.modelo || '') + '"></div></div>' +
-      '<div class="fld"><label>Serial del fabricante <span style="color:var(--muted2)">(obligatorio para electrónicos)</span></label><input id="faSerial" type="text" value="' + esc(a.serial || '') + '"></div>' +
+      '<div class="fld"><label>Serial del fabricante <span style="color:var(--muted2)">(obligatorio para electrónicos · define el tramo final del código)</span></label><input id="faSerial" type="text" value="' + esc(a.serial || '') + '"></div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap"><div class="fld" style="flex:1;min-width:120px"><label>Fecha de compra</label><input id="faFC" type="date" value="' + esc(a.fechaCompra || '') + '"></div><div class="fld" style="flex:1;min-width:110px"><label>Costo (USD)</label><input id="faCosto" type="number" min="0" step="1" value="' + esc(a.costo != null ? a.costo : '') + '"></div></div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap"><div class="fld" style="flex:1;min-width:150px"><label>Proveedor</label><input id="faProv" type="text" value="' + esc(a.proveedor || '') + '" list="afProvList"><datalist id="afProvList">' + db.af.proveedores.map(function (p) { return '<option value="' + esc(p.razon) + '">'; }).join('') + '</datalist></div><div class="fld" style="flex:1;min-width:110px"><label>N° factura</label><input id="faFact" type="text" value="' + esc(a.factura || '') + '"></div></div>' +
+      '<div class="fld"><label>Número de teléfono <span style="color:var(--muted2)">(opcional · cambia el código a CORP y se muestra bajo el código de barra)</span></label><input id="faTel" type="tel" value="' + esc(a.telefono || '') + '" placeholder="Ej: 0414-0000000"></div>' +
+      '<div class="fld"><label>Imagen del artículo <span style="color:var(--muted2)">(opcional · si no se coloca se muestra ícono tipo PC)</span></label>' +
+        '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 10px;border:1.5px dashed #CBD5E1;border-radius:10px;background:#F8FAFC">' +
+          '<div id="faImgPrev">' + afThumbHtml({ imagen: imgData }, 48) + '</div>' +
+          '<div style="flex:1;min-width:180px;display:flex;flex-direction:column;gap:6px">' +
+            '<div style="display:flex;gap:6px;flex-wrap:wrap"><label class="btn-s" style="font-size:12px;padding:5px 10px;cursor:pointer;margin:0">Subir imagen<input id="faImgFile" type="file" accept="image/*" style="display:none"></label><button type="button" class="btn-s" id="faImgClear" style="font-size:12px;padding:5px 10px;' + (imgData ? '' : 'display:none') + '">Quitar imagen (usar ícono PC)</button></div>' +
+            '<input id="faImgUrl" type="url" value="' + (imgData && imgData.indexOf('data:') !== 0 ? esc(imgData) : '') + '" placeholder="O pegar URL de imagen (https://…)" style="font-size:12.5px;padding:6px 9px">' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap"><div class="fld" style="flex:1;min-width:130px"><label>Sede *</label>' + afSelect('faSede', C.sedes, a.sede) + '</div><div class="fld" style="flex:1;min-width:130px"><label>Piso / Área</label>' + afSelect('faArea', C.areas, a.area) + '</div></div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap"><div class="fld" style="flex:1;min-width:130px"><label>Departamento</label>' + afSelect('faDep', C.departamentos, a.departamento) + '</div><div class="fld" style="flex:1;min-width:130px"><label>Estado físico</label>' + afSelect('faEF', C.estadoFisico, a.estadoFisico || 'Bueno') + '</div></div>' +
+      '<div class="note" style="margin:2px 0 8px;display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Código de etiqueta (Depto - Tipo/CORP - Serial):</span><b id="faCodPrev" style="color:var(--navy);font-size:14px;letter-spacing:0.6px"></b></div>' +
       '<div class="fld"><label>Observaciones</label><textarea id="faObs" style="min-height:52px">' + esc(a.obs || '') + '</textarea></div>' +
       '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="faOk">' + (edit ? 'Guardar cambios' : 'Registrar activo') + '</button></div>', 'wide');
+    function refreshImgPrev() {
+      var p = $('#faImgPrev'), clr = $('#faImgClear');
+      if (p) p.innerHTML = afThumbHtml({ imagen: imgData }, 48);
+      if (clr) clr.style.display = imgData ? '' : 'none';
+    }
+    var fileInp = $('#faImgFile'), urlInp = $('#faImgUrl'), clrBtn = $('#faImgClear');
+    if (fileInp) fileInp.addEventListener('change', function () {
+      var f = fileInp.files && fileInp.files[0];
+      if (!f) return;
+      var reader = new FileReader();
+      reader.onload = function (ev) {
+        var im = new Image();
+        im.onload = function () {
+          var max = 360, w = im.width, h = im.height;
+          if (w > max || h > max) { if (w > h) { h = Math.round(h * max / w); w = max; } else { w = Math.round(w * max / h); h = max; } }
+          var cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+          cv.getContext('2d').drawImage(im, 0, 0, w, h);
+          imgData = cv.toDataURL('image/jpeg', 0.82);
+          if (urlInp) urlInp.value = '';
+          refreshImgPrev();
+        };
+        im.src = ev.target.result;
+      };
+      reader.readAsDataURL(f);
+    });
+    if (urlInp) urlInp.addEventListener('input', function () {
+      imgData = urlInp.value.trim();
+      refreshImgPrev();
+    });
+    if (clrBtn) clrBtn.addEventListener('click', function () {
+      imgData = '';
+      if (fileInp) fileInp.value = '';
+      if (urlInp) urlInp.value = '';
+      refreshImgPrev();
+    });
+    function buildCurrCode() {
+      return afDeptoCod($('#faDep').value) + '-' + afTipoCod($('#faDesc').value, $('#faCat').value, $('#faTel').value) + '-' + afSerialCod($('#faSerial').value, numRand);
+    }
+    function updCodPrev() {
+      var pEl = $('#faCodPrev');
+      if (pEl) pEl.textContent = buildCurrCode();
+    }
+    updCodPrev();
+    ['faDep', 'faCat', 'faDesc', 'faSerial', 'faTel'].forEach(function (id) {
+      var el = $('#' + id);
+      if (el) { el.addEventListener('input', updCodPrev); el.addEventListener('change', updCodPrev); }
+    });
     $('#faOk').addEventListener('click', function () {
       var desc = $('#faDesc').value.trim(); if (!desc) { toast('La descripción es obligatoria.'); return; }
       var cat = $('#faCat').value, serial = $('#faSerial').value.trim();
       if (cat === 'Computación' || cat === 'POS / Terminales' || cat === 'Audiovisual') { if (!serial) { toast('El serial es obligatorio para equipos electrónicos.'); return; } }
-      var data = { categoria: cat, descripcion: desc, marca: $('#faMarca').value.trim(), modelo: $('#faModelo').value.trim(), serial: serial, fechaCompra: $('#faFC').value, costo: +$('#faCosto').value || 0, proveedor: $('#faProv').value.trim(), factura: $('#faFact').value.trim(), sede: $('#faSede').value, area: $('#faArea').value, departamento: $('#faDep').value, estadoFisico: $('#faEF').value, obs: $('#faObs').value.trim() };
-      if (edit) { Object.assign(a, data); afLog('Edición', a.id, 'Editó el activo ' + a.id + ' (' + desc + ')'); toast('Activo actualizado.'); }
-      else { var id = afNewActivoId(); db.af.activos.push(Object.assign({ id: id, userId: null, fechaAsig: null, estado: 'Disponible', ultimoInv: null, creadoPor: me.nombre }, data)); afLog('Alta', id, 'Registró el activo ' + id + ' — ' + desc); toast('Activo ' + id + ' registrado.'); }
+      var areaVal = $('#faArea').value, depVal = $('#faDep').value, telVal = $('#faTel').value.trim();
+      var codEtq = afDeptoCod(depVal) + '-' + afTipoCod(desc, cat, telVal) + '-' + afSerialCod(serial, numRand);
+      var data = { categoria: cat, descripcion: desc, marca: $('#faMarca').value.trim(), modelo: $('#faModelo').value.trim(), serial: serial, fechaCompra: $('#faFC').value, costo: +$('#faCosto').value || 0, proveedor: $('#faProv').value.trim(), factura: $('#faFact').value.trim(), telefono: telVal, imagen: imgData, sede: $('#faSede').value, area: areaVal, departamento: depVal, estadoFisico: $('#faEF').value, obs: $('#faObs').value.trim(), numAleatorio: numRand, codigoEtiqueta: codEtq };
+      var targetAct = null;
+      if (edit) { Object.assign(a, data); targetAct = a; afLog('Edición', a.id, 'Editó el activo ' + a.id + ' (' + desc + ')'); toast('Activo actualizado.'); }
+      else { var id = codEtq; targetAct = Object.assign({ id: id, userId: null, fechaAsig: null, estado: 'Disponible', ultimoInv: null, creadoPor: me.nombre }, data); db.af.activos.push(targetAct); afLog('Alta', id, 'Registró el activo ' + id + ' — ' + desc); toast('Activo ' + id + ' registrado.'); }
       saveDB(db); closeModal(); refreshNav(); afReRenderList();
+      if (!edit && targetAct) afEtiquetaModal(targetAct);
     });
   }
 
   function afFichaModal(a) {
     if (!a) return;
     var u = a.userId ? byId(a.userId) : null;
+    var cod = afEnsureCodigo(a);
+    var pubUrl = afPublicUrl(a);
     var movs = db.af.movs.filter(function (m) { return m.activoId === a.id; }).sort(function (x, y) { return y.id - x.id; });
     function row(k, v) { return '<div class="prow"><span class="k" style="min-width:130px;color:var(--muted);font-weight:600">' + k + '</span><span style="flex:1;color:var(--navy)">' + (v || '—') + '</span></div>'; }
     var acciones = '';
@@ -6736,16 +7164,18 @@
     if (a.estado !== 'De baja' && a.estado !== 'En reparación') acciones += '<button class="btn-s" data-afrep>Enviar a reparación</button>';
     if (a.estado === 'En reparación') acciones += '<button class="btn-s" data-afret>Retorno de reparación</button>';
     if (a.estado !== 'De baja') acciones += '<button class="btn-s btn-danger" data-afbaja>Dar de baja</button>';
-    modal('<button class="mod-x">✕</button><h3>' + esc(a.id) + ' <span style="margin-left:6px">' + afEstChip(a.estado) + '</span></h3>' +
-      '<div style="font-size:15px;font-weight:700;color:var(--navy);margin:2px 0 10px">' + esc(a.descripcion) + '</div>' +
+    modal('<button class="mod-x">✕</button><div style="display:flex;align-items:center;gap:14px;margin:2px 0 12px">' + afThumbHtml(a, 58) + '<div><h3 style="margin:0">' + esc(a.id) + ' <span style="margin-left:6px">' + afEstChip(a.estado) + '</span></h3><div style="font-size:15px;font-weight:700;color:var(--navy);margin-top:3px">' + esc(a.descripcion) + '</div></div></div>' +
+      row('Código etiqueta', '<b>' + esc(cod) + '</b> · <a href="' + esc(pubUrl) + '" target="_blank" rel="noopener" style="color:var(--green);font-weight:700;text-decoration:none">Ver ficha web pública (QR) ↗</a>') +
       row('Categoría', esc(a.categoria)) + row('Marca / Modelo', esc((a.marca || '') + (a.modelo ? ' · ' + a.modelo : '')) || '—') + row('Serial', esc(a.serial)) +
       row('Ubicación', esc(a.sede) + (a.area ? ' · ' + esc(a.area) : '')) + row('Departamento', esc(a.departamento)) + row('Asignado a', u ? esc(u.nombre) + (a.fechaAsig ? ' <span style="color:var(--muted2)">· desde ' + fechaCorta(a.fechaAsig) + '</span>' : '') : '—') +
       row('Estado físico', esc(a.estadoFisico)) + row('Compra', (a.fechaCompra ? fechaCorta(a.fechaCompra) : '—') + ' · ' + afMoney(a.costo)) + row('Proveedor', esc(a.proveedor) + (a.factura ? ' <span style="color:var(--muted2)">· factura ' + esc(a.factura) + '</span>' : '')) +
+      (a.telefono ? row('Teléfono corporativo', esc(a.telefono)) : '') +
       row('Último inventario', a.ultimoInv ? fechaCorta(a.ultimoInv) : '—') + (a.obs ? row('Observaciones', esc(a.obs)) : '') +
       '<div style="margin-top:12px;border-top:1px solid #EEF3F9;padding-top:10px"><div style="font-size:11.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--muted2);margin-bottom:8px">Historial del activo</div>' +
       (movs.length ? movs.map(function (m) { return '<div style="display:flex;gap:10px;padding:7px 0;border-bottom:1px solid #F4F6FA"><span style="width:8px;height:8px;border-radius:50%;background:var(--green);margin-top:6px;flex:0 0 auto"></span><div style="flex:1"><div style="font-size:13.5px;color:var(--navy);font-weight:600">' + esc(m.tipo) + (m.detalle ? ' · ' + esc(m.detalle) : '') + '</div><div style="font-size:12px;color:var(--muted2)">' + esc(fmtStamp(m.fecha)) + ' · ' + esc(m.por) + (m.actaId ? ' · acta ' + esc(m.actaId) : '') + '</div></div>' + (m.actaId ? '<button class="btn-s" data-afacta="' + m.actaId + '" style="font-size:11.5px;padding:4px 9px">Acta</button>' : '') + '</div>'; }).join('') : '<div class="empty" style="padding:8px 0">Sin movimientos.</div>') + '</div>' +
-      '<div class="mod-actions" style="flex-wrap:wrap;justify-content:flex-start"><button class="btn-s" data-afedit>Editar</button>' + acciones + '</div>', 'wide');
+      '<div class="mod-actions" style="flex-wrap:wrap;justify-content:flex-start"><button class="btn-s" data-afedit>Editar</button><button class="btn-s" data-afetqopen>Etiqueta / QR</button><a class="btn-s" href="' + esc(pubUrl) + '" target="_blank" rel="noopener" style="text-decoration:none">Ficha web QR ↗</a>' + acciones + '</div>', 'wide');
     $('#modalHost [data-afedit]').addEventListener('click', function () { closeModal(); afActivoForm(a); });
+    $('#modalHost [data-afetqopen]').addEventListener('click', function () { closeModal(); afEtiquetaModal(a); });
     var b;
     if (b = $('#modalHost [data-afasig]')) b.addEventListener('click', function () { afAsignarModal(a); });
     if (b = $('#modalHost [data-afdev]')) b.addEventListener('click', function () { afDevolverModal(a); });
@@ -6921,11 +7351,11 @@
       if (a.estado === 'De baja') return false;
       if (afTechCat !== 'todas' && a.categoria !== afTechCat) return false;
       if (afTechSolo && a.estado !== 'Disponible') return false;
-      if (techQ && [a.id, a.descripcion, a.serial, a.marca, a.modelo].join(' ').toLowerCase().indexOf(techQ) < 0) return false;
+      if (techQ && [a.id, afEnsureCodigo(a), a.descripcion, a.serial, a.marca, a.modelo, a.telefono].join(' ').toLowerCase().indexOf(techQ) < 0) return false;
       return true;
     }).sort(function (a, b) { var o = { 'Disponible': 0, 'Asignado': 1, 'En reparación': 2, 'Dañado': 3 }; return (o[a.estado] || 9) - (o[b.estado] || 9); });
-    html += '<div class="card" style="padding:6px 16px"><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>ID</th><th>Equipo</th><th>Categoría</th><th>Serial</th><th>Estado</th><th>Asignado a</th><th></th></tr></thead><tbody>' +
-      (list.length ? list.map(function (a) { var u = a.userId ? byId(a.userId) : null; return '<tr><td><b style="color:var(--navy)">' + esc(a.id) + '</b></td><td>' + esc(a.descripcion) + '<div style="font-size:12px;color:var(--muted2)">' + esc(a.marca || '') + (a.modelo ? ' · ' + esc(a.modelo) : '') + '</div></td><td>' + esc(a.categoria) + '</td><td style="font-size:12.5px">' + esc(a.serial || '—') + '</td><td>' + afEstChip(a.estado) + '</td><td>' + (u ? esc(u.nombre) : '<span style="color:var(--muted2)">—</span>') + '</td><td><div style="display:flex;gap:6px;justify-content:flex-end">' + (a.estado === 'Disponible' ? '<button class="btn-g" data-aftasig="' + a.id + '" style="font-size:12.5px;padding:6px 12px">Asignar</button>' : '') + (a.estado === 'Asignado' ? '<button class="btn-s" data-aftsust="' + a.id + '" style="font-size:12.5px;padding:6px 11px">Sustituir</button>' : '') + '<button class="btn-s" data-afver="' + a.id + '" style="font-size:12.5px;padding:6px 11px">Ficha</button></div></td></tr>'; }).join('') : '<tr><td colspan="7"><div class="empty">No hay equipos de tecnología con este filtro.</div></td></tr>') +
+    html += '<div class="card" style="padding:6px 16px"><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>ID</th><th>Equipo</th><th>Categoría</th><th>Serial</th><th>Estado</th><th>Asignado a</th><th>Etiqueta / QR</th><th></th></tr></thead><tbody>' +
+      (list.length ? list.map(function (a) { var u = a.userId ? byId(a.userId) : null; var cod = afEnsureCodigo(a); return '<tr><td><b style="color:var(--navy)">' + esc(a.id) + '</b></td><td><div style="display:flex;align-items:center;gap:10px">' + afThumbHtml(a, 36) + '<div>' + esc(a.descripcion) + '<div style="font-size:12px;color:var(--muted2)">' + esc(a.marca || '') + (a.modelo ? ' · ' + esc(a.modelo) : '') + '</div></div></div></td><td>' + esc(a.categoria) + '</td><td style="font-size:12.5px">' + esc(a.serial || '—') + '</td><td>' + afEstChip(a.estado) + '</td><td>' + (u ? esc(u.nombre) : '<span style="color:var(--muted2)">—</span>') + '</td><td><button class="btn-s" data-afetq="' + a.id + '" style="font-size:12px;padding:5px 10px;display:inline-flex;align-items:center;gap:5px;font-weight:700;color:var(--navy)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><path d="M14 14h3v3h-3zM18 18h3v3h-3z"></path></svg>' + esc(cod) + '</button></td><td><div style="display:flex;gap:6px;justify-content:flex-end">' + (a.estado === 'Disponible' ? '<button class="btn-g" data-aftasig="' + a.id + '" style="font-size:12.5px;padding:6px 12px">Asignar</button>' : '') + (a.estado === 'Asignado' ? '<button class="btn-s" data-aftsust="' + a.id + '" style="font-size:12.5px;padding:6px 11px">Sustituir</button>' : '') + '<button class="btn-s" data-afver="' + a.id + '" style="font-size:12.5px;padding:6px 11px">Ficha</button></div></td></tr>'; }).join('') : '<tr><td colspan="8"><div class="empty">No hay equipos de tecnología con este filtro.</div></td></tr>') +
       '</tbody></table></div></div>';
     $('#content').innerHTML = html;
     var tAdd = $('#afTechAdd'); if (tAdd) tAdd.addEventListener('click', function () { afActivoForm(null); });
@@ -6934,6 +7364,7 @@
     var tq = $('#afTechQ'); if (tq) tq.addEventListener('input', function () { afTechQ = tq.value; var pos = tq.selectionStart; rAfTech(); var n = $('#afTechQ'); if (n) { n.focus(); n.setSelectionRange(pos, pos); } });
     $$('#content [data-aftcat]').forEach(function (b) { b.addEventListener('click', function () { afTechCat = b.getAttribute('data-aftcat'); rAfTech(); }); });
     $('#content').addEventListener('click', function (e) {
+      var etq = e.target.closest('[data-afetq]'); if (etq) { afEtiquetaModal(afActById(etq.getAttribute('data-afetq'))); return; }
       var asg = e.target.closest('[data-aftasig]'); if (asg) { afAsignarModal(afActById(asg.getAttribute('data-aftasig'))); return; }
       var sus = e.target.closest('[data-aftsust]'); if (sus) { afSustituirModal(afActById(sus.getAttribute('data-aftsust'))); return; }
       var v = e.target.closest('[data-afver]'); if (v) afFichaModal(afActById(v.getAttribute('data-afver')));
@@ -7144,7 +7575,7 @@
     });
     $('#baOk').addEventListener('click', function () {
       if (!parsed || !parsed.length) return;
-      parsed.forEach(function (it) { var id = afNewActivoId(); db.af.activos.push(Object.assign({ id: id, userId: null, fechaAsig: null, estado: 'Disponible', ultimoInv: null, creadoPor: me.nombre }, it)); });
+      parsed.forEach(function (it) { var id = afNewActivoId(it.departamento, it.descripcion, it.categoria, it.serial, it.telefono); db.af.activos.push(Object.assign({ id: id, codigoEtiqueta: id, userId: null, fechaAsig: null, estado: 'Disponible', ultimoInv: null, creadoPor: me.nombre }, it)); });
       afLog('Carga masiva', '', 'Carga masiva de activos: ' + parsed.length + ' equipo(s) registrado(s)');
       saveDB(db); closeModal(); refreshNav(); afReRenderList(); toast(parsed.length + ' equipo(s) registrado(s).');
     });
@@ -7348,7 +7779,7 @@
     o.items.forEach(function (it) {
       if (it.artId) { db.af.stock.push({ id: db.af.nextStock++, artId: it.artId, tipo: 'Entrada', cant: it.cant, fecha: reqToday(), ref: 'Recepción ' + o.id, por: me.nombre }); creados.push(it.cant + ' → ' + it.artId); }
       else {
-        for (var i = 0; i < it.cant; i++) { var id = afNewActivoId(); db.af.activos.push({ id: id, categoria: 'Otros', descripcion: it.desc, marca: '', modelo: '', serial: '', fechaCompra: reqToday(), costo: it.precio || 0, proveedor: o.proveedor, factura: '', sede: 'Depósito', area: 'PB - Almacén', departamento: 'Administración', userId: null, fechaAsig: null, estado: 'Disponible', estadoFisico: 'Nuevo', ultimoInv: null, creadoPor: me.nombre, obs: 'Alta automática por recepción ' + o.id }); creados.push('activo ' + id); }
+        for (var i = 0; i < it.cant; i++) { var id = afNewActivoId('Administración', it.desc, 'Otros', '', ''); db.af.activos.push({ id: id, codigoEtiqueta: id, categoria: 'Otros', descripcion: it.desc, marca: '', modelo: '', serial: '', fechaCompra: reqToday(), costo: it.precio || 0, proveedor: o.proveedor, factura: '', sede: 'Depósito', area: 'PB - Almacén', departamento: 'Administración', userId: null, fechaAsig: null, estado: 'Disponible', estadoFisico: 'Nuevo', ultimoInv: null, creadoPor: me.nombre, obs: 'Alta automática por recepción ' + o.id }); creados.push('activo ' + id); }
       }
     });
     o.estado = 'Recibida'; o.recibidaFecha = reqToday();

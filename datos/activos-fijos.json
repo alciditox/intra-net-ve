@@ -4,7 +4,7 @@
     "categorias": ["Computación", "Climatización", "Mobiliario", "Electrodomésticos", "Audiovisual", "Herramientas", "Seguridad", "POS / Terminales", "Mercadeo", "Otros"],
     "sedes": ["Sede Principal", "Depósito", "Remoto / Casa del empleado"],
     "areas": ["PB - Recepción", "PB - Almacén", "Piso 1 - Administración", "Piso 1 - Finanzas", "Piso 2 - Tecnología", "Piso 2 - Comercial", "Sala de reuniones", "Cocina / Comedor"],
-    "departamentos": ["Administración", "Finanzas", "RRHH", "Tecnología", "Operaciones", "Comercial", "Legal"],
+    "departamentos": ["Administración", "Finanzas", "RRHH", "Tecnología", "Operaciones", "Comercial", "Legal", "Ventas", "Marketing"],
     "estados": ["Nuevo", "Bueno", "Regular", "Malo", "Inoperativo"],
     "unidades": ["Unidad", "Resma", "Caja", "Paquete", "Cartucho", "Litro", "Rollo"]
   },
