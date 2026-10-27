@@ -6638,23 +6638,34 @@
     var w = String(desc || cat || 'EQP').replace(/[^a-zA-Z]/g, '').toUpperCase();
     return (w + 'EQP').slice(0, 3);
   }
-  function afGenNumAleatorio() {
+  function afGenNumAleatorio(excludeAsset) {
     var usados = {};
+    var max = 0;
     ((db.af && db.af.activos) || []).forEach(function (x) {
-      if (x.numAleatorio && x.numAleatorioRnd) usados[String(x.numAleatorio)] = true;
+      if (x === excludeAsset) return;
+      if (x.numAleatorio && x.numSeq5) {
+        usados[String(x.numAleatorio)] = true;
+        var n = parseInt(x.numAleatorio, 10);
+        if (n > max) max = n;
+      }
     });
-    var cand = '';
-    for (var i = 0; i < 5000; i++) {
-      cand = afPad(Math.floor(100000 + Math.random() * 900000), 6);
+    for (var i = 1; i <= max + 1; i++) {
+      var cand = afPad(i, 5);
       if (!usados[cand]) return cand;
     }
-    return afPad(100000 + (Date.now() % 900000), 6);
+    return afPad(max + 1, 5);
   }
   function afEnsureCodigo(a) {
     if (!a) return '';
-    if (!a.numAleatorio || !a.numAleatorioRnd) {
-      a.numAleatorio = afGenNumAleatorio();
-      a.numAleatorioRnd = true;
+    if (!a.numAleatorio || !a.numSeq5) {
+      var m = String(a.id || '').match(/^AF-(\d+)$/i);
+      var fromId = m ? afPad(parseInt(m[1], 10), 5) : '';
+      var taken = fromId && ((db.af && db.af.activos) || []).some(function (x) {
+        return x !== a && x.numSeq5 && x.numAleatorio === fromId;
+      });
+      a.numAleatorio = (fromId && !taken) ? fromId : afGenNumAleatorio(a);
+      a.numSeq5 = true;
+      delete a.numAleatorioRnd;
     }
     var depCod = afDeptoCod(a.departamento);
     var tipCod = afTipoCod(a.descripcion, a.categoria, a.telefono);
@@ -7055,7 +7066,7 @@
     var edit = !!a; a = a || {};
     if (!edit && preCat) a.categoria = preCat;
     var C = db.af.cat;
-    var numRand = (a.numAleatorio && a.numAleatorioRnd) ? a.numAleatorio : afGenNumAleatorio();
+    var numRand = (a.numAleatorio && a.numSeq5) ? a.numAleatorio : afGenNumAleatorio(edit ? a : null);
     var imgData = a.imagen || '';
     modal('<button class="mod-x">✕</button><h3>' + (edit ? 'Editar activo ' + esc(a.id) : 'Nuevo activo fijo') + '</h3>' +
       '<div class="fld"><label>Categoría *</label>' + afSelect('faCat', C.categorias, a.categoria) + '</div>' +
@@ -7076,7 +7087,7 @@
       '</div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap"><div class="fld" style="flex:1;min-width:130px"><label>Sede *</label>' + afSelect('faSede', C.sedes, a.sede) + '</div><div class="fld" style="flex:1;min-width:130px"><label>Piso / Área</label>' + afSelect('faArea', C.areas, a.area) + '</div></div>' +
       '<div style="display:flex;gap:8px;flex-wrap:wrap"><div class="fld" style="flex:1;min-width:130px"><label>Departamento</label>' + afSelect('faDep', C.departamentos, a.departamento) + '</div><div class="fld" style="flex:1;min-width:130px"><label>Estado físico</label>' + afSelect('faEF', C.estadoFisico, a.estadoFisico || 'Bueno') + '</div></div>' +
-      '<div class="note" style="margin:2px 0 8px;display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Código de etiqueta (Depto - Tipo/CORP - Serial aleatorio único):</span><b id="faCodPrev" style="color:var(--navy);font-size:14px;letter-spacing:0.6px"></b></div>' +
+      '<div class="note" style="margin:2px 0 8px;display:flex;align-items:center;justify-content:space-between;gap:8px"><span>Código de etiqueta (Depto - Tipo/CORP - Serial correlativo único):</span><b id="faCodPrev" style="color:var(--navy);font-size:14px;letter-spacing:0.6px"></b></div>' +
       '<div class="fld"><label>Observaciones</label><textarea id="faObs" style="min-height:52px">' + esc(a.obs || '') + '</textarea></div>' +
       '<div class="mod-actions"><button class="btn-s" onclick="document.getElementById(\'modalHost\').innerHTML=\'\'">Cancelar</button><button class="btn-g" id="faOk">' + (edit ? 'Guardar cambios' : 'Registrar activo') + '</button></div>', 'wide');
     function refreshImgPrev() {
@@ -7132,7 +7143,7 @@
       if (cat === 'Computación' || cat === 'POS / Terminales' || cat === 'Audiovisual') { if (!serial) { toast('El serial es obligatorio para equipos electrónicos.'); return; } }
       var areaVal = $('#faArea').value, depVal = $('#faDep').value, telVal = $('#faTel').value.trim();
       var codEtq = afDeptoCod(depVal) + '-' + afTipoCod(desc, cat, telVal) + '-' + numRand;
-      var data = { categoria: cat, descripcion: desc, marca: $('#faMarca').value.trim(), modelo: $('#faModelo').value.trim(), serial: serial, fechaCompra: $('#faFC').value, costo: +$('#faCosto').value || 0, proveedor: $('#faProv').value.trim(), factura: $('#faFact').value.trim(), telefono: telVal, imagen: imgData, sede: $('#faSede').value, area: areaVal, departamento: depVal, estadoFisico: $('#faEF').value, obs: $('#faObs').value.trim(), numAleatorio: numRand, numAleatorioRnd: true, codigoEtiqueta: codEtq };
+      var data = { categoria: cat, descripcion: desc, marca: $('#faMarca').value.trim(), modelo: $('#faModelo').value.trim(), serial: serial, fechaCompra: $('#faFC').value, costo: +$('#faCosto').value || 0, proveedor: $('#faProv').value.trim(), factura: $('#faFact').value.trim(), telefono: telVal, imagen: imgData, sede: $('#faSede').value, area: areaVal, departamento: depVal, estadoFisico: $('#faEF').value, obs: $('#faObs').value.trim(), numAleatorio: numRand, numSeq5: true, codigoEtiqueta: codEtq };
       var targetAct = null;
       if (edit) { Object.assign(a, data); targetAct = a; afLog('Edición', a.id, 'Editó el activo ' + a.id + ' (' + desc + ')'); toast('Activo actualizado.'); }
       else { var id = codEtq; targetAct = Object.assign({ id: id, userId: null, fechaAsig: null, estado: 'Disponible', ultimoInv: null, creadoPor: me.nombre }, data); db.af.activos.push(targetAct); afLog('Alta', id, 'Registró el activo ' + id + ' — ' + desc); toast('Activo ' + id + ' registrado.'); }
