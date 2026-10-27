@@ -222,6 +222,23 @@ window.SV_API = (function () {
     return await request('PUT', '/emergencias', data);
   }
 
+  // ===== ACTIVOS FIJOS =====
+  async function getActivos() {
+    return await request('GET', '/activos');
+  }
+
+  async function createActivo(data) {
+    return await request('POST', '/activos', data);
+  }
+
+  async function updateActivo(id, data) {
+    return await request('PUT', '/activos/' + encodeURIComponent(id), data);
+  }
+
+  async function deleteActivo(id) {
+    return await request('DELETE', '/activos/' + encodeURIComponent(id));
+  }
+
   return {
     login: login,
     logout: logout,
@@ -265,6 +282,10 @@ window.SV_API = (function () {
     updateCultura: updateCultura,
     getEmergencias: getEmergencias,
     updateEmergencias: updateEmergencias,
+    getActivos: getActivos,
+    createActivo: createActivo,
+    updateActivo: updateActivo,
+    deleteActivo: deleteActivo,
     getToken: getToken,
     clearToken: clearToken,
   };

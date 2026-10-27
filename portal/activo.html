@@ -481,27 +481,55 @@
     }
   } catch (e) {}
 
-  document.getElementById('artNombre').textContent = desc;
-  document.getElementById('artSub').textContent = (cod ? cod : id) + (depto ? ' · ' + depto : '');
-  if (img) {
-    document.getElementById('artAvatar').innerHTML = '<img src="' + esc(img) + '" alt="' + esc(desc) + '">';
+  function renderCard() {
+    document.getElementById('artNombre').textContent = desc;
+    document.getElementById('artSub').textContent = (cod ? cod : id) + (depto ? ' · ' + depto : '');
+    if (img) {
+      document.getElementById('artAvatar').innerHTML = '<img src="' + esc(img) + '" alt="' + esc(desc) + '">';
+    }
+    var rows = '';
+    rows += rowHtml('Código de activo', cod || id, '#001F60');
+    if (cat) rows += rowHtml('Categoría', cat);
+    if (marca) rows += rowHtml('Marca / Modelo', marca);
+    if (serial) rows += rowHtml('Serial', serial);
+    if (depto) rows += rowHtml('Departamento', depto);
+    if (ubic) rows += rowHtml('Ubicación', ubic);
+    if (tel) rows += rowHtml('Teléfono corporativo', tel, '#00A865');
+    document.getElementById('artDatos').innerHTML = rows;
   }
 
   function rowHtml(label, val, color) {
     if (!val) return '';
     return '<div class="info-row"><span class="info-k">' + esc(label) + '</span><span class="info-v"' + (color ? ' style="color:' + color + '"' : '') + '>' + esc(val) + '</span></div>';
   }
-  var rows = '';
-  rows += rowHtml('Código de activo', cod || id, '#001F60');
-  if (cat) rows += rowHtml('Categoría', cat);
-  if (marca) rows += rowHtml('Marca / Modelo', marca);
-  if (serial) rows += rowHtml('Serial', serial);
-  if (depto) rows += rowHtml('Departamento', depto);
-  if (ubic) rows += rowHtml('Ubicación', ubic);
-  if (tel) rows += rowHtml('Teléfono corporativo', tel, '#00A865');
-  document.getElementById('artDatos').innerHTML = rows;
 
+  renderCard();
   document.getElementById('artQr').innerHTML = makeQrSvg(location.href, 148, '#001F60');
+
+  var lookupKey = cod || id;
+  if (lookupKey) {
+    fetch('/api/activos/public/' + encodeURIComponent(lookupKey))
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (row) {
+        if (!row || row.error) return;
+        var m = String(row.obs || '').match(/<!--AFMETA:([\s\S]*?)-->/);
+        var meta = null;
+        if (m && m[1]) { try { meta = JSON.parse(m[1]); } catch (_e) {} }
+        desc = row.descripcion || desc;
+        cat = row.categoria || cat;
+        marca = ((row.marca || '') + (row.modelo ? ' · ' + row.modelo : '')).trim() || marca;
+        serial = row.serial || serial;
+        depto = row.departamento || depto;
+        ubic = ((row.sede || '') + (row.area ? ' · ' + row.area : '')).trim() || ubic;
+        if (meta) {
+          if (meta.telefono) tel = meta.telefono;
+          if (meta.imagen) img = meta.imagen;
+          if (meta.codigoEtiqueta) cod = meta.codigoEtiqueta;
+        }
+        renderCard();
+      })
+      .catch(function () {});
+  }
 })();
 </script>
 </body>

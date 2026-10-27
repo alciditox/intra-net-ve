@@ -6715,6 +6715,163 @@
     });
     if (changed) saveDB(db);
   })();
+  var _afMetaRe = /\n?<!--AFMETA:([\s\S]*?)-->/;
+  function afCleanObs(obs) {
+    return String(obs || '').replace(_afMetaRe, '').trim();
+  }
+  function afDbKey(a) {
+    if (!a) return '';
+    if (a._dbId && String(a._dbId).length <= 10) return String(a._dbId);
+    var rawId = String(a.id || '');
+    if (rawId && rawId.length <= 10) return rawId;
+    afEnsureCodigo(a);
+    var n = parseInt(a.numAleatorio, 10) || 999;
+    return 'AF-' + afPad(n, 4);
+  }
+  function afPackActivoForApi(a) {
+    afEnsureCodigo(a);
+    var dbId = afDbKey(a);
+    a._dbId = dbId;
+    var cleanObs = afCleanObs(a.obs);
+    var meta = {
+      origId: a.id || dbId,
+      telefono: a.telefono || '',
+      codigoEtiqueta: a.codigoEtiqueta || '',
+      numAleatorio: a.numAleatorio || '',
+      imagen: a.imagen || ''
+    };
+    var obsPacked = (cleanObs ? cleanObs + '\n' : '') + '<!--AFMETA:' + JSON.stringify(meta) + '-->';
+    return {
+      id: dbId,
+      categoria: a.categoria || 'Otros',
+      descripcion: a.descripcion || '',
+      marca: a.marca || null,
+      modelo: a.modelo || null,
+      serial: a.serial || null,
+      fecha_compra: a.fechaCompra || null,
+      costo: a.costo != null ? Number(a.costo) : 0,
+      proveedor: a.proveedor || null,
+      factura: a.factura || null,
+      sede: a.sede || null,
+      area: a.area || null,
+      departamento: a.departamento || null,
+      usuario_id: a.userId || null,
+      fecha_asig: a.fechaAsig || null,
+      estado: a.estado || 'Disponible',
+      estado_fisico: a.estadoFisico || 'Bueno',
+      ultimo_inv: a.ultimoInv || null,
+      creado_por: a.creadoPor || null,
+      obs: obsPacked
+    };
+  }
+  function afUnpackActivoFromApi(row) {
+    var rawObs = String(row.obs || '');
+    var m = rawObs.match(_afMetaRe);
+    var meta = null;
+    if (m && m[1]) {
+      try { meta = JSON.parse(m[1]); } catch (_e) {}
+    }
+    var cleanObs = afCleanObs(rawObs);
+    var numAle = (meta && meta.numAleatorio) || '';
+    var item = {
+      _dbId: row.id,
+      id: (meta && meta.origId) || row.id,
+      categoria: row.categoria || 'Otros',
+      descripcion: row.descripcion || '',
+      marca: row.marca || '',
+      modelo: row.modelo || '',
+      serial: row.serial || '',
+      fechaCompra: row.fecha_compra ? String(row.fecha_compra).slice(0, 10) : '',
+      costo: Number(row.costo) || 0,
+      proveedor: row.proveedor || '',
+      factura: row.factura || '',
+      telefono: (meta && meta.telefono) || '',
+      imagen: (meta && meta.imagen) || '',
+      sede: row.sede || 'Sede Principal',
+      area: row.area || '',
+      departamento: row.departamento || 'Tecnología',
+      userId: row.usuario_id ? Number(row.usuario_id) : null,
+      fechaAsig: row.fecha_asig ? String(row.fecha_asig).slice(0, 10) : null,
+      estado: row.estado || 'Disponible',
+      estadoFisico: row.estado_fisico || 'Bueno',
+      ultimoInv: row.ultimo_inv ? String(row.ultimo_inv).slice(0, 10) : null,
+      creadoPor: row.creado_por || '',
+      obs: cleanObs
+    };
+    if (numAle && /^\d{5}$/.test(numAle)) {
+      item.numAleatorio = numAle;
+      item.numSeq5 = true;
+    }
+    afEnsureCodigo(item);
+    return item;
+  }
+  function afSaveActivoToDB(a, isNew) {
+    if (!window.SV_API || typeof SV_API.createActivo !== 'function' || !SV_API.isLoggedIn()) return Promise.resolve();
+    var payload = afPackActivoForApi(a);
+    if (isNew) {
+      return SV_API.createActivo(payload).then(function (res) {
+        if (res && res.error) {
+          return SV_API.updateActivo(payload.id, payload);
+        }
+        return res;
+      });
+    }
+    return SV_API.updateActivo(payload.id, payload).then(function (res) {
+      if (res && res.error) {
+        return SV_API.createActivo(payload);
+      }
+      return res;
+    });
+  }
+  var _afSyncInFlight = false;
+  var _afLastSyncTs = 0;
+  function afSyncActivosFromDB(force) {
+    if (!window.SV_API || typeof SV_API.getActivos !== 'function' || !SV_API.isLoggedIn()) return;
+    if (_afSyncInFlight) return;
+    if (!force && Date.now() - _afLastSyncTs < 4000) return;
+    _afSyncInFlight = true;
+    SV_API.getActivos().then(function (rows) {
+      _afSyncInFlight = false;
+      _afLastSyncTs = Date.now();
+      if (!Array.isArray(rows) || !rows.length) return;
+      var remoteList = rows.map(afUnpackActivoFromApi);
+      var byId = {}, byDbId = {};
+      remoteList.forEach(function (r) {
+        byId[r.id] = r;
+        if (r._dbId) byDbId[r._dbId] = r;
+      });
+      var localExtras = [];
+      ((db.af && db.af.activos) || []).forEach(function (loc) {
+        var dbk = afDbKey(loc);
+        var rem = byId[loc.id] || byDbId[dbk];
+        if (!rem) {
+          localExtras.push(loc);
+          afSaveActivoToDB(loc, true);
+        } else if ((loc.telefono && !rem.telefono) || (loc.imagen && !rem.imagen) || (loc.id !== rem.id && !/^AF-/i.test(loc.id))) {
+          rem.id = loc.id;
+          rem.telefono = loc.telefono || rem.telefono;
+          rem.imagen = loc.imagen || rem.imagen;
+          rem.numAleatorio = loc.numAleatorio || rem.numAleatorio;
+          rem.numSeq5 = true;
+          afEnsureCodigo(rem);
+          afSaveActivoToDB(rem, false);
+        }
+      });
+      var prevCount = db.af.activos.length;
+      var prevSig = db.af.activos.map(function (x) { return x.id + ':' + x.estado + ':' + (x.telefono || ''); }).join('|');
+      db.af.activos = remoteList.concat(localExtras);
+      db.af.activos.forEach(function (a) { afEnsureCodigo(a); });
+      var newSig = db.af.activos.map(function (x) { return x.id + ':' + x.estado + ':' + (x.telefono || ''); }).join('|');
+      saveDB(db);
+      if (prevCount !== db.af.activos.length || prevSig !== newSig) {
+        refreshNav();
+        if (current === 'aftech') rAfTech();
+        else if (current === 'afactivos') rAfActivos();
+        else if (current === 'afpanel' || current === 'activos') rAfPanel();
+      }
+    }).catch(function () { _afSyncInFlight = false; });
+  }
+  setTimeout(function () { afSyncActivosFromDB(true); }, 600);
   function afBarcodeSvg(text, h) {
     h = h || 44;
     var s = String(text || 'ACT-IT-000125');
@@ -6983,6 +7140,7 @@
   /* ---------- M6 · PANEL GENERAL ---------- */
   function rAfPanel() {
     resetContent();
+    afSyncActivosFromDB();
     var A = db.af.activos.filter(function (a) { return a.estado !== 'De baja'; });
     var valor = A.reduce(function (s, a) { return s + (+a.costo || 0); }, 0);
     var porEstado = {}; db.af.activos.forEach(function (a) { porEstado[a.estado] = (porEstado[a.estado] || 0) + 1; });
@@ -7029,9 +7187,51 @@
   }
 
   /* ---------- M1 · ACTIVOS FIJOS ---------- */
-  var afFiltro = { q: '', estado: 'todos', cat: 'todas' };
+  function afSortRecordsDesc(arr) {
+    var base = (db.af && db.af.activos) || [];
+    return arr.slice().sort(function (a, b) {
+      var na = parseInt(a.numAleatorio, 10) || 0;
+      var nb = parseInt(b.numAleatorio, 10) || 0;
+      if (nb !== na) return nb - na;
+      return base.indexOf(b) - base.indexOf(a);
+    });
+  }
+  function afPagerHtml(total, page, perPage, idPrefix) {
+    if (!total) return '';
+    var totalPages = Math.max(1, Math.ceil(total / perPage));
+    if (page > totalPages) page = totalPages;
+    var start = (page - 1) * perPage + 1;
+    var end = Math.min(total, page * perPage);
+    var pages = [];
+    var pStart = Math.max(1, page - 2);
+    var pEnd = Math.min(totalPages, pStart + 4);
+    if (pEnd - pStart < 4) pStart = Math.max(1, pEnd - 4);
+    if (pStart > 1) { pages.push(1); if (pStart > 2) pages.push('...'); }
+    for (var i = pStart; i <= pEnd; i++) pages.push(i);
+    if (pEnd < totalPages) { if (pEnd < totalPages - 1) pages.push('...'); pages.push(totalPages); }
+    var btns = pages.map(function (p) {
+      if (p === '...') return '<span style="padding:4px 6px;color:var(--muted2);font-size:13px">…</span>';
+      var active = p === page;
+      return '<button type="button" data-' + idPrefix + 'pg="' + p + '" class="btn-s" style="min-width:34px;padding:5px 9px;font-size:12.5px;font-weight:700;' + (active ? 'background:var(--navy);color:#fff;border-color:var(--navy)' : '') + '">' + p + '</button>';
+    }).join('');
+    return '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:12px 4px 6px;border-top:1px solid #EEF3F9;margin-top:6px">' +
+      '<div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)">' +
+        '<span>Mostrando <b style="color:var(--navy)">' + start + '–' + end + '</b> de <b style="color:var(--navy)">' + total + '</b> registros (orden DESC)</span>' +
+        '<select id="' + idPrefix + 'PerPage" style="border:1.5px solid #D9E2EF;border-radius:8px;padding:4px 8px;font-family:inherit;font-size:12.5px;color:var(--navy);background:#fff">' +
+          [15, 30, 50, 100].map(function (n) { return '<option value="' + n + '"' + (perPage === n ? ' selected' : '') + '>' + n + ' por pág.</option>'; }).join('') +
+        '</select>' +
+      '</div>' +
+      '<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">' +
+        '<button type="button" data-' + idPrefix + 'pg="' + (page - 1) + '" class="btn-s" style="padding:5px 10px;font-size:12.5px"' + (page <= 1 ? ' disabled style="padding:5px 10px;font-size:12.5px;opacity:.45;cursor:not-allowed"' : '') + '>‹ Anterior</button>' +
+        btns +
+        '<button type="button" data-' + idPrefix + 'pg="' + (page + 1) + '" class="btn-s" style="padding:5px 10px;font-size:12.5px"' + (page >= totalPages ? ' disabled style="padding:5px 10px;font-size:12.5px;opacity:.45;cursor:not-allowed"' : '') + '>Siguiente ›</button>' +
+      '</div>' +
+    '</div>';
+  }
+  var afFiltro = { q: '', estado: 'todos', cat: 'todas', page: 1, perPage: 15 };
   function rAfActivos() {
     resetContent();
+    afSyncActivosFromDB();
     var html = afHero('Registro maestro', 'Activos fijos', 'Cada bien con ID único, ficha, estado e historial completo.',
       (!afCan('activosGestionar') ? '' : '<button class="btn-g" id="afAdd" style="background:#fff;color:var(--navy)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Nuevo activo'));
     var ESTADOS = ['todos', 'Disponible', 'Asignado', 'En reparación', 'Dañado', 'De baja'];
@@ -7041,20 +7241,28 @@
       '<div class="doccat">' + ESTADOS.map(function (e) { return '<button data-afest="' + e + '" class="' + (afFiltro.estado === e ? 'on' : '') + '">' + (e === 'todos' ? 'Todos' : e) + '</button>'; }).join('') + '</div>' +
       '</div><div class="doccat" style="margin-top:10px">' + CATS.map(function (c) { return '<button data-afcat="' + esc(c) + '" class="' + (afFiltro.cat === c ? 'on' : '') + '">' + (c === 'todas' ? 'Todas las categorías' : esc(c)) + '</button>'; }).join('') + '</div></div>';
     var q = afFiltro.q.toLowerCase();
-    var list = db.af.activos.filter(function (a) {
+    var filtered = db.af.activos.filter(function (a) {
+      afEnsureCodigo(a);
       if (afFiltro.estado !== 'todos' && a.estado !== afFiltro.estado) return false;
       if (afFiltro.cat !== 'todas' && a.categoria !== afFiltro.cat) return false;
-      if (q && [a.id, afEnsureCodigo(a), a.descripcion, a.serial, a.marca, a.modelo, a.departamento, a.telefono].join(' ').toLowerCase().indexOf(q) < 0) return false;
+      if (q && [a.id, a.codigoEtiqueta, a.descripcion, a.serial, a.marca, a.modelo, a.departamento, a.telefono].join(' ').toLowerCase().indexOf(q) < 0) return false;
       return true;
     });
+    var list = afSortRecordsDesc(filtered);
+    var totalPages = Math.max(1, Math.ceil(list.length / afFiltro.perPage));
+    if (afFiltro.page > totalPages) afFiltro.page = totalPages;
+    if (afFiltro.page < 1) afFiltro.page = 1;
+    var pageList = list.slice((afFiltro.page - 1) * afFiltro.perPage, afFiltro.page * afFiltro.perPage);
     html += '<div class="card" style="padding:6px 16px"><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>ID</th><th>Descripción</th><th>Categoría</th><th>Ubicación</th><th>Asignado a</th><th>Estado</th><th>Etiqueta / QR</th><th></th></tr></thead><tbody>' +
-      (list.length ? list.map(function (a) { var u = a.userId ? byId(a.userId) : null; var cod = afEnsureCodigo(a); return '<tr data-afver="' + a.id + '" style="cursor:pointer"><td><b style="color:var(--navy)">' + esc(a.id) + '</b></td><td><div style="display:flex;align-items:center;gap:10px">' + afThumbHtml(a, 36) + '<div>' + esc(a.descripcion) + '<div style="font-size:12px;color:var(--muted2)">' + esc(a.marca || '') + (a.modelo ? ' · ' + esc(a.modelo) : '') + '</div></div></div></td><td>' + esc(a.categoria) + '</td><td style="font-size:12.5px">' + esc(a.sede) + '<div style="color:var(--muted2)">' + esc(a.area || '') + '</div></td><td>' + (u ? esc(u.nombre) : '<span style="color:var(--muted2)">—</span>') + '</td><td>' + afEstChip(a.estado) + '</td><td><button class="btn-s" data-afetq="' + a.id + '" style="font-size:12px;padding:5px 10px;display:inline-flex;align-items:center;gap:5px;font-weight:700;color:var(--navy)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><path d="M14 14h3v3h-3zM18 18h3v3h-3z"></path></svg>' + esc(cod) + '</button></td><td><button class="btn-s" data-afver="' + a.id + '" style="font-size:12.5px;padding:6px 11px">Ver ficha</button></td></tr>'; }).join('') : '<tr><td colspan="8"><div class="empty">No hay activos con estos filtros.</div></td></tr>') +
-      '</tbody></table></div></div>';
+      (pageList.length ? pageList.map(function (a) { var u = a.userId ? byId(a.userId) : null; var cod = afEnsureCodigo(a); return '<tr data-afver="' + a.id + '" style="cursor:pointer"><td><b style="color:var(--navy)">' + esc(a.id) + '</b></td><td><div style="display:flex;align-items:center;gap:10px">' + afThumbHtml(a, 36) + '<div>' + esc(a.descripcion) + '<div style="font-size:12px;color:var(--muted2)">' + esc(a.marca || '') + (a.modelo ? ' · ' + esc(a.modelo) : '') + '</div></div></div></td><td>' + esc(a.categoria) + '</td><td style="font-size:12.5px">' + esc(a.sede) + '<div style="color:var(--muted2)">' + esc(a.area || '') + '</div></td><td>' + (u ? esc(u.nombre) : '<span style="color:var(--muted2)">—</span>') + '</td><td>' + afEstChip(a.estado) + '</td><td><button class="btn-s" data-afetq="' + a.id + '" style="font-size:12px;padding:5px 10px;display:inline-flex;align-items:center;gap:5px;font-weight:700;color:var(--navy)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><path d="M14 14h3v3h-3zM18 18h3v3h-3z"></path></svg>' + esc(cod) + '</button></td><td><button class="btn-s" data-afver="' + a.id + '" style="font-size:12.5px;padding:6px 11px">Ver ficha</button></td></tr>'; }).join('') : '<tr><td colspan="8"><div class="empty">No hay activos con estos filtros.</div></td></tr>') +
+      '</tbody></table></div>' + afPagerHtml(list.length, afFiltro.page, afFiltro.perPage, 'afact') + '</div>';
     $('#content').innerHTML = html;
     var afAddBtn = $('#afAdd'); if (afAddBtn) afAddBtn.addEventListener('click', function () { afActivoForm(null); });
-    var qi = $('#afQ'); qi.addEventListener('input', function () { afFiltro.q = qi.value; var pos = qi.selectionStart; rAfActivos(); var n = $('#afQ'); if (n) { n.focus(); n.setSelectionRange(pos, pos); } });
-    $$('#content [data-afest]').forEach(function (b) { b.addEventListener('click', function () { afFiltro.estado = b.getAttribute('data-afest'); rAfActivos(); }); });
-    $$('#content [data-afcat]').forEach(function (b) { b.addEventListener('click', function () { afFiltro.cat = b.getAttribute('data-afcat'); rAfActivos(); }); });
+    var qi = $('#afQ'); qi.addEventListener('input', function () { afFiltro.q = qi.value; afFiltro.page = 1; var pos = qi.selectionStart; rAfActivos(); var n = $('#afQ'); if (n) { n.focus(); n.setSelectionRange(pos, pos); } });
+    $$('#content [data-afest]').forEach(function (b) { b.addEventListener('click', function () { afFiltro.estado = b.getAttribute('data-afest'); afFiltro.page = 1; rAfActivos(); }); });
+    $$('#content [data-afcat]').forEach(function (b) { b.addEventListener('click', function () { afFiltro.cat = b.getAttribute('data-afcat'); afFiltro.page = 1; rAfActivos(); }); });
+    var ppSel = $('#afactPerPage'); if (ppSel) ppSel.addEventListener('change', function () { afFiltro.perPage = +ppSel.value || 15; afFiltro.page = 1; rAfActivos(); });
+    $$('#content [data-afactpg]').forEach(function (b) { b.addEventListener('click', function () { if (b.disabled) return; afFiltro.page = +b.getAttribute('data-afactpg') || 1; rAfActivos(); }); });
     $('#content').addEventListener('click', function (e) {
       var etq = e.target.closest('[data-afetq]'); if (etq) { e.stopPropagation(); afEtiquetaModal(afActById(etq.getAttribute('data-afetq'))); return; }
       var v = e.target.closest('[data-afver]'); if (v) afFichaModal(afActById(v.getAttribute('data-afver')));
@@ -7145,8 +7353,8 @@
       var codEtq = afDeptoCod(depVal) + '-' + afTipoCod(desc, cat, telVal) + '-' + numRand;
       var data = { categoria: cat, descripcion: desc, marca: $('#faMarca').value.trim(), modelo: $('#faModelo').value.trim(), serial: serial, fechaCompra: $('#faFC').value, costo: +$('#faCosto').value || 0, proveedor: $('#faProv').value.trim(), factura: $('#faFact').value.trim(), telefono: telVal, imagen: imgData, sede: $('#faSede').value, area: areaVal, departamento: depVal, estadoFisico: $('#faEF').value, obs: $('#faObs').value.trim(), numAleatorio: numRand, numSeq5: true, codigoEtiqueta: codEtq };
       var targetAct = null;
-      if (edit) { Object.assign(a, data); targetAct = a; afLog('Edición', a.id, 'Editó el activo ' + a.id + ' (' + desc + ')'); toast('Activo actualizado.'); }
-      else { var id = codEtq; targetAct = Object.assign({ id: id, userId: null, fechaAsig: null, estado: 'Disponible', ultimoInv: null, creadoPor: me.nombre }, data); db.af.activos.push(targetAct); afLog('Alta', id, 'Registró el activo ' + id + ' — ' + desc); toast('Activo ' + id + ' registrado.'); }
+      if (edit) { Object.assign(a, data); targetAct = a; afSaveActivoToDB(targetAct, false); afLog('Edición', a.id, 'Editó el activo ' + a.id + ' (' + desc + ')'); toast('Activo actualizado en base de datos.'); }
+      else { var id = codEtq; targetAct = Object.assign({ id: id, _dbId: 'AF-' + afPad(parseInt(numRand, 10) || 999, 4), userId: null, fechaAsig: null, estado: 'Disponible', ultimoInv: null, creadoPor: me.nombre }, data); db.af.activos.push(targetAct); afSaveActivoToDB(targetAct, true); afLog('Alta', id, 'Registró el activo ' + id + ' — ' + desc); toast('Activo ' + id + ' guardado en base de datos.'); }
       saveDB(db); closeModal(); refreshNav(); afReRenderList();
       if (!edit && targetAct) afEtiquetaModal(targetAct);
     });
@@ -7193,6 +7401,7 @@
   function afMovSimple(a, tipo, nuevoEstado) {
     if (afBlock('activosGestionar')) return;
     a.estado = nuevoEstado; afAddMov(a, tipo, ''); afLog(tipo, a.id, tipo + ' — ' + a.id + ' (' + a.descripcion + ')');
+    afSaveActivoToDB(a, false);
     saveDB(db); closeModal(); refreshNav(); afReRenderList(); toast('Registrado: ' + tipo + '.');
   }
   function afAsignarModal(a) {
@@ -7210,6 +7419,7 @@
       afAddMov(a, 'Asignación', 'a ' + u.nombre, acta.id);
       afLog('Asignación', a.id, 'Asignó ' + a.id + ' (' + a.descripcion + ') a ' + u.nombre);
       logHist(u, 'Activo fijo asignado: ' + a.descripcion + ' (' + a.id + ') — acta ' + acta.id, me.nombre);
+      afSaveActivoToDB(a, false);
       saveDB(db); closeModal(); refreshNav(); afReRenderList(); afActaDownload(acta); toast('Activo asignado. Acta ' + acta.id + ' generada.');
     });
   }
@@ -7227,6 +7437,7 @@
       afLog('Devolución', a.id, 'Devolución de ' + a.id + (u ? ' por ' + u.nombre : ''));
       if (u) logHist(u, 'Devolvió el activo ' + a.descripcion + ' (' + a.id + ') — acta ' + acta.id, me.nombre);
       a.userId = null; a.fechaAsig = null; a.estado = 'Disponible';
+      afSaveActivoToDB(a, false);
       saveDB(db); closeModal(); refreshNav(); afReRenderList(); afActaDownload(acta); toast('Devolución registrada. Acta ' + acta.id + '.');
     });
   }
@@ -7239,6 +7450,7 @@
       var mot = $('#bjN').value.trim(); if (!mot) { toast('Indica el motivo de la baja.'); return; }
       a.estado = 'De baja'; a.userId = null;
       afAddMov(a, 'Baja', mot); afLog('Baja', a.id, 'Dio de baja ' + a.id + ' (' + a.descripcion + '): ' + mot);
+      afSaveActivoToDB(a, false);
       saveDB(db); closeModal(); refreshNav(); afReRenderList(); toast('Activo dado de baja.');
     });
   }
@@ -7269,12 +7481,14 @@
       afLog('Sustitución', a.id, 'Sustitución: ' + a.id + (u ? ' (de ' + u.nombre + ')' : '') + ' ingresa al almacén como ' + nuevoEstado + '. Motivo: ' + just);
       if (u) logHist(u, 'Sustitución de equipo: devolvió ' + a.descripcion + ' (' + a.id + '). Motivo: ' + just, me.nombre);
       a.userId = null; a.fechaAsig = null; a.estado = nuevoEstado;
+      afSaveActivoToDB(a, false);
       var actas = [actaDev];
       // asignación del reemplazo
       if (nuevoId && u) {
         var nv = afActById(nuevoId);
         if (nv && nv.estado === 'Disponible') {
           nv.userId = u.id; nv.fechaAsig = reqToday(); nv.estado = 'Asignado';
+          afSaveActivoToDB(nv, false);
           var actaEnt = afCrearActa(nv, u, 'Entrega por sustitución', 'Reemplazo de ' + a.id + '. ' + just);
           afAddMov(nv, 'Asignación', 'a ' + u.nombre + ' (reemplazo de ' + a.id + ')', actaEnt.id);
           afLog('Asignación', nv.id, 'Asignó ' + nv.id + ' a ' + u.nombre + ' como reemplazo de ' + a.id);
@@ -7326,9 +7540,10 @@
 
   /* ---------- ALMACÉN DE TECNOLOGÍA (equipos de computación/tecnología) ---------- */
   var AF_TECH = ['Computación', 'POS / Terminales', 'Audiovisual'];
-  var afTechSolo = false, afTechCat = 'todas', afTechQ = '';
+  var afTechSolo = false, afTechCat = 'todas', afTechQ = '', afTechPage = 1, afTechPerPage = 15;
   function rAfTech() {
     resetContent();
+    afSyncActivosFromDB();
     var tech = db.af.activos.filter(function (a) { return AF_TECH.indexOf(a.categoria) > -1; });
     var html = afHero('Equipos de computación y tecnología', 'Almacén de tecnología', 'Pool de equipos tecnológicos disponibles para asignar al equipo. Cada entrega genera su acta.',
       (!afCan('activosGestionar') ? '' : '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-g" id="afTechAdd" style="background:#fff;color:var(--navy)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>Nuevo equipo</button><button class="btn-s" id="afTechBulk" style="background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.3);color:#fff"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="M17 8l-5-5-5 5M12 3v12"></path></svg>Carga masiva</button></div>'));
@@ -7349,22 +7564,30 @@
       '<label style="display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:600;color:var(--navy);cursor:pointer"><input type="checkbox" id="afTechSolo"' + (afTechSolo ? ' checked' : '') + ' style="accent-color:#00CE7C;width:17px;height:17px">Solo disponibles</label>' +
       '</div></div>';
     var techQ = afTechQ.toLowerCase();
-    var list = tech.filter(function (a) {
+    var filtered = tech.filter(function (a) {
+      afEnsureCodigo(a);
       if (a.estado === 'De baja') return false;
       if (afTechCat !== 'todas' && a.categoria !== afTechCat) return false;
       if (afTechSolo && a.estado !== 'Disponible') return false;
-      if (techQ && [a.id, afEnsureCodigo(a), a.descripcion, a.serial, a.marca, a.modelo, a.telefono].join(' ').toLowerCase().indexOf(techQ) < 0) return false;
+      if (techQ && [a.id, a.codigoEtiqueta, a.descripcion, a.serial, a.marca, a.modelo, a.telefono].join(' ').toLowerCase().indexOf(techQ) < 0) return false;
       return true;
-    }).sort(function (a, b) { var o = { 'Disponible': 0, 'Asignado': 1, 'En reparación': 2, 'Dañado': 3 }; return (o[a.estado] || 9) - (o[b.estado] || 9); });
+    });
+    var list = afSortRecordsDesc(filtered);
+    var totalPages = Math.max(1, Math.ceil(list.length / afTechPerPage));
+    if (afTechPage > totalPages) afTechPage = totalPages;
+    if (afTechPage < 1) afTechPage = 1;
+    var pageList = list.slice((afTechPage - 1) * afTechPerPage, afTechPage * afTechPerPage);
     html += '<div class="card" style="padding:6px 16px"><div style="overflow-x:auto"><table class="tbl"><thead><tr><th>ID</th><th>Equipo</th><th>Categoría</th><th>Serial</th><th>Estado</th><th>Asignado a</th><th>Etiqueta / QR</th><th></th></tr></thead><tbody>' +
-      (list.length ? list.map(function (a) { var u = a.userId ? byId(a.userId) : null; var cod = afEnsureCodigo(a); return '<tr><td><b style="color:var(--navy)">' + esc(a.id) + '</b></td><td><div style="display:flex;align-items:center;gap:10px">' + afThumbHtml(a, 36) + '<div>' + esc(a.descripcion) + '<div style="font-size:12px;color:var(--muted2)">' + esc(a.marca || '') + (a.modelo ? ' · ' + esc(a.modelo) : '') + '</div></div></div></td><td>' + esc(a.categoria) + '</td><td style="font-size:12.5px">' + esc(a.serial || '—') + '</td><td>' + afEstChip(a.estado) + '</td><td>' + (u ? esc(u.nombre) : '<span style="color:var(--muted2)">—</span>') + '</td><td><button class="btn-s" data-afetq="' + a.id + '" style="font-size:12px;padding:5px 10px;display:inline-flex;align-items:center;gap:5px;font-weight:700;color:var(--navy)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><path d="M14 14h3v3h-3zM18 18h3v3h-3z"></path></svg>' + esc(cod) + '</button></td><td><div style="display:flex;gap:6px;justify-content:flex-end">' + (a.estado === 'Disponible' ? '<button class="btn-g" data-aftasig="' + a.id + '" style="font-size:12.5px;padding:6px 12px">Asignar</button>' : '') + (a.estado === 'Asignado' ? '<button class="btn-s" data-aftsust="' + a.id + '" style="font-size:12.5px;padding:6px 11px">Sustituir</button>' : '') + '<button class="btn-s" data-afver="' + a.id + '" style="font-size:12.5px;padding:6px 11px">Ficha</button></div></td></tr>'; }).join('') : '<tr><td colspan="8"><div class="empty">No hay equipos de tecnología con este filtro.</div></td></tr>') +
-      '</tbody></table></div></div>';
+      (pageList.length ? pageList.map(function (a) { var u = a.userId ? byId(a.userId) : null; var cod = afEnsureCodigo(a); return '<tr><td><b style="color:var(--navy)">' + esc(a.id) + '</b></td><td><div style="display:flex;align-items:center;gap:10px">' + afThumbHtml(a, 36) + '<div>' + esc(a.descripcion) + '<div style="font-size:12px;color:var(--muted2)">' + esc(a.marca || '') + (a.modelo ? ' · ' + esc(a.modelo) : '') + '</div></div></div></td><td>' + esc(a.categoria) + '</td><td style="font-size:12.5px">' + esc(a.serial || '—') + '</td><td>' + afEstChip(a.estado) + '</td><td>' + (u ? esc(u.nombre) : '<span style="color:var(--muted2)">—</span>') + '</td><td><button class="btn-s" data-afetq="' + a.id + '" style="font-size:12px;padding:5px 10px;display:inline-flex;align-items:center;gap:5px;font-weight:700;color:var(--navy)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><path d="M14 14h3v3h-3zM18 18h3v3h-3z"></path></svg>' + esc(cod) + '</button></td><td><div style="display:flex;gap:6px;justify-content:flex-end">' + (a.estado === 'Disponible' ? '<button class="btn-g" data-aftasig="' + a.id + '" style="font-size:12.5px;padding:6px 12px">Asignar</button>' : '') + (a.estado === 'Asignado' ? '<button class="btn-s" data-aftsust="' + a.id + '" style="font-size:12.5px;padding:6px 11px">Sustituir</button>' : '') + '<button class="btn-s" data-afver="' + a.id + '" style="font-size:12.5px;padding:6px 11px">Ficha</button></div></td></tr>'; }).join('') : '<tr><td colspan="8"><div class="empty">No hay equipos de tecnología con este filtro.</div></td></tr>') +
+      '</tbody></table></div>' + afPagerHtml(list.length, afTechPage, afTechPerPage, 'aftech') + '</div>';
     $('#content').innerHTML = html;
     var tAdd = $('#afTechAdd'); if (tAdd) tAdd.addEventListener('click', function () { afActivoForm(null); });
     var tBulk = $('#afTechBulk'); if (tBulk) tBulk.addEventListener('click', afBulkActivosModal);
-    var chk = $('#afTechSolo'); chk.addEventListener('change', function () { afTechSolo = chk.checked; rAfTech(); });
-    var tq = $('#afTechQ'); if (tq) tq.addEventListener('input', function () { afTechQ = tq.value; var pos = tq.selectionStart; rAfTech(); var n = $('#afTechQ'); if (n) { n.focus(); n.setSelectionRange(pos, pos); } });
-    $$('#content [data-aftcat]').forEach(function (b) { b.addEventListener('click', function () { afTechCat = b.getAttribute('data-aftcat'); rAfTech(); }); });
+    var chk = $('#afTechSolo'); chk.addEventListener('change', function () { afTechSolo = chk.checked; afTechPage = 1; rAfTech(); });
+    var tq = $('#afTechQ'); if (tq) tq.addEventListener('input', function () { afTechQ = tq.value; afTechPage = 1; var pos = tq.selectionStart; rAfTech(); var n = $('#afTechQ'); if (n) { n.focus(); n.setSelectionRange(pos, pos); } });
+    $$('#content [data-aftcat]').forEach(function (b) { b.addEventListener('click', function () { afTechCat = b.getAttribute('data-aftcat'); afTechPage = 1; rAfTech(); }); });
+    var tppSel = $('#aftechPerPage'); if (tppSel) tppSel.addEventListener('change', function () { afTechPerPage = +tppSel.value || 15; afTechPage = 1; rAfTech(); });
+    $$('#content [data-aftechpg]').forEach(function (b) { b.addEventListener('click', function () { if (b.disabled) return; afTechPage = +b.getAttribute('data-aftechpg') || 1; rAfTech(); }); });
     $('#content').addEventListener('click', function (e) {
       var etq = e.target.closest('[data-afetq]'); if (etq) { afEtiquetaModal(afActById(etq.getAttribute('data-afetq'))); return; }
       var asg = e.target.closest('[data-aftasig]'); if (asg) { afAsignarModal(afActById(asg.getAttribute('data-aftasig'))); return; }
@@ -7577,7 +7800,7 @@
     });
     $('#baOk').addEventListener('click', function () {
       if (!parsed || !parsed.length) return;
-      parsed.forEach(function (it) { var id = afNewActivoId(it.departamento, it.descripcion, it.categoria, it.serial, it.telefono); db.af.activos.push(Object.assign({ id: id, codigoEtiqueta: id, userId: null, fechaAsig: null, estado: 'Disponible', ultimoInv: null, creadoPor: me.nombre }, it)); });
+      parsed.forEach(function (it) { var id = afNewActivoId(it.departamento, it.descripcion, it.categoria, it.serial, it.telefono); var newAct = Object.assign({ id: id, codigoEtiqueta: id, userId: null, fechaAsig: null, estado: 'Disponible', ultimoInv: null, creadoPor: me.nombre }, it); db.af.activos.push(newAct); afSaveActivoToDB(newAct, true); });
       afLog('Carga masiva', '', 'Carga masiva de activos: ' + parsed.length + ' equipo(s) registrado(s)');
       saveDB(db); closeModal(); refreshNav(); afReRenderList(); toast(parsed.length + ' equipo(s) registrado(s).');
     });

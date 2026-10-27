@@ -29,8 +29,37 @@ router.get('/catalogos', authMiddleware, async (_req: AuthenticatedRequest, res:
 });
 
 // ===== Activos fijos =====
+let _schemaChecked = false;
+async function ensureActivosSchema() {
+  if (_schemaChecked) return;
+  _schemaChecked = true;
+  try {
+    await pool.execute('ALTER TABLE af_activos MODIFY id VARCHAR(40)');
+  } catch (_e) {}
+  try {
+    await pool.execute('ALTER TABLE af_activos MODIFY obs LONGTEXT NULL');
+  } catch (_e) {}
+}
+
+router.get('/public/:id', async (req, res) => {
+  try {
+    await ensureActivosSchema();
+    const id = req.params.id;
+    const [rows] = await pool.execute(
+      `SELECT a.*, u.nombre AS usuario_nombre FROM af_activos a
+       LEFT JOIN usuarios u ON a.usuario_id = u.id
+       WHERE a.id = ? OR a.obs LIKE ? LIMIT 1`,
+      [id, `%${id}%`]
+    );
+    const list = rows as any[];
+    if (!list.length) { res.status(404).json({ error: 'Activo no encontrado' }); return; }
+    res.json(list[0]);
+  } catch (err) { logger.error('Error public activo', { error: (err as Error).message }); res.status(500).json({ error: 'Error interno' }); }
+});
+
 router.get('/', authMiddleware, async (_req: AuthenticatedRequest, res: Response) => {
   try {
+    await ensureActivosSchema();
     const [rows] = await pool.execute(
       `SELECT a.*, u.nombre AS usuario_nombre FROM af_activos a
        LEFT JOIN usuarios u ON a.usuario_id = u.id ORDER BY a.id`
@@ -39,21 +68,29 @@ router.get('/', authMiddleware, async (_req: AuthenticatedRequest, res: Response
   } catch (err) { logger.error('Error', { error: (err as Error).message }); res.status(500).json({ error: 'Error interno' }); }
 });
 
-router.post('/', authMiddleware, adminOnly, async (req: AuthenticatedRequest, res: Response) => {
+router.post('/', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   try {
+    await ensureActivosSchema();
     const b = req.body;
     if (!b.id || !b.categoria || !b.descripcion) { res.status(400).json({ error: 'id, categoria y descripcion son requeridos' }); return; }
     await pool.execute(
       `INSERT INTO af_activos (id,categoria,descripcion,marca,modelo,serial,fecha_compra,costo,proveedor,factura,sede,area,departamento,usuario_id,fecha_asig,estado,estado_fisico,ultimo_inv,creado_por,obs)
-       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+       ON DUPLICATE KEY UPDATE
+         categoria=VALUES(categoria), descripcion=VALUES(descripcion), marca=VALUES(marca), modelo=VALUES(modelo),
+         serial=VALUES(serial), fecha_compra=VALUES(fecha_compra), costo=VALUES(costo), proveedor=VALUES(proveedor),
+         factura=VALUES(factura), sede=VALUES(sede), area=VALUES(area), departamento=VALUES(departamento),
+         usuario_id=VALUES(usuario_id), fecha_asig=VALUES(fecha_asig), estado=VALUES(estado),
+         estado_fisico=VALUES(estado_fisico), ultimo_inv=VALUES(ultimo_inv), obs=VALUES(obs)`,
       [b.id, b.categoria, b.descripcion, b.marca||null, b.modelo||null, b.serial||null, b.fecha_compra||null, b.costo||null, b.proveedor||null, b.factura||null, b.sede||null, b.area||null, b.departamento||null, b.usuario_id||null, b.fecha_asig||null, b.estado||'Disponible', b.estado_fisico||null, b.ultimo_inv||null, b.creado_por||null, b.obs||'']
     );
-    res.status(201).json({ id: b.id, message: 'Activo creado' });
+    res.status(201).json({ id: b.id, message: 'Activo guardado' });
   } catch (err) { logger.error('Error', { error: (err as Error).message }); res.status(500).json({ error: 'Error interno' }); }
 });
 
-router.put('/:id', authMiddleware, adminOnly, async (req: AuthenticatedRequest, res: Response) => {
+router.put('/:id', authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
   try {
+    await ensureActivosSchema();
     const allowed = ['categoria','descripcion','marca','modelo','serial','fecha_compra','costo','proveedor','factura','sede','area','departamento','usuario_id','fecha_asig','estado','estado_fisico','ultimo_inv','creado_por','obs'];
     const fields: string[] = []; const values: any[] = [];
     for (const k of allowed) {
