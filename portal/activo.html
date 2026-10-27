@@ -448,15 +448,17 @@
   }
 
   var p = new URLSearchParams(location.search);
-  var id = p.get('id') || '';
-  var cod = p.get('c') || '';
-  var desc = p.get('d') || 'Activo Corporativo';
-  var cat = p.get('cat') || '';
-  var marca = p.get('m') || '';
-  var serial = p.get('s') || '';
-  var depto = p.get('dp') || '';
-  var ubic = p.get('u') || '';
-  var tel = p.get('t') || '';
+  var qCompact = p.get('q') || '';
+  var qParts = qCompact ? qCompact.split('|') : [];
+  var cod = p.get('c') || qParts[0] || '';
+  var id = p.get('id') || qParts[1] || '';
+  var desc = p.get('d') || qParts[2] || 'Activo Corporativo';
+  var cat = p.get('cat') || qParts[3] || '';
+  var marca = p.get('m') || qParts[4] || '';
+  var serial = p.get('s') || qParts[5] || '';
+  var depto = p.get('dp') || qParts[6] || '';
+  var ubic = p.get('u') || qParts[7] || '';
+  var tel = p.get('t') || qParts[8] || '';
   var img = p.get('img') || '';
 
   // Si se abre en el mismo navegador, buscar datos completos e imagen en localStorage

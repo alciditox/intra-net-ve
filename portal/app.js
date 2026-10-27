@@ -6689,6 +6689,11 @@
     }
     return '<span style="width:' + sz + 'px;height:' + sz + 'px;border-radius:9px;background:#EEF3F9;color:var(--navy);display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto">' + afPcIconSvg(Math.round(sz * 0.54), 'var(--navy)') + '</span>';
   }
+  function afQrShortUrl(a) {
+    var cod = afEnsureCodigo(a);
+    var base = location.origin + location.pathname.replace(/[^/]*$/, '') + 'activo.html';
+    return base + '?c=' + encodeURIComponent(cod);
+  }
   function afPublicUrl(a) {
     var cod = afEnsureCodigo(a);
     var base = location.origin + location.pathname.replace(/[^/]*$/, '') + 'activo.html';
@@ -7065,23 +7070,23 @@
     }
     return '<svg viewBox="0 0 ' + dim + ' ' + dim + '" width="' + sz + '" height="' + sz + '" shape-rendering="crispEdges" style="display:block"><rect width="' + dim + '" height="' + dim + '" fill="#fff"/><path d="' + path + '" fill="#000"/></svg>';
   }
-  function afEtiquetaHtmlCard(a) {
+  function afEtiquetaHtmlCard(a, qrUrlOverride) {
     var cod = afEnsureCodigo(a);
-    var pubUrl = afPublicUrl(a);
-    var qrSvg = afQrSvg(pubUrl, 148);
+    var qrTargetUrl = qrUrlOverride || afQrShortUrl(a);
+    var qrSvg = afQrSvg(qrTargetUrl, 148);
     var barSvg = afBarcodeSvg(cod, 42);
     var telHtml = (a.telefono && String(a.telefono).trim())
-      ? '<div style="font-size:13.5px;font-weight:800;color:#0b1528;margin-top:5px;letter-spacing:0.8px">' + esc(String(a.telefono).trim()) + '</div>'
+      ? '<div style="font-size:13.5px;font-weight:800;color:#000;margin-top:5px;letter-spacing:0.8px">' + esc(String(a.telefono).trim()) + '</div>'
       : '';
-    return '<div id="afStickerCard" style="background:#fff;border:1.5px solid #D9E2EF;border-radius:18px;padding:22px 26px 18px;max-width:500px;margin:6px auto;box-shadow:0 6px 20px rgba(0,31,96,.08);font-family:Barlow,Arial,sans-serif;color:#0b1528">' +
+    return '<div id="afStickerCard" style="background:#fff;border:1.5px solid #D9E2EF;border-radius:18px;padding:22px 26px 18px;max-width:500px;margin:6px auto;box-shadow:0 6px 20px rgba(0,31,96,.08);font-family:Barlow,Arial,sans-serif;color:#000">' +
       '<div style="display:flex;align-items:center;gap:22px">' +
         '<div style="flex:0 0 auto">' + qrSvg + '</div>' +
         '<div style="flex:1;min-width:0;text-align:center">' +
           '<div style="display:inline-flex;align-items:center;gap:8px;justify-content:center">' +
             '<img src="assets/marca/iso-gradient.png" alt="VEPAGOS" style="width:32px;height:32px;object-fit:contain">' +
             '<div style="text-align:left;line-height:1.05">' +
-              '<div style="font-size:22px;font-weight:800;color:#001F60;letter-spacing:0.8px">VE PAGOS</div>' +
-              '<div style="font-size:11px;font-weight:600;color:#1e293b;letter-spacing:2.4px">ACTIVOS FIJOS</div>' +
+              '<div style="font-size:22px;font-weight:800;color:#000;letter-spacing:0.8px">VE PAGOS</div>' +
+              '<div style="font-size:11px;font-weight:700;color:#000;letter-spacing:2.4px">ACTIVOS FIJOS</div>' +
             '</div>' +
           '</div>' +
           '<div style="font-size:23px;font-weight:800;color:#000;letter-spacing:0.6px;margin:10px 0 6px;word-break:break-all">' + esc(cod) + '</div>' +
@@ -7090,29 +7095,254 @@
         '</div>' +
       '</div>' +
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:16px;padding-top:10px">' +
-        '<div style="flex:1;font-size:11.5px;font-weight:700;color:#1e293b;line-height:1.35;letter-spacing:0.3px">ESCANEA EL QR<br>PARA MÁS INFORMACIÓN</div>' +
-        '<div style="width:1.5px;height:28px;background:#33415C;flex:0 0 auto"></div>' +
-        '<div style="flex:1;font-size:11.5px;font-weight:700;color:#1e293b;line-height:1.35;letter-spacing:0.3px;padding-left:6px">PROPIEDAD DE LA EMPRESA<br>NO REMOVER</div>' +
+        '<div style="flex:1;font-size:11.5px;font-weight:800;color:#000;line-height:1.35;letter-spacing:0.3px">ESCANEA EL QR<br>PARA MÁS INFORMACIÓN</div>' +
+        '<div style="width:2px;height:28px;background:#000;flex:0 0 auto"></div>' +
+        '<div style="flex:1;font-size:11.5px;font-weight:800;color:#000;line-height:1.35;letter-spacing:0.3px;padding-left:6px">PROPIEDAD DE LA EMPRESA<br>NO REMOVER</div>' +
       '</div>' +
     '</div>';
+  }
+  function afBuildZpl(a, sizeKey, qrTargetUrl) {
+    var cod = afEnsureCodigo(a);
+    var url = qrTargetUrl || afQrShortUrl(a);
+    var tel = (a.telefono && String(a.telefono).trim()) ? String(a.telefono).trim() : '';
+    var desc = String(a.descripcion || 'ACTIVO FIJO').slice(0, 26).toUpperCase();
+    // Zebra ZD220 = 203 dpi (8 dots / mm)
+    if (sizeKey === '60x40') {
+      // 60x40 mm = 480x320 dots
+      return [
+        '^XA',
+        '^CI28',
+        '^PW480',
+        '^LL320',
+        '^LH0,0',
+        '^FO16,18^BQN,2,4^FDLA,' + url + '^FS',
+        '^FO185,20^A0N,28,28^FDVE PAGOS^FS',
+        '^FO185,50^A0N,16,16^FDACTIVOS FIJOS · ' + desc.slice(0, 14) + '^FS',
+        '^FO185,78^A0N,28,26^FD' + cod + '^FS',
+        '^FO185,112^BY2,2,46^BCN,46,N,N,N^FD' + cod + '^FS',
+        (tel ? '^FO185,168^A0N,20,20^FDTEL: ' + tel + '^FS' : ''),
+        '^FO16,228^GB448,2,2^FS',
+        '^FO16,240^A0N,18,18^FDESCANEA EL QR^FS',
+        '^FO16,262^A0N,16,16^FDPARA MAS INFORMACION^FS',
+        '^FO236,238^GB2,46,2^FS',
+        '^FO250,240^A0N,18,18^FDPROPIEDAD DE LA EMPRESA^FS',
+        '^FO250,262^A0N,16,16^FDNO REMOVER^FS',
+        '^XZ'
+      ].filter(Boolean).join('\n');
+    }
+    if (sizeKey === '50x30') {
+      // 50x30 mm = 400x240 dots
+      return [
+        '^XA',
+        '^CI28',
+        '^PW400',
+        '^LL240',
+        '^LH0,0',
+        '^FO12,12^BQN,2,4^FDLA,' + url + '^FS',
+        '^FO164,14^A0N,24,24^FDVE PAGOS^FS',
+        '^FO164,39^A0N,14,14^FDACTIVOS FIJOS^FS',
+        '^FO164,60^A0N,24,22^FD' + cod + '^FS',
+        '^FO164,90^BY1,2,38^BCN,38,N,N,N^FD' + cod + '^FS',
+        (tel ? '^FO164,136^A0N,17,17^FD' + tel + '^FS' : ''),
+        '^FO12,174^GB376,2,2^FS',
+        '^FO12,184^A0N,15,15^FDESCANEA EL QR^FS',
+        '^FO12,202^A0N,14,14^FDPARA MAS INFO^FS',
+        '^FO194,182^GB2,38,2^FS',
+        '^FO204,184^A0N,15,15^FDPROPIEDAD EMPRESA^FS',
+        '^FO204,202^A0N,14,14^FDNO REMOVER^FS',
+        '^XZ'
+      ].filter(Boolean).join('\n');
+    }
+    // Default: 50x25 mm (2" x 1") = 400x200 dots
+    return [
+      '^XA',
+      '^CI28',
+      '^PW400',
+      '^LL200',
+      '^LH0,0',
+      '^FO10,10^BQN,2,3^FDLA,' + url + '^FS',
+      '^FO142,12^A0N,22,22^FDVE PAGOS^FS',
+      '^FO142,35^A0N,13,13^FDACTIVOS FIJOS^FS',
+      '^FO142,52^A0N,22,20^FD' + cod + '^FS',
+      '^FO142,78^BY1,2,34^BCN,34,N,N,N^FD' + cod + '^FS',
+      (tel ? '^FO142,118^A0N,16,16^FD' + tel + '^FS' : ''),
+      '^FO10,144^GB380,2,2^FS',
+      '^FO10,152^A0N,14,14^FDESCANEA EL QR^FS',
+      '^FO10,168^A0N,13,13^FDPARA MAS INFO^FS',
+      '^FO192,150^GB2,34,2^FS',
+      '^FO202,152^A0N,14,14^FDPROPIEDAD EMPRESA^FS',
+      '^FO202,168^A0N,13,13^FDNO REMOVER^FS',
+      '^XZ'
+    ].filter(Boolean).join('\n');
+  }
+  function afThermalPrintDoc(a, sizeKey, qrTargetUrl) {
+    var cod = afEnsureCodigo(a);
+    var dims = {
+      '50x25': { w: 50, h: 25, qr: 62, barH: 22, title: 11, sub: 6.5, cod: 10.5, tel: 7.5, foot: 5.8, pad: '1.8mm 2.2mm' },
+      '50x30': { w: 50, h: 30, qr: 74, barH: 26, title: 12, sub: 7, cod: 11.5, tel: 8, foot: 6.2, pad: '2.2mm 2.5mm' },
+      '60x40': { w: 60, h: 40, qr: 96, barH: 32, title: 14, sub: 8, cod: 13.5, tel: 9.5, foot: 7.2, pad: '3mm 3.5mm' }
+    }[sizeKey];
+    var absAssetBase = location.origin + location.pathname.replace(/[^/]*$/, '') + 'assets/';
+    if (!dims) {
+      var stdCard = afEtiquetaHtmlCard(a, qrTargetUrl).replace('src="assets/', 'src="' + absAssetBase);
+      return '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Etiqueta ' + esc(cod) + '</title><link href="https://fonts.googleapis.com/css2?family=Barlow:wght@600;700;800&display=swap" rel="stylesheet"><style>body{margin:24px;background:#fff;display:flex;justify-content:center;align-items:center}@media print{body{margin:0}#afStickerCard{box-shadow:none!important;border:1.5px solid #000!important}}</style></head><body>' + stdCard + '<script>window.onload=function(){setTimeout(function(){window.print();},250);};<\/script></body></html>';
+    }
+    var qrSvg = afQrSvg(qrTargetUrl, dims.qr);
+    var barSvg = afBarcodeSvg(cod, dims.barH);
+    var telHtml = (a.telefono && String(a.telefono).trim())
+      ? '<div style="font-size:' + dims.tel + 'pt;font-weight:800;color:#000;margin-top:1px;letter-spacing:0.3px">' + esc(String(a.telefono).trim()) + '</div>'
+      : '';
+    return '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Zebra ' + esc(cod) + '</title>' +
+      '<style>' +
+        '@page{size:' + dims.w + 'mm ' + dims.h + 'mm;margin:0;}' +
+        '*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact;}' +
+        'html,body{width:' + dims.w + 'mm;height:' + dims.h + 'mm;margin:0;padding:0;background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif;overflow:hidden;}' +
+        'svg{shape-rendering:crispEdges;image-rendering:pixelated;display:block;}' +
+        '.z-wrap{width:' + dims.w + 'mm;height:' + dims.h + 'mm;padding:' + dims.pad + ';display:flex;flex-direction:column;justify-content:space-between;}' +
+        '.z-top{display:flex;align-items:center;gap:2.2mm;flex:1;min-height:0;}' +
+        '.z-right{flex:1;min-width:0;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;}' +
+        '.z-brand{font-size:' + dims.title + 'pt;font-weight:900;line-height:1;letter-spacing:0.3px;color:#000;}' +
+        '.z-sub{font-size:' + dims.sub + 'pt;font-weight:800;line-height:1.1;letter-spacing:1.1px;color:#000;margin-bottom:1px;}' +
+        '.z-cod{font-size:' + dims.cod + 'pt;font-weight:900;line-height:1.05;color:#000;margin:1px 0;white-space:nowrap;}' +
+        '.z-bar{width:100%;max-width:29mm;overflow:hidden;}' +
+        '.z-bar svg{width:100%;height:' + dims.barH + 'px;}' +
+        '.z-foot{display:flex;align-items:center;justify-content:space-between;border-top:1.2px solid #000;padding-top:0.8mm;font-size:' + dims.foot + 'pt;font-weight:800;line-height:1.1;color:#000;}' +
+        '.z-sep{width:1.2px;height:3.2mm;background:#000;margin:0 1.5mm;flex:0 0 auto;}' +
+      '</style></head><body>' +
+      '<div class="z-wrap">' +
+        '<div class="z-top">' +
+          '<div style="flex:0 0 auto">' + qrSvg + '</div>' +
+          '<div class="z-right">' +
+            '<div class="z-brand">VE PAGOS</div>' +
+            '<div class="z-sub">ACTIVOS FIJOS</div>' +
+            '<div class="z-cod">' + esc(cod) + '</div>' +
+            '<div class="z-bar">' + barSvg + '</div>' +
+            telHtml +
+          '</div>' +
+        '</div>' +
+        '<div class="z-foot">' +
+          '<div style="flex:1">ESCANEA EL QR<br>PARA MÁS INFO</div>' +
+          '<div class="z-sep"></div>' +
+          '<div style="flex:1;text-align:right">PROPIEDAD EMPRESA<br>NO REMOVER</div>' +
+        '</div>' +
+      '</div>' +
+      '<script>window.onload=function(){setTimeout(function(){window.print();},200);};<\/script></body></html>';
   }
   function afEtiquetaModal(a) {
     if (!a) return;
     var cod = afEnsureCodigo(a);
-    var pubUrl = afPublicUrl(a);
+    var shortUrl = afQrShortUrl(a);
+    var fullUrl = afPublicUrl(a);
     saveDB(db);
-    var cardHtml = afEtiquetaHtmlCard(a);
+    var cardHtml = afEtiquetaHtmlCard(a, shortUrl);
     modal('<button class="mod-x">✕</button><h3>Etiqueta de activo · ' + esc(cod) + '</h3>' +
       '<p style="color:var(--muted);font-size:13.5px;margin:2px 0 10px">Depto: <b>' + esc(afDeptoCod(a.departamento)) + '</b> (' + esc(a.departamento || '—') + ') · Tipo: <b>' + esc(afTipoCod(a.descripcion, a.categoria, a.telefono)) + '</b> · Serial único: <b>' + esc(a.numAleatorio) + '</b></p>' +
-      cardHtml +
-      '<div class="note" style="margin:10px 0 6px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><span>El QR abre la ficha pública de este artículo sin requerir inicio de sesión.</span><a href="' + esc(pubUrl) + '" target="_blank" rel="noopener" style="font-weight:700;color:var(--navy)">Abrir link público del QR ↗</a></div>' +
-      '<div class="mod-actions"><button class="btn-s" id="etqEdit">Editar activo</button><button class="btn-s" id="etqOpenWeb">Ver ficha web (QR)</button><button class="btn-g" id="etqPrint">Imprimir etiqueta</button></div>', 'wide');
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:#F4F7FB;border:1px solid #D9E2EF;border-radius:12px;padding:10px 14px;margin-bottom:10px">' +
+        '<div style="flex:1;min-width:200px">' +
+          '<label style="display:block;font-size:11px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px">Formato / Impresora térmica</label>' +
+          '<select id="etqSizeSel" style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid #CBD5E1;font-weight:700;font-size:13px;background:#fff">' +
+            '<option value="50x25" selected>Zebra ZD220 · Rollo 50 × 25 mm (2" × 1" · 203 dpi)</option>' +
+            '<option value="50x30">Zebra ZD220 · Rollo 50 × 30 mm (203 dpi)</option>' +
+            '<option value="60x40">Zebra ZD220 · Rollo 60 × 40 mm (203 dpi)</option>' +
+            '<option value="std">Hoja estándar · Vista grande</option>' +
+          '</select>' +
+        '</div>' +
+        '<div style="flex:1;min-width:200px">' +
+          '<label style="display:block;font-size:11px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.6px;margin-bottom:3px">Densidad del QR (203 dpi)</label>' +
+          '<select id="etqQrMode" style="width:100%;padding:7px 10px;border-radius:8px;border:1px solid #CBD5E1;font-weight:700;font-size:13px;background:#fff">' +
+            '<option value="short" selected>QR Compacto Zebra (' + shortUrl.length + ' car. · Cuadros grandes)</option>' +
+            '<option value="full">QR Completo (' + fullUrl.length + ' car. · Alta densidad)</option>' +
+          '</select>' +
+        '</div>' +
+      '</div>' +
+      '<div id="etqCardWrap">' + cardHtml + '</div>' +
+      '<div id="etqZplBox" style="display:none;margin:10px 0;background:#0b1528;color:#e2e8f0;border-radius:12px;padding:12px 14px;border:1px solid #1e293b">' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px">' +
+          '<span style="font-size:12px;font-weight:800;color:#00E58C;letter-spacing:.6px">CÓDIGO NATIVO ZPL II · ZEBRA ZD220 (203 DPI)</span>' +
+          '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
+            '<button type="button" class="btn-s" id="etqZplCopy" style="padding:4px 10px;font-size:12px">Copiar ZPL</button>' +
+            '<button type="button" class="btn-s" id="etqZplDl" style="padding:4px 10px;font-size:12px">Descargar .zpl</button>' +
+            '<button type="button" class="btn-g" id="etqZplSend" style="padding:4px 10px;font-size:12px">Enviar a Zebra Browser Print</button>' +
+          '</div>' +
+        '</div>' +
+        '<pre id="etqZplPre" style="margin:0;font-family:Consolas,monospace;font-size:12px;line-height:1.4;white-space:pre-wrap;word-break:break-all;color:#f8fafc;max-height:160px;overflow:auto"></pre>' +
+      '</div>' +
+      '<div class="note" style="margin:10px 0 6px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><span>Optimizado en blanco y negro puro (#000) sin escala de grises para cabezal térmico Zebra ZD220 (203 dpi).</span><a id="etqPubLink" href="' + esc(shortUrl) + '" target="_blank" rel="noopener" style="font-weight:700;color:var(--navy)">Abrir link público del QR ↗</a></div>' +
+      '<div class="mod-actions"><button class="btn-s" id="etqEdit">Editar activo</button><button class="btn-s" id="etqOpenWeb">Ver ficha web (QR)</button><button class="btn-s" id="etqZplBtn" style="border-color:#001F60;color:#001F60;font-weight:800">ZPL nativo (Zebra)</button><button class="btn-g" id="etqPrint">Imprimir en Zebra / Navegador</button></div>', 'wide');
+
+    function currentQrUrl() {
+      var modeEl = $('#etqQrMode');
+      return (modeEl && modeEl.value === 'full') ? fullUrl : shortUrl;
+    }
+    function currentSizeKey() {
+      var szEl = $('#etqSizeSel');
+      return (szEl && szEl.value) ? szEl.value : '50x25';
+    }
+    function refreshPreviewAndZpl() {
+      var u = currentQrUrl();
+      var wrap = $('#etqCardWrap');
+      if (wrap) wrap.innerHTML = afEtiquetaHtmlCard(a, u);
+      var lnk = $('#etqPubLink');
+      if (lnk) lnk.setAttribute('href', u);
+      var pre = $('#etqZplPre');
+      if (pre) pre.textContent = afBuildZpl(a, currentSizeKey(), u);
+    }
+    $('#etqSizeSel').addEventListener('change', refreshPreviewAndZpl);
+    $('#etqQrMode').addEventListener('change', refreshPreviewAndZpl);
     $('#etqEdit').addEventListener('click', function () { closeModal(); afActivoForm(a); });
-    $('#etqOpenWeb').addEventListener('click', function () { window.open(pubUrl, '_blank', 'noopener'); });
+    $('#etqOpenWeb').addEventListener('click', function () { window.open(currentQrUrl(), '_blank', 'noopener'); });
+    $('#etqZplBtn').addEventListener('click', function () {
+      var box = $('#etqZplBox');
+      if (!box) return;
+      var show = box.style.display === 'none';
+      box.style.display = show ? 'block' : 'none';
+      if (show) refreshPreviewAndZpl();
+    });
+    $('#etqZplCopy').addEventListener('click', function () {
+      var zpl = afBuildZpl(a, currentSizeKey(), currentQrUrl());
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(zpl).then(function () { toast('Código ZPL copiado al portapapeles.'); });
+      } else {
+        toast('Selecciona y copia el bloque ZPL.');
+      }
+    });
+    $('#etqZplDl').addEventListener('click', function () {
+      var zpl = afBuildZpl(a, currentSizeKey(), currentQrUrl());
+      var blob = new Blob([zpl], { type: 'text/plain;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var dl = document.createElement('a');
+      dl.href = url;
+      dl.download = 'etiqueta-' + cod + '.zpl';
+      document.body.appendChild(dl);
+      dl.click();
+      document.body.removeChild(dl);
+      URL.revokeObjectURL(url);
+      toast('Archivo .zpl descargado para Zebra.');
+    });
+    $('#etqZplSend').addEventListener('click', function () {
+      var zpl = afBuildZpl(a, currentSizeKey(), currentQrUrl());
+      fetch('http://127.0.0.1:9100/default?type=printer')
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(new Error('No Zebra Browser Print')); })
+        .then(function (dev) {
+          if (!dev || !dev.uid) throw new Error('Impresora Zebra no detectada');
+          return fetch('http://127.0.0.1:9100/write', {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+            body: JSON.stringify({ device: dev, data: zpl })
+          });
+        })
+        .then(function (r) {
+          if (!r.ok) throw new Error('Error al enviar ZPL');
+          toast('Etiqueta enviada directamente a Zebra ZD220.');
+        })
+        .catch(function () {
+          toast('Zebra Browser Print no detectado en 127.0.0.1:9100. Usa "Imprimir en Zebra / Navegador" o descarga el .zpl.');
+        });
+    });
     $('#etqPrint').addEventListener('click', function () {
       var w = window.open('', '_blank', 'width=640,height=420');
       if (!w) { toast('Permite las ventanas emergentes para imprimir.'); return; }
-      var docHtml = '<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Etiqueta ' + esc(cod) + '</title><link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700;800&display=swap" rel="stylesheet"><style>body{margin:24px;background:#fff;display:flex;justify-content:center;align-items:center}@media print{body{margin:0}#afStickerCard{box-shadow:none!important}}</style></head><body>' + cardHtml.replace('src="assets/', 'src="' + location.origin + location.pathname.replace(/[^/]*$/, '') + 'assets/') + '<script>window.onload=function(){setTimeout(function(){window.print();},250);};<\/script></body></html>';
+      var docHtml = afThermalPrintDoc(a, currentSizeKey(), currentQrUrl());
       w.document.open(); w.document.write(docHtml); w.document.close();
     });
   }
